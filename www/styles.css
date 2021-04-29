@@ -6,16 +6,23 @@
 } */
 
 /* Body and headers */
+/*.main-container{
+  max-width:1200px;
+}*/
+
 body {
   font-family: "NPSRawlinsonOTTwo","Times New Roman", serif;
   font-size: 12px;
   color: black;
+  margin:0 auto;
+  width:1200px;
+  position:relative;  
 }
+
 
 p {
   font-family: "NPSRawlinsonOTTwo","Times New Roman", serif;
   font-size: 14px;
-  margin: 5px 0;
 }
 
 
@@ -57,26 +64,30 @@ h4 {
 h5 {
   font-family: "FrutigerLTStd-Black","Arial",Arial,sans-serif;
   font-size:12px;
-  padding:0px 0px 0px 0px;
-  margin:0px 0px 0px 0px;
+  padding:0;
+  margin:0;
 }
 
 /* Banner */
 .banner{
   background: black;
   height: 105px;
+  position:relative;
   /*width: auto;*/
-  width: 950px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 1200px;
+  padding: 0 0 10px 0;
+  /*margin-left: auto;
+  margin-right: auto;*/
+  margin: 0 auto;
 }
 
 .header{
  height: 100px;
- width: 930px;
- margin-left: auto;
- margin-right: auto;
-}
+ width: 1200px;
+ margin-left:auto;
+ margin-right:auto;
+ /*position: fixed;*/
+ }
 
 #col-left-header{
   float:left;
@@ -136,34 +147,46 @@ table td{
   font-family: "FrutigerLTStd-Black", "Arial", Arial, sans-serif;
 }
 
+.section{
+  /*width:1200px;*/
+  width:inherit;
+  /*margin:0 -50px;*/
+  padding:0;
+  position:inherit;
 
-/* Footer */
-.footer {
- height: 50px;
- font-family: "FrutigerLTStd-Light",FrutigerLTStd-Light, sans-serif;
 }
 
 /* Navbar */
 .navbar {
- visibility: hidden
+ visibility: hidden;
+ width:1200px;
+ margin:0 auto;
 }
 
+.nav-tabs li {
+  float: none;
+  display: inline-block;
+  margin:0 auto;
+}
 
 /* Tabset pills */
 .nav>li>a {
-    position: relative;
-    display: block;
-    padding: 10px 15px;
-    margin:2px 0;
+    /* position: relative;*/
+    display: inline-block;
+    margin:0 auto;
     color: #8CAF88;
     font-family: "FrutigerLTStd-Light",FrutigerLTStd-Light, sans-serif;
     font-size: 16px;
+    text-indent:0;
+    
+    
 }
 .nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {
     color: #ffffff;
     background-color: #8CAF88;
-    padding: 10px 15px;
-    margin:2px 0;
+    /*padding: 10px 15px;*/
+    width:100%;
+    margin:0 auto;
 
 }
 
