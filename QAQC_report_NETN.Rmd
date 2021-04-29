@@ -9,12 +9,15 @@ params:
   year: 2019
   plot: "ACAD-047"
 ---
+<div style="margin-left:-120px;width:100%">
 QAQC Report for: <span style="font-weight:bold;">`r params$plot` `r params$year`</span> {.tabset .tabset-pills}
 --------------------------------------------------
-
-```{r setup, include = FALSE, cache = TRUE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+options(knitr.kable.NA = '')
+```
 
+```{r import, include = FALSE, cache = TRUE}
 forestNETN::importData()
 ```
 
@@ -29,83 +32,21 @@ library(kableExtra)
 year = as.numeric(params$year)
 plot = params$plot
 
-#---- Functions 
-filter_plot <- function(df){filter(df, Plot_Name %in% params$plot & StartYear %in% params$year)}
-name_team <- function(df){mutate(df, Team = ifelse(IsQAQC == 0, "Crew", "QAQC"))}
-
-diff_ok <- "#F2F2A0" #yellow
-diff_bad <- "#F5BA59" #orange
-
-check_dif <- function(df, col){
-  dif <- ifelse(is.numeric(df[, col]), 
-                abs(diff(df[, col])), 
-                df[1,col] == df[2,col])
-
-  color <- case_when(is.logical(dif) & dif == TRUE ~ "#ffffff", #white
-                     is.logical(dif) & dif == FALSE ~ diff_ok,
-                     is.numeric(dif) & dif == 0 ~ "#ffffff", 
-                     is.numeric(dif) & dif == 1 ~ diff_ok,
-                     is.numeric(dif) & dif > 1 ~ diff_bad,
-                     is.na(dif) ~ "#ffffff") 
-  return(color)
-}
-
-add_covcode <- function(df, col, jointbl){
-  var_name <- paste0(substr(col, 5, nchar(col)), "_code")
-  df2 <- merge(df, jointbl, by.x = col, by.y = 'txt') 
-  names(df2)[names(df2) == "pct_class"] <- var_name
-  return(df2 %>% select(var_name))
-}
-
+source("QAQC_functions.R")
 ```
 
 ```{r compile_data, include = FALSE}
-arglist = list(park = params$park, from = year, to = year, QAQC = TRUE, eventType = 'complete')
-
-plotevs <- do.call(joinLocEvent, arglist) %>% filter_plot() %>% name_team()
-
-qaqc_eid <- plotevs$EventID[plotevs$IsQAQC == TRUE]
-crew_eid <- plotevs$EventID[plotevs$IsQAQC == FALSE]
-
-stand <- do.call(joinStandData, c(arglist, list(output = 'verbose'))) %>% filter_plot() %>% name_team()
-
-dist <- do.call(joinStandDisturbance, arglist) %>% filter_plot() %>% name_team()
-
-crown_cov <- data.frame(txt = c("<10%", "10-25%", "25-50%", "50-75%", "75-100%", "PM"),
-                        pct_class = c(1, 2, 3, 4, 5, 6))
-
-stand_cov <- data.frame(txt = c("0%", "1-5%", "5-25%", "25-50%", "50-75%", "75-95%", "95-100%", "PM"),
-                        pct_class = c(0, 1, 2, 3, 4, 5, 6, 7))
-
-code_cols <- c("Txt_Understory_Low", "Txt_Understory_Mid", "Txt_Understory_High", 
-               "Txt_Bare_Soil", "Txt_Bryophyte", "Txt_Lichen", "Txt_Rock", "Txt_Trampled", 
-               "Txt_Water")
-
-stand2 <- do.call(cbind, c(stand, 
-                           add_covcode(stand, "Txt_Crown_Closure", crown_cov),
-                           lapply(seq_along(code_cols), function(x){
-                                  add_covcode(stand, code_cols[x], stand_cov)}))) 
-
-tree_hts <- get("COMN_StandTreeHeights", envir = VIEWS_NETN) %>% 
-  select(ParkUnit, PlotCode, StartYear, IsQAQC, CrownClassLabel, TagCode, Height) %>% 
-  mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
-  filter_plot() %>% name_team() %>% select(-IsQAQC)
-
-tree_hts_wide <- tree_hts %>% pivot_wider(names_from = Team,
-                                          values_from = Height) %>% 
-                              mutate(ht_diff = Crew - QAQC)
-
-
-
+source("Compile_QAQC_Data.R")
 ```
-```{r stand_tables, include = FALSE}
 
+```{r stand_tables, include = FALSE}
 site_char_tab <- kable(stand2 %>% select(Team, Stand_Structure, Txt_Crown_Closure, Water_on_Plot, 
                               Deer_Browse_Index, Microtopography, Earthworms), 
                        format = "html", align = 'c',
                        col.names = c("Team", "Stand Structure" ,"Crown Closure", "Water on Plot", 
                                      "Deer Browse Index", "Microtopography", "Earthworms")) %>% 
-                 kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed') %>% 
+                 kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', 
+                               position = 'float_left') %>% 
                  row_spec(0, extra_css = 'border-bottom: 1px solid #000000;') %>% 
                  row_spec(1:2, extra_css = 'border-bottom: 1px solid #CACACA;') %>% 
                  column_spec(2, background = check_dif(stand2, "Stand_Structure")) %>% 
@@ -122,7 +63,8 @@ pct_tab <- kable(stand2 %>% select(Team, Txt_Understory_Low, Txt_Understory_Mid,
                  col.names = c("Team", "% Vasc. Low", "% Vasc. Mid", "% Vasc. High", 
                                "% Bare Soil", "% Rock", "% Trampled", "% Water",
                                "% Non-Vascular", "% Lichen")) %>% 
-                 kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed') %>% 
+                 kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', 
+                               position = 'float_left') %>% 
                  row_spec(0, extra_css = 'border-bottom: 1px solid #000000;') %>% 
                  row_spec(1:2, extra_css = 'border-bottom: 1px solid #CACACA;') %>%
                  column_spec(2, background = check_dif(stand2, "Understory_Low_code")) %>% 
@@ -141,11 +83,12 @@ trht_tab <- kable(tree_hts_wide %>% select(TagCode, CrownClassLabel, Crew, QAQC,
                   col.names = c("Tree #", "Crown Class", "Crew", "QAQC", "Diff (m)")) %>% 
             kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = FALSE, position = 'left') %>% 
                   row_spec(0, extra_css = 'border-bottom: 1px solid #000000;') %>% 
-                  row_spec(1:2, extra_css = 'border-bottom: 1px solid #CACACA;') %>%
+                  row_spec(1:(nrow(tree_hts_wide)-1), extra_css = 'border-bottom: 1px solid #CACACA;') %>%
                   column_spec(5, background = case_when(abs(tree_hts_wide$ht_diff) > 1 ~ diff_bad,
                                                         between(abs(tree_hts_wide$ht_diff), 0.1, 1) ~ diff_ok,
-                                                        tree_hts_wide$ht_diff == 0 ~ '#ffffff')
-                  )
+                                                        tree_hts_wide$ht_diff == 0 ~ '#ffffff')) %>% 
+                  row_spec(nrow(tree_hts_wide), extra_css = "border-bottom: 1px solid #000000;")
+
 dist_tab <- kable(dist %>% select(Team, DisturbanceSummary, ThresholdLabel, DisturbanceCoverClassLabel),
                   format = 'html', align = 'c',
                   table.attr = "style='width:48%;'",
@@ -159,13 +102,70 @@ dist_tab <- kable(dist %>% select(Team, DisturbanceSummary, ThresholdLabel, Dist
 
 ```
 
-### Stand {.tabset}
+```{r tree_tables, include = FALSE}
+tree_tab <- kable(tree_wide2 %>% select(-fol_diff, -dec_diff, -HWA_diff, -BBD_diff), 
+                  format = 'html', align = 'c',
+                  col.names = c("Tree", "Species", "DBH_C", "DBH_Q", "Diff", "Ver_C", "Ver_Q",
+                                "Status_C", "Status_Q", "Crown_C", "Crown_Q", "TotFol_C", "TotFol_Q",
+                                "Decay_C", "Decay_Q", "HWA_C", "HWA_Q", "BBD_C", "BBD_Q")) %>% 
+            kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', 
+                          full_width = FALSE, position = 'left', font_size = 6) %>% 
+            row_spec(0, extra_css = 'border-bottom: 1px solid #000000;') %>% 
+            row_spec(1:nrow(tree_wide2), extra_css = 'border: 1px solid #CACACA;') %>% 
+            column_spec(2, border_right = TRUE) %>% 
+            column_spec(3:5, background = check_dbh(tree_wide2, "DBH_diff")) %>% 
+            column_spec(5, border_right = TRUE) %>% 
+            column_spec(6:7, background = 
+                          ifelse(tree_wide2$IsDBHVerified_C != tree_wide2$IsDBHVerified_Q, diff_ok, "#ffffff")) %>% 
+            column_spec(7, border_right = TRUE) %>% 
+            column_spec(8:9, background = 
+                          case_when(substr(tree_wide2$TreeStatusCode_C, 1, 1) != "R" &
+                                    substr(tree_wide2$TreeStatusCode_C, 1, 1) != substr(tree_wide2$TreeStatusCode_Q, 1, 1) ~ diff_bad,
+                                    substr(tree_wide2$TreeStatusCode_C, 1, 1) != "R" &
+                                    tree_wide2$TreeStatusCode_C != tree_wide2$TreeStatusCode_Q ~ diff_ok,
+                                    TRUE ~ "#ffffff")) %>% 
+            column_spec(9, border_right = TRUE) %>% 
+            column_spec(10:11, background = 
+                          case_when(abs(tree_wide2$CrownClassCode_C - tree_wide2$CrownClassCode_Q) > 1 ~ diff_bad,
+                                    abs(tree_wide2$CrownClassCode_C - tree_wide2$CrownClassCode_Q) == 1 ~ diff_ok,
+                                    TRUE ~ "#ffffff")) %>% 
+            column_spec(11, border_left = TRUE) %>% 
+            column_spec(12:13, background = 
+                          case_when(tree_wide$fol_diff > 1 ~ diff_bad,
+                                    tree_wide$fol_diff == 1 ~ diff_ok,
+                                    TRUE ~ "#ffffff")) %>% 
+            column_spec(13, border_right = TRUE) %>% 
+            column_spec(14:15, background = 
+                          case_when(tree_wide2$dec_diff > 1 ~ diff_bad,
+                                    tree_wide2$dec_diff == 1 ~ diff_ok,
+                                    TRUE ~ "#ffffff")) %>% 
+            column_spec(15, border_right = TRUE) %>% 
+            column_spec(16:17, background = 
+                          case_when(tree_wide2$HWA_diff > 1 ~ diff_bad,
+                                    tree_wide2$HWA_diff == 1 ~ diff_ok,
+                                    TRUE ~ "#ffffff")) %>% 
+            column_spec(17, border_right = TRUE) %>% 
+            column_spec(18:19, background = 
+                          case_when(tree_wide2$BBD_diff > 1 ~ diff_bad,
+                                    tree_wide2$BBD_diff == 1 ~ diff_ok,
+                                    TRUE ~ "#ffffff"))  
+   
+
+  
+
+
+
+```
+
+
+### Stand {.tabset .tabset-pills}
 
 <h3>Stand Characteristics</h3>
 ```{r, echo = FALSE}
 site_char_tab
 ```
 <br>
+
 <h3>Stand % Cover Metrics</h3>
 ```{r, echo = FALSE}
 pct_tab
@@ -186,7 +186,17 @@ dist_tab
 ```
 </div>
 
-### Tree
+
+### Tree {.tabset}
+
+#### Tree Data {.tabset}
+```{r, echo = FALSE}
+tree_tab
+```
+
+#### Conditions
+
+#### Foliage Conditions
 
 ### Microplot
 
@@ -200,4 +210,4 @@ dist_tab
 
 ### Soil
 
-
+</div>
