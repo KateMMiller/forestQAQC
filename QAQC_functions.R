@@ -60,7 +60,7 @@ add_folcode <- function(df, col, jointbl){
   return(df2 %>% arrange(Team, TagCode) %>% select(var_name))
 }
 
-check_fol <- function(df, col1, col2){
+check_covclass <- function(df, col1, col2){
   color = case_when(df[,col1] == df[,col2] ~ "#ffffff",
                     abs(df[,col1] - df[,col2]) > 1 ~ diff_bad,
                     abs(df[,col1] - df[,col2]) == 1 ~ diff_ok,
@@ -69,9 +69,17 @@ check_fol <- function(df, col1, col2){
 }
 
 
-check_saps <- function(df, col1, col2){
+check_stems <- function(df, col1, col2){
   color = case_when(df[,col1] == df[,col2] ~ "#ffffff",
                     abs(df[,col1] - df[,col2]) > 0 ~ diff_bad,
+                    TRUE ~ "#ffffff")
+  return(color)
+}
+
+check_stems_small <- function(df, col1, col2){
+  color = case_when(df[,col1] == df[,col2] ~ "#ffffff",
+                    abs(df[,col1] - df[,col2]) == 1 ~ diff_ok,
+                    abs(df[,col1] - df[,col2]) > 1 ~ diff_bad,
                     TRUE ~ "#ffffff")
   return(color)
 }

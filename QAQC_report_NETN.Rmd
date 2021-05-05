@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2019
-  plot: "ACAD-047"
+  plot: "ROVA-009"
 ---
 <div style="margin-left:-120px;width:100%">
 QAQC Report for: <span style="font-weight:bold;">`r params$plot` `r params$year`</span> {.tabset .tabset-pills}
@@ -213,20 +213,20 @@ folcond_tab <- kable(folcond_wide %>% select(TagCode:Txt_Leaves_Aff_W_Q),
                     row_spec(nrow(folcond_wide), extra_css = "border-bottom: 1px solid #000000;") %>%
                     column_spec(1, border_left = TRUE, border_right = TRUE, 
                                 extra_css = "border-left: 1px solid #000000; border-right: 1px solid #000000;") %>%
-                    column_spec(2:3, background = check_fol(folcond_wide, "Leaves_Aff_C_code_C", "Leaves_Aff_C_code_Q")) %>% 
+                    column_spec(2:3, background = check_covclass(folcond_wide, "Leaves_Aff_C_code_C", "Leaves_Aff_C_code_Q")) %>% 
                     column_spec(seq(3, 21, 2), border_right = TRUE) %>% 
-                    column_spec(4:5, background = check_fol(folcond_wide, "Leaf_Area_C_code_C", "Leaf_Area_C_code_Q")) %>% 
-                    column_spec(6:7, background = check_fol(folcond_wide, "Leaves_Aff_H_code_C", "Leaves_Aff_H_code_Q")) %>% 
-                    column_spec(8:9, background = check_fol(folcond_wide, "Leaf_Area_H_code_C", "Leaf_Area_H_code_Q")) %>% 
-                    column_spec(10:11, background = check_fol(folcond_wide, "Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")) %>% 
-                    column_spec(12:13, background = check_fol(folcond_wide, "Leaves_Aff_N_code_C", "Leaves_Aff_N_code_Q")) %>% 
-                    column_spec(14:15, background = check_fol(folcond_wide, "Leaf_Area_N_code_C", "Leaf_Area_N_code_Q")) %>% 
-                    column_spec(16:17, background = check_fol(folcond_wide, "Leaves_Aff_O_code_C", "Leaves_Aff_O_code_Q")) %>% 
-                    column_spec(18:19, background = check_fol(folcond_wide, "Leaves_Aff_S_code_C", "Leaves_Aff_S_code_Q")) %>% 
-                    column_spec(20:21, background = check_fol(folcond_wide, "Leaves_Aff_W_code_C", "Leaves_Aff_W_code_Q")) %>% 
+                    column_spec(4:5, background = check_covclass(folcond_wide, "Leaf_Area_C_code_C", "Leaf_Area_C_code_Q")) %>% 
+                    column_spec(6:7, background = check_covclass(folcond_wide, "Leaves_Aff_H_code_C", "Leaves_Aff_H_code_Q")) %>% 
+                    column_spec(8:9, background = check_covclass(folcond_wide, "Leaf_Area_H_code_C", "Leaf_Area_H_code_Q")) %>% 
+                    column_spec(10:11, background = check_covclass(folcond_wide, "Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")) %>% 
+                    column_spec(12:13, background = check_covclass(folcond_wide, "Leaves_Aff_N_code_C", "Leaves_Aff_N_code_Q")) %>% 
+                    column_spec(14:15, background = check_covclass(folcond_wide, "Leaf_Area_N_code_C", "Leaf_Area_N_code_Q")) %>% 
+                    column_spec(16:17, background = check_covclass(folcond_wide, "Leaves_Aff_O_code_C", "Leaves_Aff_O_code_Q")) %>% 
+                    column_spec(18:19, background = check_covclass(folcond_wide, "Leaves_Aff_S_code_C", "Leaves_Aff_S_code_Q")) %>% 
+                    column_spec(20:21, background = check_covclass(folcond_wide, "Leaves_Aff_W_code_C", "Leaves_Aff_W_code_Q")) %>% 
                     scroll_box(width = "1100px")
   
-
+# After I've built out all of the tabs, find a way to put a second header to help break up the column names b/t cond and QAQC
 
 ```
 
@@ -249,11 +249,43 @@ sap_sum_tab <- kable(sap_sum %>% select(-dbh_diff), format = 'html', align = 'c'
                row_spec(1:nrow(sap_sum), extra_css = 'border: 1px solid #CACACA;') %>% 
                row_spec(nrow(sap_sum), extra_css = "border-bottom: 1px solid #000000;") %>% 
                column_spec(1, border_left = TRUE) %>% 
-               column_spec(2:3, background = check_saps(sap_sum, "num_saps_Crew", "num_saps_QAQC")) %>% 
+               column_spec(2:3, background = check_stems(sap_sum, "num_saps_Crew", "num_saps_QAQC")) %>% 
                column_spec(4:5, background = check_dbh(sap_sum, "dbh_diff")) %>% 
                column_spec(seq(1, 5, 2), border_right = TRUE) 
 
-            
+row_changes <- sapply(seq_along(shrubs_full), function(x){
+  check = ifelse(shrubs_full$Micro[x] != shrubs_full$Micro[x + 1], x, NA)
+  }) %>% data.frame() %>% na.omit(.) 
+
+shrub_tab <- kable(shrubs_full %>% select(-pct_class_C, -pct_class_Q), format = 'html', align = 'c',
+                   col.names = c("Micro", "Species", "% Cover C", "% Cover Q")) %>% 
+             kable_styling(fixed_thead = TRUE, bootstrap_options = "condensed", 
+                           full_width = TRUE, position = 'left', font_size = 14) %>% 
+             column_spec(3:4, background = check_covclass(shrubs_full, "pct_class_C", "pct_class_Q")) %>% 
+             row_spec(c(0, nrow(shrubs_full)), extra_css = "border-bottom: 1px solid #000000;") %>% 
+             row_spec(row_changes[,1], extra_css = "border-bottom: 1px solid #000000;")
+
+row_changes2 <- sapply(seq_along(seeds_comp), function(x){
+  check = ifelse(seeds_comp$MicroplotCode[x] != seeds_comp$MicroplotCode[x + 1], x, NA)
+  }) %>% data.frame() %>% na.omit(.) 
+
+seeds_tab <- kable(seeds_comp %>% select(-tot_seeds_C, -tot_seeds_Q), format = 'html', align = 'c', 
+                   col.names = c("Micro", "Species", "15-30cm_C", "15-30cm_Q", "30-100cm_C", "30-100cm_Q",
+                                 "100-150cm_C", "100-150cm_Q", ">150cm_C", ">150cm_Q")) %>% 
+             kable_styling(fixed_thead = TRUE, bootstrap_options = "condensed", 
+                           full_width = TRUE, position = 'left', font_size = 14) %>% 
+             column_spec(c(1, seq(2, 10, 2)), border_right = TRUE) %>%
+             column_spec(seq(3, 9, 2), border_right = TRUE, extra_css = 'border-right: 1px solid #CACACA;') %>% 
+             column_spec(2, background = ifelse(!(seeds_comp$ScientificName %in% "None present") & 
+                                                 (seeds_comp$tot_seeds_C == 0 | seeds_comp$tot_seeds_Q == 0), 
+                                                diff_bad, "#ffffff")) %>% 
+             column_spec(3:4, background = check_stems_small(seeds_comp, "sd_15_30cm_C", "sd_15_30cm_Q")) %>% 
+             column_spec(5:6, background = check_stems(seeds_comp, "sd_30_100cm_C" ,"sd_30_100cm_Q")) %>% 
+             column_spec(7:8, background = check_stems(seeds_comp, "sd_100_150cm_C" ,"sd_100_150cm_Q")) %>% 
+             column_spec(5:6, background = check_stems(seeds_comp, "sd_p150cm_C" ,"sd_p150cm_Q")) %>% 
+             row_spec(c(0, nrow(seeds_comp)), extra_css = "border-bottom: 1px solid #000000;") %>% 
+             row_spec(row_changes2[,1], extra_css = "border-bottom: 1px solid #000000;")
+
 ```
 ### Stand {.tabset .tabset-pills}
 
@@ -302,8 +334,8 @@ folcond_tab
 ```
 
 ### Microplot{.tabset}
-<div class='column_1'>
-<h3>Saplings</h3>
+
+#### Saplings {.tabset}
 <details open><summary><h3>Individual Stems</h3></summary>
 ```{r, sap_table, echo = FALSE}
 sap_tab
@@ -315,12 +347,23 @@ sap_tab
 sap_sum_tab
 ```
 </details>
-</div>
-<div class='column_2'>
-<h3>Shrubs</h3>
 
-<h3>Seedlings</h3>
-</div>
+#### Shrubs {.tabset}
+<details open><summary><h3>Shrubs</h3></summary>
+```{r, shrub_table, echo = FALSE}
+shrub_tab
+```
+</details>
+
+#### Seedlings {.tabset}
+<details open><summary><h3>Individual Stems</h3></summary>
+```{r, seed_table, echo = FALSE}
+seeds_tab
+```
+</details>
+
+
+
 ### Quadrat Data
 
 ### Quadrat Species

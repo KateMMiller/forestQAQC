@@ -9,7 +9,7 @@ library(htmltools)
 library(knitr)
 library(kableExtra)
 source("QAQC_functions.R")
-#importData() #local instance
+importData() #local instance
 
 #----- Compile data
 arglist = list(park = params$park, from = year, to = year, QAQC = TRUE, eventType = 'complete')
@@ -143,7 +143,7 @@ folcond_wide <- full_join(folcond_c, folcond_q,
                                 contains("_code"))
 names(folcond_wide)
 
-check_fol(folcond_wide, "Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")
+check_covclass(folcond_wide, "Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")
 folcond_wide[, c("Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")]
 
 #----- Microplot Saplings
@@ -159,4 +159,51 @@ sap_sum <- saps %>% group_by(MicroplotCode, Team) %>% summarize(num_saps = sum(!
                     pivot_wider(names_from = Team,
                                 values_from = c(num_saps, avg_dbh)) %>% 
                     mutate(dbh_diff = abs(avg_dbh_Crew - avg_dbh_QAQC)) %>% data.frame()
+
+#----- Microplot Shrubs
+shrubs <- do.call(joinMicroShrubData, c(arglist, list(speciesType = 'all', valueType = 'all'))) %>% 
+  filter_plot() %>% name_team() %>% select(Team, ScientificName, Txt_Cov_UR:Txt_Cov_B, shrub_avg_cov,
+                                           shrub_pct_freq) %>% 
+  rename(UR = Txt_Cov_UR, UL = Txt_Cov_UL, B = Txt_Cov_B)
+
+shrubs_long <- shrubs %>% select(Team, ScientificName, UR, UL, B) %>% 
+                          pivot_longer(cols = c(UR, UL, B),
+                                       names_to = 'Micro',
+                                       values_to = 'Txt_Cov') %>% 
+                          filter(!Txt_Cov %in% "0%")
+
+shrub_cov <- data.frame(txt = c("0%", "<1%", "1-5%", "5-10%", "10-25%", "25-50%", "50-75%", "75-95%", "95-100%"),
+                       pct_class = c(0, 1, 2, 3, 4, 5, 6, 7, 8))
+
+shrubs_long2 <- left_join(shrubs_long, shrub_cov, by = c("Txt_Cov" = 'txt')) 
+
+shrubs_comp <- full_join(shrubs_long2 %>% filter(Team == "Crew") %>% select(-Team), 
+                         shrubs_long2 %>% filter(Team == "QAQC") %>% select(-Team),
+                         by = c("Micro", "ScientificName"),
+                         suffix = c("_C", "_Q")) %>% 
+               select(Micro, everything()) %>% arrange(Micro, ScientificName)
+
+# handle if microplot was dropped
+micro_names <- data.frame(Micro = c("UR", "UL", "B")) 
+
+shrubs_full <- full_join(shrubs_comp, micro_names, by = "Micro")
+shrubs_full[, c("Txt_Cov_C", "Txt_Cov_Q")][is.na(shrubs_full[, c("Txt_Cov_C", "Txt_Cov_Q")])] <- "0%"
+shrubs_full[, c("pct_class_C", "pct_class_Q")][is.na(shrubs_full[, c("pct_class_C", "pct_class_Q")])] <- 0
+shrubs_full$ScientificName[is.na(shrubs_full$ScientificName)] <- "None present"
+
+#----- Microplot seedlings
+seeds <- do.call(joinMicroSeedlings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>% 
+         filter_plot() %>% name_team() %>% 
+         select(Team, MicroplotCode, ScientificName, sd_15_30cm:sd_p150cm, tot_seeds)
+
+seeds_comp <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
+                        seeds %>% filter(Team == "QAQC") %>% select(-Team),
+                        by = c("MicroplotCode", "ScientificName"),
+                        suffix = c("_C", "_Q")) %>% 
+              arrange(MicroplotCode, ScientificName) %>% 
+              select(MicroplotCode, ScientificName, sd_15_30cm_C, sd_15_30cm_Q, sd_30_100cm_C, sd_30_100cm_Q,
+                     sd_100_150cm_C, sd_100_150cm_Q, sd_p150cm_C, sd_p150cm_Q, tot_seeds_C, tot_seeds_Q)
+
+seeds_comp[,3:12][is.na(seeds_comp[,3:12])] <- 0
+
 
