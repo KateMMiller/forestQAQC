@@ -196,14 +196,33 @@ seeds <- do.call(joinMicroSeedlings, c(arglist, list(speciesType = 'all', canopy
          filter_plot() %>% name_team() %>% 
          select(Team, MicroplotCode, ScientificName, sd_15_30cm:sd_p150cm, tot_seeds)
 
-seeds_comp <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
+seeds_comp1 <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
                         seeds %>% filter(Team == "QAQC") %>% select(-Team),
                         by = c("MicroplotCode", "ScientificName"),
                         suffix = c("_C", "_Q")) %>% 
               arrange(MicroplotCode, ScientificName) %>% 
               select(MicroplotCode, ScientificName, sd_15_30cm_C, sd_15_30cm_Q, sd_30_100cm_C, sd_30_100cm_Q,
-                     sd_100_150cm_C, sd_100_150cm_Q, sd_p150cm_C, sd_p150cm_Q, tot_seeds_C, tot_seeds_Q)
+                     sd_100_150cm_C, sd_100_150cm_Q, sd_p150cm_C, sd_p150cm_Q, tot_seeds_C, tot_seeds_Q) %>% 
+              filter(!ScientificName %in% "None present")
 
+micro_names <- data.frame(MicroplotCode = c("UR", "UL", "B")) 
+seeds_comp <- full_join(seeds_comp1, micro_names, by = "MicroplotCode") %>% arrange(MicroplotCode, ScientificName)
 seeds_comp[,3:12][is.na(seeds_comp[,3:12])] <- 0
+seeds_comp$ScientificName[is.na(seeds_comp$ScientificName)] <- "None present"
+seeds_comp
 
+regen_sum <- do.call(joinRegenData, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>%
+             filter_plot() %>% name_team() %>%
+             select(Team, ScientificName, seed_den, sap_den, stock) %>%
+             filter(!ScientificName %in% "None present")
 
+regen_comp1 <- full_join(regen_sum %>% filter(Team == "Crew") %>% select(-Team),
+                        regen_sum %>% filter(Team == "QAQC") %>% select(-Team),
+                        by = "ScientificName",
+                        suffix = c("_C", "_Q"))
+
+regen_comp1[,2:7][is.na(regen_comp1[,2:7])] <- 0
+
+regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1)
+
+#++++++ ENDED HERE. Want to make a function check each summary column- if 1-10% diff, yellow. If >10% diff, orange.
