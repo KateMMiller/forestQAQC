@@ -223,6 +223,181 @@ regen_comp1 <- full_join(regen_sum %>% filter(Team == "Crew") %>% select(-Team),
 
 regen_comp1[,2:7][is.na(regen_comp1[,2:7])] <- 0
 
-regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1)
+regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1) %>% 
+                              mutate(seed_pct_diff = pct_diff(seed_den_C, seed_den_Q),
+                                     sap_pct_diff = pct_diff(sap_den_C, sap_den_Q),
+                                     stock_pct_diff = pct_diff(stock_C, stock_Q)) %>% 
+              select(ScientificName, seed_den_C, seed_den_Q, sap_den_C, sap_den_Q,
+                     stock_C, stock_Q, everything())
 
-#++++++ ENDED HERE. Want to make a function check each summary column- if 1-10% diff, yellow. If >10% diff, orange.
+#----- Quadrat Character
+quad_chr <- do.call(joinQuadData, c(arglist, list(valueType = 'classes'))) %>% filter_plot() %>% name_team() %>% 
+            select(Team, CharacterLabel, starts_with("Txt")) 
+
+newname <- substr(names(quad_chr[,3:10]), 9, 10)
+quad_chr <- setNames(quad_chr, c(names(quad_chr[,1:2]), newname))
+
+# quad_cov <- data.frame(txt = c("0%", "<1%", "1-2%", "2-5%", "5-10%", "10-25%", "25-50%", "50-75%", "75-95%", "95-100%"),
+#                        pct_class = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+
+quad_chr_class <- quad_chr
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "0%"] <- 0
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "<1%"] <- 1
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "1-2%"] <- 2
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "2-5%"] <- 3
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "5-10%"] <- 4
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "10-25%"] <- 5
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "25-50%"] <- 6
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "50-75%"] <- 7
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "75-95%"] <- 8
+quad_chr_class[,3:10][quad_chr_class[,3:10] == "95-100%"] <- 9
+
+quad_chr_class <- quad_chr_class %>% mutate(across(UC:UL, ~as.numeric(.)))
+quad_chr2 <- full_join(quad_chr, quad_chr_class, by = c("Team", "CharacterLabel"),
+                       suffix = c("", "_class")) %>% 
+                       mutate(order = case_when(CharacterLabel == "Soil" ~ 1,
+                                                CharacterLabel == "Rock" ~ 2,
+                                                CharacterLabel == "Stem" ~ 3,
+                                                CharacterLabel == "Wood" ~ 4,
+                                                CharacterLabel == "Sphagnum" ~ 5,
+                                                CharacterLabel == "NonSphagnum" ~ 6,
+                                                CharacterLabel == "Licens" ~ 7
+                                                ))
+head(quad_chr2)
+
+quad_chr_comp <- full_join(quad_chr2 %>% filter(Team == "Crew") %>% select(-Team), 
+                       quad_chr2 %>% filter(Team == "QAQC") %>% select(-Team),
+                       by = c("CharacterLabel", "order"),
+                       suffix = c("_C", "_Q")) %>% 
+                       mutate(UC_dif = abs(UC_class_C - UC_class_Q),
+                              UR_dif = abs(UR_class_C - UR_class_Q),
+                              MR_dif = abs(MR_class_C - MR_class_Q),
+                              BR_dif = abs(BR_class_C - BR_class_Q),
+                              BC_dif = abs(BC_class_C - BC_class_Q),
+                              BL_dif = abs(BL_class_C - BL_class_Q),
+                              ML_dif = abs(ML_class_C - ML_class_Q),
+                              UL_dif = abs(UL_class_C - UL_class_Q)) %>%
+                       arrange(order) %>% 
+                       select(CharacterLabel, 
+                              UC_C, UC_Q, UR_C, UR_Q,
+                              MR_C, MR_Q, BR_C, BR_Q,
+                              BC_C, BC_Q, BL_C, BL_Q,
+                              ML_C, ML_Q, UL_C, UL_Q,
+                              UC_dif, UR_dif, MR_dif, BR_dif,
+                              BC_dif, BL_dif, ML_dif, UL_dif) %>% 
+                       rename(Character = CharacterLabel)
+
+head(quad_chr_comp)
+
+#----- Quadrat species
+quad_spp1 <- do.call(joinQuadSpecies, c(arglist)) %>% filter_plot() %>% name_team() 
+
+quad_spp <- quad_spp1 %>% 
+  select(Team, ScientificName, IsGerminant, starts_with("Txt")) 
+names(quad_spp)
+newname <- substr(names(quad_spp[,4:11]), 9, 10)
+quad_spp <- setNames(quad_spp, c(names(quad_spp[,1:3]), newname))
+
+# quad_cov <- data.frame(txt = c("0%", "<1%", "1-2%", "2-5%", "5-10%", "10-25%", "25-50%", "50-75%", "75-95%", "95-100%"),
+#                        pct_class = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+quad_spp_class <- quad_spp
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "0%"] <- 0
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "<1%"] <- 1
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "1-2%"] <- 2
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "2-5%"] <- 3
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "5-10%"] <- 4
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "10-25%"] <- 5
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "25-50%"] <- 6
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "50-75%"] <- 7
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "75-95%"] <- 8
+quad_spp_class[,4:11][quad_spp_class[,4:11] == "95-100%"] <- 9
+quad_spp_class[,4:11][is.na(quad_spp_class[,4:11])] <- 0
+str(quad_spp_class)
+
+quad_spp_class <- quad_spp_class %>% mutate(across(UC:UL, ~as.numeric(.)))
+names(quad_spp_class)
+
+quad_spp2 <- full_join(quad_spp, quad_spp_class, by = c("Team", "ScientificName", "IsGerminant"),
+                       suffix = c("", "_class"))
+  
+head(quad_spp2)
+
+quad_spp_comp <- full_join(quad_spp2 %>% filter(Team == "Crew") %>% select(-Team), 
+                           quad_spp2 %>% filter(Team == "QAQC") %>% select(-Team),
+                           by = c("ScientificName", "IsGerminant"),
+                           suffix = c("_C", "_Q")) %>% 
+  mutate(UC_dif = abs(UC_class_C - UC_class_Q),
+         UR_dif = abs(UR_class_C - UR_class_Q),
+         MR_dif = abs(MR_class_C - MR_class_Q),
+         BR_dif = abs(BR_class_C - BR_class_Q),
+         BC_dif = abs(BC_class_C - BC_class_Q),
+         BL_dif = abs(BL_class_C - BL_class_Q),
+         ML_dif = abs(ML_class_C - ML_class_Q),
+         UL_dif = abs(UL_class_C - UL_class_Q))# %>%
+
+names(quad_spp_comp)
+quad_spp_comp$spp_miss_C <- ifelse(rowSums(
+  quad_spp_comp[, c("UC_class_C", "UR_class_C", "MR_class_C", "BR_class_C", 
+                     "BC_class_C", "BL_class_C", "ML_class_C", "UL_class_C")], na.rm = T) == 0, 1, 0)
+
+quad_spp_comp$spp_miss_Q <- ifelse(rowSums(
+  quad_spp_comp[, c("UC_class_Q", "UR_class_Q", "MR_class_Q", "BR_class_Q", 
+                    "BC_class_Q", "BL_class_Q", "ML_class_Q", "UL_class_Q")], na.rm = T) == 0, 1, 0)
+
+quad_spp_comp2 <- quad_spp_comp %>% select(ScientificName, IsGerminant,
+                                           UC_C, UC_Q, UR_C, UR_Q,
+                                           MR_C, MR_Q, BR_C, BR_Q,
+                                           BC_C, BC_Q, BL_C, BL_Q,
+                                           ML_C, ML_Q, UL_C, UL_Q,
+                                           UC_dif, UR_dif, MR_dif, BR_dif,
+                                           BC_dif, BL_dif, ML_dif, UL_dif,
+                                           spp_miss_C, spp_miss_Q) %>% 
+  arrange(ScientificName, IsGerminant) %>% rename(Germ = IsGerminant)
+
+
+quad_spp_comp2[, 3:18][is.na(quad_spp_comp2[, 3:18])] <- "0%"
+quad_spp_comp2[, 19:28][is.na(quad_spp_comp2[, 19:28])] <- 0
+
+head(quad_spp1)
+quad_sum <- quad_spp1 %>% select(Team, ScientificName, IsGerminant, quad_avg_cov, quad_pct_freq)
+
+quad_sum_comp <- full_join(quad_sum %>% filter(Team == "Crew") %>% select(-Team), 
+                           quad_sum %>% filter(Team == "QAQC") %>% select(-Team),
+                           by = c("ScientificName", "IsGerminant"),
+                           suffix = c("_C", "_Q")) 
+
+quad_sum_comp[,2:6][is.na(quad_sum_comp[,2:6])] <- 0
+
+quad_sum_comp2 <- quad_sum_comp %>%  
+                    mutate(pct_diff_cov = pct_diff(quad_avg_cov_C, quad_avg_cov_Q),
+                           pct_diff_freq = pct_diff(quad_pct_freq_C, quad_pct_freq_Q)) %>% 
+                    select(ScientificName, IsGerminant, quad_avg_cov_C, quad_avg_cov_Q, 
+                           quad_pct_freq_C, quad_pct_freq_Q, pct_diff_cov, pct_diff_freq) %>% 
+                    mutate_if(is.numeric, round, 2) %>% arrange(ScientificName, IsGerminant)
+head(quad_sum_comp2)
+
+#------ Additional species
+spp_list <- do.call(sumSpeciesList, c(arglist, list(speciesType = 'all'))) %>% filter_plot() %>% name_team() 
+
+spp_list2 <- spp_list %>% mutate(Trees = ifelse(DBH_mean > 0, 1, 0),
+                                 Micros = ifelse(seed_den + sap_den + shrub_avg_cov > 0, 1, 0),
+                                 Quads = ifelse(quad_avg_cov > 0, 1, 0),
+                                 AddSpp = ifelse(addspp_present > 0 , 1, 0)) %>% 
+                          select(Team, ScientificName, Trees, Micros, Quads, AddSpp)
+
+spp_list_comp <- full_join(spp_list2 %>% filter(Team == "Crew") %>% select(-Team), 
+                           spp_list2 %>% filter(Team == "QAQC") %>% select(-Team),
+                           by = c("ScientificName"),
+                           suffix = c("_C", "_Q")) %>% 
+                 select(ScientificName, Trees_C, Trees_Q, Micros_C, Micros_Q, 
+                        Quads_C, Quads_Q, AddSpp_C, AddSpp_Q)
+
+spp_list_comp[,2:9][is.na(spp_list_comp[,2:9])] <- 0
+
+spp_list_comp2 <- spp_list_comp %>% group_by(ScientificName) %>% summarize_if(is.numeric, sum)
+spp_list_comp2[,2:9][spp_list_comp2[,2:9] > 1] <- 1
+
+spp_list_comp2$missed_C <- ifelse(rowSums(spp_list_comp2[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) == 0, 1, 0)
+spp_list_comp2$missed_Q <- ifelse(rowSums(spp_list_comp2[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) == 0, 1, 0)
+
+head(spp_list_comp2)

@@ -21,6 +21,14 @@ check_dif <- function(df, col){
   return(color)
 }
 
+check_dif_col <- function(df, col){
+  df[,col][is.na(df[,col])] <- 0
+  color <- case_when(df[,col] == 0 ~ "#ffffff",
+                     df[,col] == 1 ~ diff_ok,
+                     df[,col] > 1 ~ diff_bad)
+  return(color)
+}
+
 check_dbh <- function(df, col){
   df$diff <- abs(df[,col])
   #df$diff[is.na(df$diff)]
@@ -84,3 +92,17 @@ check_stems_small <- function(df, col1, col2){
   return(color)
 }
 
+check_pct_diff <- function(df, col1, col2, pct_diff){
+  color = case_when(between(df[,pct_diff], 0, 1) ~ "#ffffff",
+                    between(df[,pct_diff], 1, 5) ~ diff_ok,
+                    df[,col1] + df[,col2] <= 5 & df[,pct_diff] > 10 ~ diff_ok, #b/c  small tallies can have large % diff
+                    df[,col1] + df[,col2] > 5 & df[,pct_diff] > 10 ~ diff_bad,
+                    TRUE ~ "#ffffff")
+  return(color)
+}
+
+
+pct_diff <- function(col1, col2){
+  pct_diff =  (abs(col1 - col2)/((col1 + col2)/2))*100
+  return(pct_diff)
+}
