@@ -9,10 +9,13 @@ library(htmltools)
 library(knitr)
 library(kableExtra)
 source("QAQC_functions.R")
-importData() #local instance
+#importData() #local instance
+
+#path = "C:/Forest_Health/exports/NETN"
+#importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
 
 #----- Compile data
-arglist = list(park = params$park, from = year, to = year, QAQC = TRUE, eventType = 'complete')
+arglist = list(park = substr(params$plot, 1, 4), from = year, to = year, QAQC = TRUE, eventType = 'complete')
 
 plotevs <- do.call(joinLocEvent, arglist) %>% filter_plot() %>% name_team()
 
@@ -97,21 +100,31 @@ tree_wide2 <- tree_wide2 %>%
 #----- Tree Conditions
 tr_cond <- do.call(joinTreeConditions, 
                    c(arglist[1:4], list(speciesType = 'all', status = 'all', canopyPosition = 'all'))) %>% 
-           filter_plot() %>% name_team() %>% select(Plot_Name, TagCode, ScientificName, num_cond:Team)
+           filter_plot() %>% name_team() %>% select(Plot_Name, TagCode, TreeStatusCode, ScientificName, num_cond:Team)
 tr_cond <- make_sppcode(tr_cond) %>% select(-ScientificName, -genus, -species)
 
 trcond_c <- tr_cond %>% filter(Team == "Crew")
 trcond_q <- tr_cond %>% filter(Team == "QAQC")
 
+live <- c("1", "AB", "AF", "AL", "AM", "AS", "RB", "RF", "RL", "RS")
+dead <- c("2", "DB", "DL", "DM", "DS")
+
 trcond_wide <- full_join(trcond_c, trcond_q, 
-                         by = c("Plot_Name", "TagCode", "sppcode"),
+                         by = c("Plot_Name", "TagCode", "sppcode", "TreeStatusCode"),
                          suffix = c("_C", "_Q")) %>% 
-               mutate(cond_diff = abs(num_cond_C - num_cond_Q)) %>% 
-               select(TagCode, cond_diff, num_cond_C, num_cond_Q, H_C, H_Q, NO_C, NO_Q,
+               mutate(cond_diff = abs(num_cond_C - num_cond_Q),
+                      Status = ifelse(TreeStatusCode %in% live, "live", "dead")) %>% 
+               select(TagCode, Status, cond_diff, num_cond_C, num_cond_Q, H_C, H_Q, NO_C, NO_Q,
                       AD_C, AD_Q, BBD_C, BBD_Q, BC_C, BC_Q, BWA_C, BWA_Q, CAVL_C, CAVL_Q, CAVS_C, CAVS_Q,
                       CW_C, CW_Q, DBT_C, DBT_Q, DOG_C, DOG_Q, EAB_C, EAB_Q, EB_C, EB_Q, 
                       EHS_C, EHS_Q, G_C, G_Q, GM_C, GM_Q, HWA_C, HWA_Q, ID_C, ID_Q, 
                       OTH_C, OTH_Q, RPS_C, RPS_Q, SB_C, SB_Q, VIN_B_C, VIN_B_Q, VIN_C_C, VIN_C_Q)
+
+trcond_wide[,c(3:51)][is.na(trcond_wide[,c(3:51)])] <- 0
+trcond_wide[,c(8:9)][trcond_wide$Status == 'live',] <- NA
+trcond_wide[,c(6:7, 10:17, 22:51)][trcond_wide$Status == 'dead',] <- NA
+trcond_wide[,c(3:4)][is.na(trcond_wide[,c(3:4)])] <- 0
+names(trcond_wide)
 
 #----- Tree Foliage Conditions
 fol_cond <- do.call(joinTreeFoliageCond,
@@ -150,8 +163,7 @@ folcond_wide[, c("Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")]
 saps <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>%  
   filter_plot() %>% name_team() %>% select(Team, SQSaplingCode, MicroplotCode, ScientificName, DBHcm) %>% 
   group_by(MicroplotCode, ScientificName, Team) %>% 
-  mutate(rank = rank(DBHcm)) %>% 
-  arrange(MicroplotCode, ScientificName, rank, Team) %>% select(-rank)
+  arrange(MicroplotCode, Team, ScientificName, DBHcm) 
 
 sap_sum <- saps %>% group_by(MicroplotCode, Team) %>% summarize(num_saps = sum(!is.na(DBHcm)),
                                                                 avg_dbh = round(mean(DBHcm, na.rm = T),1),
@@ -261,7 +273,7 @@ quad_chr2 <- full_join(quad_chr, quad_chr_class, by = c("Team", "CharacterLabel"
                                                 CharacterLabel == "Wood" ~ 4,
                                                 CharacterLabel == "Sphagnum" ~ 5,
                                                 CharacterLabel == "NonSphagnum" ~ 6,
-                                                CharacterLabel == "Licens" ~ 7
+                                                CharacterLabel == "Lichens" ~ 7
                                                 ))
 head(quad_chr2)
 
@@ -290,7 +302,7 @@ quad_chr_comp <- full_join(quad_chr2 %>% filter(Team == "Crew") %>% select(-Team
 head(quad_chr_comp)
 
 #----- Quadrat species
-quad_spp1 <- do.call(joinQuadSpecies, c(arglist)) %>% filter_plot() %>% name_team() 
+quad_spp1 <- do.call(joinQuadSpecies, arglist) %>% filter_plot() %>% name_team() 
 
 quad_spp <- quad_spp1 %>% 
   select(Team, ScientificName, IsGerminant, starts_with("Txt")) 
@@ -401,3 +413,84 @@ spp_list_comp2$missed_C <- ifelse(rowSums(spp_list_comp2[,c("Trees_C", "Micros_C
 spp_list_comp2$missed_Q <- ifelse(rowSums(spp_list_comp2[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) == 0, 1, 0)
 
 head(spp_list_comp2)
+
+#----- CWD
+cwd_raw <- VIEWS_NETN$COMN_CWD %>% select(ParkUnit, PlotCode, StartYear, IsQAQC, SQTransectCode, TransectCode, 
+                                          ScientificName, Distance, Diameter, Length, DecayClassCode,
+                                          MultiCrossCode, IsHollow, CWDNote)
+cwd_raw$Plot_Name <- paste(cwd_raw$ParkUnit, sprintf("%03d", cwd_raw$PlotCode), sep = "-") 
+cwd_raw <- cwd_raw %>% filter_plot() %>% name_team() %>% 
+  rename(Transect = TransectCode, SQ = SQTransectCode, Species = ScientificName, Decay = DecayClassCode, 
+         MultiCross = MultiCrossCode, Hollow = IsHollow)
+
+cwd_raw2 <- cwd_raw %>% select(Team, SQ, Transect, Distance, Species, Diameter, 
+                               Length, Decay, MultiCross, Hollow, CWDNote) %>% 
+                        arrange(Transect, Distance, Team, Diameter) %>% 
+                        mutate(Species = ifelse(SQ == "NP", "None present", Species))
+
+cwd_sum1 <- cwd_raw2 %>% group_by(Team, Species) %>% 
+                        summarize(num_pieces = length(!is.na(Diameter)), .groups = 'drop') %>% 
+                        filter(Species != "None present")
+
+cwd_sum <- full_join(cwd_sum1 %>% filter(Team == "Crew") %>% select(-Team),
+                     cwd_sum1 %>% filter(Team == "QAQC") %>% select(-Team),
+                     by = "Species", suffix = c("_C", "_Q"))
+
+cwd_sum
+
+cwd_vol <- do.call(joinCWDData, arglist) %>% filter_plot() %>% name_team() %>% 
+  select(Team, ScientificName, DecayClassCode, CWD_Vol) %>% 
+  rename(Species = ScientificName, Decay = DecayClassCode)
+
+cwd_comp <- full_join(cwd_vol %>% filter(Team == "Crew") %>% select(-Team),
+                      cwd_vol %>% filter(Team == "QAQC") %>% select(-Team),
+                      by = c("Species", "Decay"),
+                      suffix = c("_C", "_Q")) %>% filter(Species != "None present") %>% 
+            arrange(Species, Decay)
+
+cwd_join <- full_join(cwd_comp, cwd_sum, by = "Species")
+cwd_join
+
+cwd_join$Decay <- as.integer(cwd_join$Decay)            
+
+cwd_tot <- data.frame(Species = "CWD Total", 
+                      Decay = NA_integer_, 
+                      CWD_Vol_C = sum(cwd_join$CWD_Vol_C, na.rm = T),
+                      CWD_Vol_Q = sum(cwd_join$CWD_Vol_Q, na.rm = T),
+                      num_pieces_C = sum(cwd_join$num_pieces_C, na.rm = T),
+                      num_pieces_Q = sum(cwd_join$num_pieces_Q, na.rm = T))
+cwd_comp2 <- rbind(cwd_join, cwd_tot) %>% 
+             mutate_if(is.numeric, ~round(., 1)) %>% 
+             mutate(vol_dif = pct_diff(CWD_Vol_C, CWD_Vol_Q))
+
+#----- Soil
+soil_samp1 <- get("COMN_SoilSample", envir = VIEWS_NETN) %>% 
+  select(ParkUnit, PlotCode, StartYear, IsQAQC, SampleSequenceCode, SQSoilCode, SQSoilEventNotes,
+         SoilLayerLabel, Depth_cm, Note)
+
+soil_samp1$Plot_Name <- paste(soil_samp1$ParkUnit, sprintf("%03d", soil_samp1$PlotCode), sep = "-") 
+
+soil_samp <- soil_samp1 %>% filter_plot() %>% name_team() %>% 
+                            select(Team, SampleSequenceCode, SQSoilCode, SoilLayerLabel, Depth_cm) 
+
+SOILSAMPLE <- ifelse(any(soil_samp$SQSoilCode == "SS"), TRUE, FALSE)
+
+if(SOILSAMPLE == TRUE){
+soil_wide <- soil_samp %>% pivot_wider(names_from = SoilLayerLabel, 
+                                       values_from = Depth_cm, 
+                                       values_fill = NA_real_) %>% 
+             rename(Sample = SampleSequenceCode,
+                    Litter = `Unconsolidated Litter`) %>% select(-SQSoilCode) 
+
+names(soil_wide) <- gsub(" ", "_", names(soil_wide))
+names(soil_wide) <- gsub("Horizon", "hor", names(soil_wide))
+
+soil_comp <- full_join(soil_wide %>% filter(Team == "Crew") %>% select(-Team),
+                       soil_wide %>% filter(Team == "QAQC") %>% select(-Team),
+                       by = "Sample", suffix = c("_C", "_Q")) %>% 
+             arrange(Sample) %>% select(Sample, Litter_C, Litter_Q, 
+                                        O_hor_C, O_hor_Q, A_hor_C, A_hor_Q,
+                                        Total_Depth_C, Total_Depth_Q) %>% 
+             mutate_if(is.numeric, ~round(., 1))
+
+}

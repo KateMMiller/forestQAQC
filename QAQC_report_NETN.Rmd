@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2019
-  plot: "ROVA-009"
+  plot: "ACAD-047"
 ---
 <div style="margin-left:-120px;width:100%">
 QAQC Report for: <span style="font-weight:bold;">`r params$plot` `r params$year`</span> {.tabset .tabset-pills}
@@ -18,7 +18,9 @@ options(knitr.kable.NA = '')
 ```
 
 ```{r import, include = FALSE, cache = TRUE}
-forestNETN::importData()
+#forestNETN::importData()
+path = "C:/Forest_Health/exports/NETN"
+forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
 ```
 
 ```{r deps, include = FALSE}
@@ -79,6 +81,10 @@ pct_tab <- kable(stand2 %>% select(Team, Txt_Understory_Low, Txt_Understory_Mid,
                  column_spec(10, background = check_dif(stand2, "Lichen_code")) %>% 
                  row_spec(nrow(stand2), extra_css = "border-bottom: 1px solid #000000;")
 
+row_changes_tr <- sapply(seq_along(tree_hts_wide), function(x){
+  check = ifelse(tree_hts_wide$CrownClassLabel[x] != tree_hts_wide$CrownClassLabel[x + 1], x, NA)
+  }) %>% data.frame() %>% na.omit(.) 
+
 trht_tab <- kable(tree_hts_wide %>% select(TagCode, CrownClassLabel, Crew, QAQC, ht_diff),
                   format = 'html', align = 'c',
                   table.attr = "style='width:48%;'",
@@ -92,7 +98,8 @@ trht_tab <- kable(tree_hts_wide %>% select(TagCode, CrownClassLabel, Crew, QAQC,
                                                         between(tree_hts_wide$ht_diff, 0, 0.2) ~ '#ffffff',
                                                         is.na(tree_hts_wide$ht_diff) ~ diff_bad,
                                                         TRUE ~ "#ffffff")) %>% 
-                  row_spec(nrow(tree_hts_wide), extra_css = "border-bottom: 1px solid #000000;")
+                  row_spec(nrow(tree_hts_wide), extra_css = "border-bottom: 1px solid #000000;") %>% 
+                  row_spec(row_changes_tr[,1], extra_css = "border-bottom: 1px solid #000000;")
 
 dist_tab <- kable(dist %>% select(Team, DisturbanceSummary, ThresholdLabel, DisturbanceCoverClassLabel),
                   format = 'html', align = 'c',
@@ -153,7 +160,7 @@ tree_tab <- kable(tree_wide2 %>% select(-fol_diff, -dec_diff, -HWA_diff, -BBD_di
                                     TRUE ~ "#ffffff"))  %>% 
             row_spec(nrow(tree_wide2), extra_css = "border-bottom: 1px solid #000000;")
 
-trcond_tab <- kable(trcond_wide %>% select(-cond_diff), 
+trcond_tab <- kable(trcond_wide %>% select(-cond_diff, -Status), 
                     format = 'html', align = 'c',
                     col.names = c("Tree", "#Cond_C", "#Cond_Q", names(trcond_wide[,5:46]),
                                   "VOB_C", "VOB_Q", "VINC_C", "VINC_Q")) %>% 
@@ -163,7 +170,8 @@ trcond_tab <- kable(trcond_wide %>% select(-cond_diff),
                     row_spec(1:nrow(trcond_wide), extra_css = 'border: 1px solid #CACACA;') %>% 
                     row_spec(nrow(trcond_wide), extra_css = "border-bottom: 1px solid #000000;") %>%
                     column_spec(1, border_left = TRUE, border_right = TRUE, 
-                                extra_css = "border-left: 1px solid #000000; border-right: 2px solid #000000;") %>%
+                                extra_css = "border-left: 1px solid #000000; border-right: 2px solid #000000;",
+                                background = ifelse(trcond_wide$Status == "dead", "#DADADA", "#ffffff")) %>%
                     column_spec(3, border_right = TRUE, extra_css = "border-right: 2px solid #000000;") %>% 
                     column_spec(2:3, background = case_when(trcond_wide$cond_diff > 1 ~ diff_bad,
                                                             trcond_wide$cond_diff == 1 ~ diff_ok,
@@ -231,6 +239,10 @@ folcond_tab <- kable(folcond_wide %>% select(TagCode:Txt_Leaves_Aff_W_Q),
 ```
 
 ```{r micro_tables, include = FALSE}
+row_changes_saps <- sapply(1:nrow(saps), function(x){
+  check = ifelse(saps$MicroplotCode[x] != saps$MicroplotCode[x + 1], x, NA)
+  }) %>% data.frame() %>% na.omit(.) 
+
 sap_tab <- kable(saps, format = 'html', align = 'c', #table.attr = "style='width:48%;'",
                  col.names = c("Team", "SQ", "Micro", "Species", "DBH")) %>% 
            kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', 
@@ -239,7 +251,8 @@ sap_tab <- kable(saps, format = 'html', align = 'c', #table.attr = "style='width
            row_spec(1:nrow(saps), extra_css = 'border: 1px solid #CACACA;') %>% 
            row_spec(nrow(saps), extra_css = "border-bottom: 1px solid #000000;") %>% 
            column_spec(1:ncol(saps), background = ifelse(saps$Team == "Crew", "#ffffff", "#DADADA")) %>% 
-           column_spec(1, border_left = TRUE) %>% column_spec(5, border_right = TRUE)
+           column_spec(1, border_left = TRUE) %>% column_spec(5, border_right = TRUE) %>% 
+           row_spec(row_changes_saps[,1], extra_css = "border-bottom: 1px solid #000000;")
            
 sap_sum_tab <- kable(sap_sum %>% select(-dbh_diff), format = 'html', align = 'c', #table.attr = "style='width:48%;'",
                      col.names = c("Micro", "#Saps_C", "#Saps_Q", "DBH_mean_C", "DBH_mean_Q")) %>% 
@@ -253,7 +266,7 @@ sap_sum_tab <- kable(sap_sum %>% select(-dbh_diff), format = 'html', align = 'c'
                column_spec(4:5, background = check_dbh(sap_sum, "dbh_diff")) %>% 
                column_spec(seq(1, 5, 2), border_right = TRUE) 
 
-row_changes <- sapply(seq_along(shrubs_full), function(x){
+row_changes <- sapply(1:nrow(shrubs_full), function(x){
   check = ifelse(shrubs_full$Micro[x] != shrubs_full$Micro[x + 1], x, NA)
   }) %>% data.frame() %>% na.omit(.) 
 
@@ -265,7 +278,7 @@ shrub_tab <- kable(shrubs_full %>% select(-pct_class_C, -pct_class_Q), format = 
              row_spec(c(0, nrow(shrubs_full)), extra_css = "border-bottom: 1px solid #000000;") %>% 
              row_spec(row_changes[,1], extra_css = "border-bottom: 1px solid #000000;")
 
-row_changes2 <- sapply(seq_along(seeds_comp), function(x){
+row_changes2 <- sapply(1:nrow(seeds_comp), function(x){
   check = ifelse(seeds_comp$MicroplotCode[x] != seeds_comp$MicroplotCode[x + 1], x, NA)
   }) %>% data.frame() %>% na.omit(.) 
 
@@ -282,7 +295,7 @@ seeds_tab <- kable(seeds_comp %>% select(-tot_seeds_C, -tot_seeds_Q), format = '
              column_spec(3:4, background = check_stems_small(seeds_comp, "sd_15_30cm_C", "sd_15_30cm_Q")) %>% 
              column_spec(5:6, background = check_stems(seeds_comp, "sd_30_100cm_C" ,"sd_30_100cm_Q")) %>% 
              column_spec(7:8, background = check_stems(seeds_comp, "sd_100_150cm_C" ,"sd_100_150cm_Q")) %>% 
-             column_spec(5:6, background = check_stems(seeds_comp, "sd_p150cm_C" ,"sd_p150cm_Q")) %>% 
+             column_spec(9:10, background = check_stems(seeds_comp, "sd_p150cm_C" ,"sd_p150cm_Q")) %>% 
              row_spec(c(0, nrow(seeds_comp)), extra_css = "border-bottom: 1px solid #000000;") %>% 
              row_spec(row_changes2[,1], extra_css = "border-bottom: 1px solid #000000;")
 
@@ -385,6 +398,51 @@ addspp_tab <- kable(spp_list_comp2 %>% select(-missed_C, -missed_Q), format = 'h
 
 ```
 
+```{r cwd_tables, include = FALSE}
+row_changes_cwd <- sapply(1:nrow(cwd_raw2), function(x){
+  check = ifelse(cwd_raw2$Transect[x] != cwd_raw2$Transect[x + 1], x, NA)
+  }) %>% data.frame() %>% na.omit(.) 
+
+cwd_tab <- kable(cwd_raw2 %>% select(-SQ), format = 'html', align = 'c') %>% 
+           kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = TRUE,
+                         position = 'left', font_size = 12) %>% 
+           row_spec(c(0, nrow(cwd_raw2)), extra_css = 'border-bottom: 1px solid #000000;') %>% 
+           row_spec(row_changes_cwd[,1], extra_css = "border-bottom: 1px solid #000000;") %>% 
+           column_spec(1, border_left = TRUE) %>% column_spec(9, border_right = TRUE) %>% 
+           column_spec(1:9, border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
+           column_spec(1:10, background = ifelse(cwd_raw2$Team == "QAQC", "#DADADA", "#ffffff"))
+
+cwd_sum_tab <- kable(cwd_comp2 %>% select(-vol_dif), format = 'html', align = 'c') %>% 
+               kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = FALSE,
+                             position = 'left', font_size = 14) %>% 
+               row_spec(c(0, nrow(cwd_comp2)), extra_css = 'border-bottom: 1px solid #000000;') %>% 
+               row_spec(nrow(cwd_comp2), extra_css = 'border-top: 1px solid #000000;', bold = TRUE) %>%
+               column_spec(3:4, background = check_pct_diff(cwd_comp2, "CWD_Vol_C", "CWD_Vol_Q", "vol_dif")) %>% 
+               column_spec(5:6, background = case_when(cwd_comp2$Species != "CWD Total" & 
+                                                         abs(cwd_comp2$num_pieces_C - cwd_comp2$num_pieces_Q) > 0 ~ diff_ok,
+                                                       cwd_comp2$Species == "CWD Total" &
+                                                         abs(cwd_comp2$num_pieces_C - cwd_comp2$num_pieces_Q) > 0 ~ diff_bad,
+                                                     TRUE ~ "#fffff")) %>% 
+               column_spec(c(1, 2, 4, 6), border_right = T) %>% column_spec(1, border_left = T) %>% 
+               column_spec(c(3, 5), border_right = T, extra_css = "border-right: 1px solid #CACACA;" )
+
+```
+
+```{r, soil_tabs, include = SOILSAMPLE}
+if(SOILSAMPLE == TRUE){
+soil_table <- kable(soil_comp, format = "html", align = "c") %>% 
+              kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = FALSE,
+                             position = 'left', font_size = 14) %>% 
+              row_spec(c(0, nrow(soil_comp)), extra_css = 'border-bottom: 1px solid #000000;') %>% 
+              column_spec(1, border_left = TRUE) %>% 
+              column_spec(c(1, seq(3, 9, 2)), border_right = TRUE) %>%
+              column_spec(seq(2, 8, 2), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
+              column_spec(2:3, background = ifelse(soil_comp$Litter_C == soil_comp$Litter_Q, "#ffffff", diff_ok)) %>% 
+              column_spec(4:5, background = ifelse(soil_comp$O_hor_C == soil_comp$O_hor_Q, "#ffffff", diff_ok)) %>% 
+              column_spec(6:7, background = ifelse(soil_comp$A_hor_C == soil_comp$A_hor_Q, "#ffffff", diff_ok)) %>% 
+              column_spec(8:9, background = ifelse(soil_comp$Total_Depth_C == soil_comp$Total_Depth_Q, "#ffffff", diff_ok))
+}
+```
 
 ### Stand {.tabset .tabset-pills}
 
@@ -426,6 +484,7 @@ tree_tab
 ```{r, cond_table, echo = FALSE}
 trcond_tab
 ```
+Note: Trees in grey are dead.
 
 #### Foliage Conditions
 ```{r, fol_table, echo = FALSE}
@@ -501,6 +560,34 @@ addspp_tab
 
 ### CWD
 
+<details open><summary><h3>Individual Pieces</h3></summary>
+```{r cwd_tab, echo = FALSE}
+cwd_tab
+```
+</details>
+<br>
+
+<details open><summary><h3>Volume Summary</h3></summary>
+```{r cwd_sum_tab, echo = FALSE}
+cwd_sum_tab
+```
+</details>
+
 ### Soil
+
+```{r soil_samp_title, echo = FALSE, include = SOILSAMPLE, results = 'asis'}
+cat("<h3>Soil Sample Data</h3>")
+```
+
+```{r soil_samp_tab, echo = FALSE, include = SOILSAMPLE}
+if(SOILSAMPLE == TRUE){
+soil_table
+}
+```
+
+```{r soil_samp_tabF, echo = FALSE, include = !SOILSAMPLE, results = 'asis'}
+cat("<h3>Soils not sampled this year.</h3>")
+```
+
 
 </div>

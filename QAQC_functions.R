@@ -57,6 +57,7 @@ make_sppcode <- function(df){
 }
 
 check_cond <- function(df, col1, col2){
+  df[,c(col1, col2)][is.na(df[,c(col1, col2)])] <- 0
   color = ifelse(df[,col1] != df[,col2], diff_ok, "#ffffff")
   return(color)
 }
