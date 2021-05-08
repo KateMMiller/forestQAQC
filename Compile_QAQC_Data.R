@@ -48,7 +48,7 @@ stand2 <- do.call(cbind, c(stand,
 tree_hts <- get("COMN_StandTreeHeights", envir = VIEWS_NETN) %>% 
   select(ParkUnit, PlotCode, StartYear, IsQAQC, CrownClassLabel, TagCode, Height) %>% 
   mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
-  filter_plot() %>% name_team() %>% select(-IsQAQC)
+  filter_plot() %>% name_team() %>% select(-IsQAQC) %>% arrange(CrownClassLabel, TagCode)
 
 tree_hts_wide <- tree_hts %>% pivot_wider(names_from = Team,
                                           values_from = Height) %>% 
