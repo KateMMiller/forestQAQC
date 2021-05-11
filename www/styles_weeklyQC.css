@@ -74,18 +74,25 @@ h5 {
   height: 105px;
   position:relative;
   /*width: auto;*/
-  max-width: 1200px;
+  max-width: 960px;
   padding: 0 0 10px 0;
   /*margin-left: auto;
   margin-right: auto;*/
   margin: 0 auto;
 }
 
+
 .header{
  height: 100px;
- width: 1200px;
+ width: 960px;
  margin-left:auto;
  margin-right:auto;
+ text-align: left;
+ color: white;
+ font-size: 14px;
+ padding: 2px 10px 1px 5px;
+ margin:4px 5px;
+ font-family: "Arial",Arial,sans-serif;
  /*position: fixed;*/
  }
 
@@ -147,9 +154,12 @@ table td{
   font-family: "FrutigerLTStd-Black", "Arial", Arial, sans-serif;
 }
 
-summary > h3{
-  margin: 0;
+details summary > * {
   display: inline-block; /* so it shows up inline with details arrow */
+}
+
+.indent{
+  margin-left: 20px;
 }
 
 .section{
@@ -164,7 +174,7 @@ summary > h3{
 /* Navbar */
 .navbar {
  visibility: hidden;
- width:1200px;
+/* width:960px;*/
  margin:0 auto;
 }
 
@@ -190,7 +200,6 @@ summary > h3{
     color: #ffffff;
     background-color: #8CAF88;
     /*padding: 10px 15px;*/
-    width:100%;
     margin:0 auto;
 
 }
