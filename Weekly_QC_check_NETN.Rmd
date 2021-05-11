@@ -1,0 +1,123 @@
+---
+output: 
+  html_document:
+    css: www/styles_weeklyQC.css
+    anchor_sections: FALSE
+    includes:
+        in_header: "header_manual.html"
+params:
+  week_start: "2019-07-01"
+---
+Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
+--------------------------------------------------
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+
+```{r import, include = FALSE, cache = TRUE}
+#forestNETN::importData()
+path = "C:/Forest_Health/exports/NETN"
+forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
+```
+
+```{r deps, include = FALSE}
+library(forestNETN)
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+```
+
+```{r compile}
+curr_year <- year(params$week_start)
+week_start <- as_date(params$week_start)
+source("Compile_for_weekly_QC.R")
+```
+
+### QC Checks {.tabset}
+#### Summary {.tabset}
+This tab documents the Quality Control checks that were performed and number of suspect records returned for each database tab. For any suspect record returned, a separate tab is included in the report to review the data in question.
+
+<details open><summary><h2>Stand</h2></summary>
+</details>
+
+<details open><summary><h2>Tree</h2></summary>
+
+<details open class="indent"><summary><h3>Tree Data</h3></summary>
+</details>
+
+<details open class="indent"><summary><h3>Foliage Conditions</h3></summary>
+</details>
+
+<details open class="indent"><summary><h3>Conditions</h3></summary>
+</details>
+</details>
+
+<details open><summary><h2>Microplot</h2></summary>
+<details open class="indent"><summary><h3>Saplings</h3></summary>
+</details>
+<details open class="indent"><summary><h3>Seedlings</h3></summary>
+</details>
+<details open class="indent"><summary><h3>Shrubs</h3></summary>
+</details>
+</details>
+
+<details open><summary><h2>Quadrats</h2></summary>
+<details open class="indent"><summary><h3>Quadrat Data</h3></summary>
+</details>
+<details open class="indent"><summary><h3>Quadrat Species</h3></summary>
+</details>
+</details>
+
+<details open><summary><h2>Additional Species</h2></summary>
+</details>
+
+<details open><summary><h2>CWD</h2></summary>
+</details>
+
+<details open><summary><h2>Soil</h2></summary>
+</details>
+
+```{r visit_notes, echo = FALSE, include = include_visit_notes, results = 'asis'}
+cat("#### Visit Notes {.tabset}", "\n")
+if(include_visit_notes == TRUE){
+visit_table
+  }
+```
+
+### Stand 
+
+<h3>Stand Characteristics</h3>
+
+### Tree {.tabset}
+
+#### Tree Data {.tabset}
+
+#### Conditions 
+
+#### Foliage Conditions 
+
+### Microplot {.tabset}
+
+#### Saplings {.tabset}
+
+#### Shrubs
+
+#### Seedlings
+
+### Quadrats {.tabset}
+
+#### Quadrat Data {.tabset}
+
+#### Quadrat Species
+
+### Additional Species
+
+### CWD
+
+### Soil
+
+
+
+
