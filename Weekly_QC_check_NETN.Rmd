@@ -7,6 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   week_start: "2019-07-01"
+  cycle_latest: 4
 ---
 Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
 --------------------------------------------------
@@ -32,6 +33,8 @@ library(kableExtra)
 ```{r compile}
 curr_year <- year(params$week_start)
 week_start <- as_date(params$week_start)
+cycle_latest <- paste0("cycle_", params$cycle_latest)
+cycle_prev <- paste0("cycle_", params$cycle_latest-1)
 source("Compile_for_weekly_QC.R")
 ```
 
@@ -39,45 +42,9 @@ source("Compile_for_weekly_QC.R")
 #### Summary {.tabset}
 This tab documents the Quality Control checks that were performed and number of suspect records returned for each database tab. For any suspect record returned, a separate tab is included in the report to review the data in question.
 
-<details open><summary><h2>Stand</h2></summary>
-</details>
-
-<details open><summary><h2>Tree</h2></summary>
-
-<details open class="indent"><summary><h3>Tree Data</h3></summary>
-</details>
-
-<details open class="indent"><summary><h3>Foliage Conditions</h3></summary>
-</details>
-
-<details open class="indent"><summary><h3>Conditions</h3></summary>
-</details>
-</details>
-
-<details open><summary><h2>Microplot</h2></summary>
-<details open class="indent"><summary><h3>Saplings</h3></summary>
-</details>
-<details open class="indent"><summary><h3>Seedlings</h3></summary>
-</details>
-<details open class="indent"><summary><h3>Shrubs</h3></summary>
-</details>
-</details>
-
-<details open><summary><h2>Quadrats</h2></summary>
-<details open class="indent"><summary><h3>Quadrat Data</h3></summary>
-</details>
-<details open class="indent"><summary><h3>Quadrat Species</h3></summary>
-</details>
-</details>
-
-<details open><summary><h2>Additional Species</h2></summary>
-</details>
-
-<details open><summary><h2>CWD</h2></summary>
-</details>
-
-<details open><summary><h2>Soil</h2></summary>
-</details>
+```{r QC_results}
+QC_check_table
+```
 
 ```{r visit_notes, echo = FALSE, include = include_visit_notes, results = 'asis'}
 cat("#### Visit Notes {.tabset}", "\n")
@@ -86,17 +53,41 @@ visit_table
   }
 ```
 
-### Stand 
+```{r stand_tab, echo = FALSE, include = include_stand_tab, results = 'asis'}
+cat("### Stand {.tabset}", "\n")
 
-<h3>Stand Characteristics</h3>
+```
 
-### Tree {.tabset}
+```{r stand_tables, echo = FALSE, include = include_stand_tab}
+check_null(stand_pm_table)
 
-#### Tree Data {.tabset}
+check_null(stand_str_table)
 
-#### Conditions 
+check_null(microtop_table)
 
-#### Foliage Conditions 
+check_null(DBI_1_table)
+
+check_null(stand_dist_table)
+
+```
+
+```{r tree_tab, echo = FALSE, include = include_tree_tab, results = 'asis'}
+cat("### Tree {.tabset}", "\n")
+
+```
+
+```{r tree_tables, echo = FALSE, include = include_tree_tab}
+check_null(tree_data_pm_table)
+
+check_null(status_table)
+
+check_null(crown_table)
+
+check_null(fol_maj_table)
+
+check_null(trcond_spp_table)
+
+```
 
 ### Microplot {.tabset}
 
