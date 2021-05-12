@@ -141,6 +141,11 @@ h5 {
   font-family: "Arial",Arial,sans-serif;
 }
 
+table{
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
 table thead{
   border-bottom: 1px solid #00000;
   /*font-size:14px;*/
