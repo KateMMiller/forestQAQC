@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2019-07-01"
+  week_start: "2019-05-01"
   cycle_latest: 4
 ---
 Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
@@ -17,9 +17,9 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r import, include = FALSE, cache = TRUE}
-#forestNETN::importData()
-path = "C:/Forest_Health/exports/NETN"
-forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
+forestNETN::importData()
+# path = "C:/Forest_Health/exports/NETN"
+# forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
 ```
 
 ```{r deps, include = FALSE}
@@ -40,7 +40,7 @@ source("Compile_for_weekly_QC.R")
 
 ### QC Checks {.tabset}
 #### Summary {.tabset}
-This tab documents the Quality Control checks that were performed and number of suspect records returned for each database tab. For any suspect record returned, a separate tab is included in the report to review the data in question.
+The table below documents the Quality Control checks that were performed and number of records returned that require further review by database tab. If any records are returned for a given database tab, a separate tab corresponding to that tab reports the data that require further review. Note that this report also compiles priority forest pest/pathogen and invasive plant early detection species detected in a plot. 
 
 ```{r QC_results}
 QC_check_table
@@ -52,6 +52,18 @@ if(include_visit_notes == TRUE){
 visit_table
   }
 ```
+
+```{r plot_tab, echo = FALSE, include = include_plot_tab, results = 'asis'}
+cat("### Plot & Visit Data {.tabset}", "\n")
+
+```
+
+```{r plot_tables, echo = FALSE, include = include_plot_tab}
+check_null(plot_na_table)
+
+check_null(miss_dir_table)
+```
+
 
 ```{r stand_tab, echo = FALSE, include = include_stand_tab, results = 'asis'}
 cat("### Stand {.tabset}", "\n")
@@ -83,32 +95,127 @@ check_null(status_table)
 
 check_null(crown_table)
 
+check_null(tree_dbh_table)
+
 check_null(fol_maj_table)
 
 check_null(trcond_spp_table)
 
+check_null(pest_table)
+
 ```
 
-### Microplot {.tabset}
+```{r micro_tab, echo = FALSE, include = include_micro_tab, results = 'asis'}
+cat("### Microplot {.tabset}", "\n")
 
-#### Saplings {.tabset}
+```
 
-#### Shrubs
+```{r micro_tables, echo = FALSE, include = include_micro_tab}
+check_null(micro_ns_table)
 
-#### Seedlings
+check_null(micro_check3_table)
 
-### Quadrats {.tabset}
+check_null(sap_pm_table)
 
-#### Quadrat Data {.tabset}
+check_null(shrub_pm_table)
 
-#### Quadrat Species
+check_null(shrub_0cov_table)
 
-### Additional Species
+check_null(seed_pm_table)
 
-### CWD
+check_null(seed_0tally_table)
 
-### Soil
+```
 
+```{r quad_tab, echo = FALSE, include = include_quad_tab, results = 'asis'}
+cat("### Quadrat {.tabset}", "\n")
+
+```
+
+```{r quad_tables, echo = FALSE, include = include_quad_tab}
+check_null(quad_ns_table)
+
+check_null(quad_ns_missing_notes_table)
+
+check_null(quad_data_pm_table)
+
+check_null(quad_spp_pm_table)
+
+check_null(quad_0cov_table)
+
+```
+
+
+```{r addspp_tab, echo = FALSE, include = include_addspp_tab, results = 'asis'}
+cat("### Additional Species {.tabset}", "\n")
+
+```
+
+```{r addspp_tables, echo = FALSE, include = include_addspp_tab}
+check_null(addspp_ns_table)
+
+check_null(addspp_ns_missing_notes_table)
+
+check_null(addspp_na_sq_table)
+
+```
+
+
+```{r cwd_tab, echo = FALSE, include = include_cwd_tab, results = 'asis'}
+cat("### CWD {.tabset}", "\n")
+
+```
+
+```{r cwd_tables, echo = FALSE, include = include_cwd_tab}
+check_null(cwd_ns_table)
+
+check_null(cwd_ns_missing_notes_table)
+
+check_null(cwd_pm_table)
+
+check_null(cwd_check3_table)
+```
+
+
+```{r soil_tab, echo = FALSE, include = include_soil_tab, results = 'asis'}
+cat("### Soil {.tabset}", "\n")
+
+```
+
+```{r soil_tables, echo = FALSE, include = include_soil_tab}
+check_null(soil_ns_table)
+
+check_null(soil_ns_missing_notes_table)
+
+check_null(soil_pm_table)
+
+check_null(soil_check3_table)
+```
+
+
+```{r plantID_tab, echo = FALSE, include = include_plantID_tab, results = 'asis'}
+cat("### Plant ID {.tabset}", "\n")
+
+```
+
+```{r plantID_tables, echo = FALSE, include = include_plantID_tab}
+check_null(spp_newplot_table)
+
+check_null(spp_newpark_table)
+
+check_null(sppID_table)
+
+```
+
+
+```{r ISED_tab, echo = FALSE, include = include_ISED_tab, results = 'asis'}
+cat("### Early Detections {.tabset}", "\n")
+
+```
+
+```{r ISED_tables, echo = FALSE, include = include_ISED_tab}
+check_null(ised_table)
+```
 
 
 
