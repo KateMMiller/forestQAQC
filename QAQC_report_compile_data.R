@@ -8,7 +8,7 @@ library(forestNETN)
 library(htmltools)
 library(knitr)
 library(kableExtra)
-source("QAQC_functions.R")
+source("QAQC_report_functions.R")
 #importData() #local instance
 
 #path = "C:/Forest_Health/exports/NETN"

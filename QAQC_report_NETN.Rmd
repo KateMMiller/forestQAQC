@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2018
-  plot: "MABI-003"
+  year: 2019
+  plot: "ACAD-047"
 ---
 <div style="margin-left:-120px;width:100%">
 QAQC Report for: <span style="font-weight:bold;">`r params$plot` `r params$year`</span> {.tabset .tabset-pills}
@@ -18,9 +18,9 @@ options(knitr.kable.NA = '')
 ```
 
 ```{r import, include = FALSE, cache = TRUE}
-#forestNETN::importData()
-path = "C:/Forest_Health/exports/NETN"
-forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
+forestNETN::importData()
+#path = "C:/Forest_Health/exports/NETN"
+#forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
 ```
 
 ```{r deps, include = FALSE}
@@ -34,11 +34,11 @@ library(kableExtra)
 year = as.numeric(params$year)
 plot = params$plot
 
-source("QAQC_functions.R")
+source("QAQC_report_functions.R")
 ```
 
 ```{r compile_data, include = FALSE}
-source("Compile_QAQC_Data.R")
+source("QAQC_report_compile_data.R")
 ```
 
 ```{r stand_tables, include = FALSE}
