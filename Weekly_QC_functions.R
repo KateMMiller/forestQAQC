@@ -5,6 +5,15 @@ filter_old <- function(df){filter(df, StartYear < curr_year)}
 
 name_plot <- function(df){df %>% mutate(Plot_Name = ifelse(IsQAQC == 1, paste0(Plot_Name, "-Q"), Plot_Name))}
 
+# Add cycle for views that I load directly into checks
+add_cycle <- function(df){
+  df$cycle[df$StartYear %in% c(2006:2009)] <- 1
+  df$cycle[df$StartYear %in% c(2010:2013)] <- 2
+  df$cycle[df$StartYear %in% c(2014:2017)] <- 3
+  df$cycle[df$StartYear %in% c(2018:2021)] <- 4
+  return(df)
+}
+
 # Determine whether to include/drop tab in output
 tab_include <- function(df){ifelse(nrow(df) > 0, TRUE, FALSE)}
 

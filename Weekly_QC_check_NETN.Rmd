@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2019-05-01"
+  week_start: "2019-07-01"
   cycle_latest: 4
 ---
 Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
@@ -35,7 +35,8 @@ curr_year <- year(params$week_start)
 week_start <- as_date(params$week_start)
 cycle_latest <- paste0("cycle_", params$cycle_latest)
 cycle_prev <- paste0("cycle_", params$cycle_latest-1)
-source("Compile_for_weekly_QC.R")
+cycle_prev_num <- params$cycle_latest - 1
+source("Weekly_QC_compile_data.R")
 ```
 
 ### QC Checks {.tabset}
@@ -79,7 +80,13 @@ check_null(microtop_table)
 
 check_null(DBI_1_table)
 
+check_null(DBI_diff_table)
+
 check_null(stand_dist_table)
+
+check_null(stand_ht_95_table)
+
+check_null(stand_ht_comp_table)
 
 ```
 
@@ -93,7 +100,11 @@ check_null(tree_data_pm_table)
 
 check_null(status_table)
 
+check_null(elev_mort_table)
+
 check_null(crown_table)
+
+check_null(zoinks_table)
 
 check_null(tree_dbh_table)
 
@@ -124,6 +135,10 @@ check_null(shrub_0cov_table)
 check_null(seed_pm_table)
 
 check_null(seed_0tally_table)
+
+check_null(seeds_95_table)
+
+check_null(saps_95_table)
 
 ```
 
