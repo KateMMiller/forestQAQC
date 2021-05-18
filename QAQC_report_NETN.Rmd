@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2021
-  plot: "ACAD-081"
+  year: 2019
+  plot: "ACAD-047"
 ---
 <div style="margin-left:-120px;width:100%">
 QAQC Report for: <span style="font-weight:bold;">`r params$plot` `r params$year`</span> {.tabset .tabset-pills}

@@ -102,15 +102,18 @@ tree_wide2 <- tree_wide2 %>%
                      HWACode_C, HWACode_Q, HWA_diff, BBDCode_C, BBDCode_Q, BBD_diff)
 
 # plot tree DBH differences
-dbh_diff <- tree_wide2 %>% select(TagCode, DBH_diff) %>% na.omit() %>% 
-  mutate(fillcolor = ifelse(DBH_diff >= 0, "#8AADD8", "#DAB26E"))
-
+dbh_diff <- tree_wide2 %>% select(TagCode, DBH_diff) %>% na.omit() 
+max_dbh <- max(abs(dbh_diff$DBH_diff))
 diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) + 
                geom_density(alpha = 0.5, fill = "#8CAF88", color = "#738C70") + theme_FHM() + 
                geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", size = 1) + 
-               labs(y = "Density", x = "DBH difference (cm)") + theme(legend.position = 'none') +
-               annotate(geom = "text", x = -1, y = 0.5, label = "Crew tighter", color = 'black', size = 5) + 
-               annotate(geom = "text", x = 1, y = 0.5, label = "QAQC tighter", color = 'black', size = 5) 
+               labs(y = "Density", x = "DBH difference (cm)") + 
+               theme(legend.position = 'none', panel.border = element_blank(), panel.background = element_blank()) +
+               annotate(geom = "text", x = -max_dbh, y = Inf, label = "Crew tighter", 
+                        color = 'black', size = 5, hjust = 0, vjust = 1) + 
+               annotate(geom = "text", x = max_dbh, y = Inf, label = "QAQC tighter", 
+                        color = 'black', size = 5, hjust = 1, vjust = 1) +
+               xlim(c(max_dbh * -1, max_dbh))
 
 #----- Tree Conditions
 tr_cond <- do.call(joinTreeConditions, 
