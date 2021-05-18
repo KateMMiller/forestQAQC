@@ -52,18 +52,30 @@ RC_visit_notes <- sapply(1:nrow(visit_notes), function(x){
   check = ifelse(visit_notes$Plot_Name[x] != visit_notes$Plot_Name[x + 1], x, NA)
 }) %>% data.frame() %>% na.omit(.)
 
+colnames(RC_visit_notes) <- c("col")
+
+if(nrow(RC_visit_notes) == 0){
+  RC_visit_notes <- data.frame(col = 0)
+}
+
 RC_visit_note_type <- sapply(1:nrow(visit_notes), function(x){
   check = ifelse(visit_notes$Note_Type[x] != visit_notes$Note_Type[x + 1], x, NA)
 }) %>% data.frame() %>% na.omit(.) 
-                    
+         
+colnames(RC_visit_note_type) <- c("col")
+
+if(nrow(RC_visit_note_type) == 0){
+  RC_visit_note_type <- data.frame(col = 0)
+}
+
 visit_table <- kable(visit_notes, format = 'html', align = c('c', 'c', 'c', 'l'),
                      col.names = c("Plot", "Note Type", "Info", "Note")) %>% 
                kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = TRUE,
                  position = 'left', font_size = 11) %>% 
                column_spec(1:3, width = "15%") %>% 
                collapse_rows(1, valign = 'top') %>% 
-               row_spec(RC_visit_notes[,1], extra_css = "border-bottom: 1px solid #000000;") %>% 
-               row_spec(RC_visit_note_type[,1], extra_css = 'border-bottom: 1px solid #000000') %>% 
+               row_spec(RC_visit_notes[,1], extra_css = "border-bottom: 1px solid #000000;") %>%  
+               # row_spec(RC_visit_note_type[,1], extra_css = 'border-bottom: 1px solid #000000') %>%  
                row_spec(c(0, nrow(visit_notes)), extra_css = 'border-bottom: 1px solid #000000')
 
 include_visit_notes <- tab_include(visit_notes) #++++++ UPDATE AFTER FIGURE OUT TAB CONTROL APPROACH ++++++
@@ -88,6 +100,32 @@ QC_table <- rbind(QC_table,
 
 stand_pm_table <- make_kable(stand_pm2, "Permanently Missing records in stand data")
 
+# Check plots with fluctuating stand structure
+stand_str <- stand %>% filter(IsQAQC == 0) %>% 
+  filter(Plot_Name %in% new_evs_list) %>% 
+  select(Plot_Name, cycle, Stand_Structure) %>% 
+  pivot_wider(names_from = cycle,
+              values_from = Stand_Structure,
+              names_prefix = "cycle_") %>% 
+  filter(cycle_3 != cycle_4) # Update after start cycle 5
+
+QC_table <- rbind(QC_table, QC_check(stand_str, "Stand Data", "Stand structure in cycle 4 != cycle 3"))
+
+stand_str_table <- make_kable(stand_str, "Fluctuating stand structures")
+
+# Check plots with fluctuating microtopography
+microtop <- stand %>% filter(IsQAQC == 0) %>% 
+  filter(Plot_Name %in% new_evs_list) %>% 
+  select(Plot_Name, cycle, Microtopography) %>% 
+  pivot_wider(names_from = cycle,
+              values_from = Microtopography,
+              names_prefix = "cycle_") %>% 
+  filter(cycle_3 != cycle_4) # Update after start cycle 5
+
+QC_table <- rbind(QC_table, QC_check(microtop, "Stand Data", "Microtopography in cycle 4 != cycle 3"))
+
+microtop_table <- make_kable(microtop, "Fluctuating microtopography")
+
 # Check for DBI = 1 not in deer exclosure
 dbi1 <- stand_new %>% filter(Deer_Browse_Index == 1)
 QC_table <- rbind(QC_table, QC_check(dbi1, "Stand Data", "DBI = 1 outside of exclosure"))
@@ -108,31 +146,13 @@ QC_table <- rbind(QC_table, QC_check(dbi_diff, "Stand Data", "DBI change > 1 poi
 
 DBI_diff_table <- make_kable(dbi_diff, "DBI change > 1 point from previous cycle")
 
-# Check plots with fluctuating stand structure
-stand_str <- stand %>% filter(IsQAQC == 0) %>% 
-                       filter(Plot_Name %in% new_evs_list) %>% 
-                       select(Plot_Name, cycle, Stand_Structure) %>% 
-                       pivot_wider(names_from = cycle,
-                                   values_from = Stand_Structure,
-                                   names_prefix = "cycle_") %>% 
-                       filter(cycle_3 != cycle_4) # Update after start cycle 5
+# Disturbances
+stand_dist <- do.call(joinStandDisturbance, c(arglist, list(from = curr_year))) %>% 
+  filter_week() %>% filter(DisturbanceCode > 0)
 
-QC_table <- rbind(QC_table, QC_check(stand_str, "Stand Data", "Stand structure in cycle 4 != cycle 3"))
+QC_table <- rbind(QC_table, QC_check(stand_dist, "Stand Data", "Reported stand disturbances"))
 
-stand_str_table <- make_kable(stand_str, "Fluctuating stand structures")
-
-# Check plots with fluctuating microtopography
-microtop <- stand %>% filter(IsQAQC == 0) %>% 
-                      filter(Plot_Name %in% new_evs_list) %>% 
-                      select(Plot_Name, cycle, Microtopography) %>% 
-                      pivot_wider(names_from = cycle,
-                                  values_from = Microtopography,
-                                  names_prefix = "cycle_") %>% 
-                      filter(cycle_3 != cycle_4) # Update after start cycle 5
-
-QC_table <- rbind(QC_table, QC_check(microtop, "Stand Data", "Microtopography in cycle 4 != cycle 3"))
-
-microtop_table <- make_kable(microtop, "Fluctuating microtopography")
+stand_dist_table <- make_kable(stand_dist, "Recorded disturbances")
 
 # Check for potential stand height outliers
 names(VIEWS_NETN$COMN_StandTreeHeights)
@@ -145,15 +165,15 @@ stand_ht <- get("COMN_StandTreeHeights", env = VIEWS_NETN) %>%
 stand_ht_new <- stand_ht %>% filter_week() %>% filter(IsQAQC == 0)
 
 stand_ht_sum <- stand_ht %>% filter(StartYear < curr_year) %>% group_by(ParkUnit) %>% 
-                summarize(stand_ht_95 = quantile(Height, probs = 0.95))
+                summarize(stand_ht_99 = quantile(Height, probs = 0.99))
 
-stand_ht_95_check <- left_join(stand_ht_new, stand_ht_sum, 
+stand_ht_99_check <- left_join(stand_ht_new, stand_ht_sum, 
                                by = "ParkUnit") %>% 
-                     filter(Height > stand_ht_95)
+                     filter(Height > stand_ht_99)
 
-QC_table <- rbind(QC_table, QC_check(stand_ht_95_check, "Stand Data", "Stand heights > 95% percentile for a given park"))
+QC_table <- rbind(QC_table, QC_check(stand_ht_99_check, "Stand Data", "Stand heights > 99% percentile for a given park"))
 
-stand_ht_95_table <- make_kable(stand_ht_95_check, "Stand heights > 95% percentile for a given park")
+stand_ht_99_table <- make_kable(stand_ht_99_check, "Stand heights > 99% percentile for a given park")
 
 # Compare to previous stand height
 stand_ht_prev <- do.call(joinStandData, arglist) %>% name_plot() %>% 
@@ -182,20 +202,17 @@ QC_table <- rbind(QC_table, QC_check(stand_ht_comp, "Stand Data", "Stand heights
 
 stand_ht_comp_table <- make_kable(stand_ht_comp, "Stand heights 50% higher or lower than previous visit")
 
-# Disturbances
-stand_dist <- do.call(joinStandDisturbance, c(arglist, list(from = curr_year))) %>% 
-              filter_week() %>% filter(DisturbanceCode > 0)
-
-QC_table <- rbind(QC_table, QC_check(stand_dist, "Stand Data", "Reported stand disturbances"))
-
-stand_dist_table <- make_kable(stand_dist, "Recorded disturbances")
-
 #----- + Summarize stand checks + -----
 stand_check <- QC_table %>% filter(Data %in% "Stand Data" & Num_Records > 0) 
 include_stand_tab <- tab_include(stand_check)
 
 #----- Tree checks -----
 tree_data <- do.call(joinTreeData, c(arglist, list(speciesType = 'all'))) %>% 
+  name_plot() %>% 
+  filter(Plot_Name %in% new_evs_list) %>% 
+  filter(cycle %in% c(params$cycle_latest, params$cycle_latest-1))
+
+tree_data_live <- do.call(joinTreeData, c(arglist, list(speciesType = 'all', status = "live"))) %>% 
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   filter(cycle %in% c(params$cycle_latest, params$cycle_latest-1))
@@ -252,27 +269,6 @@ QC_table <- rbind(QC_table,
 
 status_table <- make_kable(status_check, "Zombie and excluded trees")
 
-# Trees with major crown class changes
-tree_data_live <- do.call(joinTreeData, c(arglist, list(speciesType = 'all', status = "live"))) %>% 
-  name_plot() %>% 
-  filter(Plot_Name %in% new_evs_list) %>% 
-  filter(cycle %in% c(params$cycle_latest, params$cycle_latest-1))
-
-crown_check1 <- tree_data_live %>% filter(IsQAQC == 0) %>% 
-                                   select(Plot_Name, TagCode, cycle, CrownClassCode) %>% 
-                                   pivot_wider(names_from = cycle,
-                                   values_from = CrownClassCode,
-                                   names_prefix = "cycle_") %>% 
-                                   filter(!is.na(noquote(cycle_prev)))  
-                                   
-crown_check1$crown_change <- abs(crown_check1[,cycle_latest] - crown_check1[,cycle_prev])
-crown_check <- crown_check1 %>% filter(crown_change > 1) %>% select(-crown_change)
-
-QC_table <- rbind(QC_table, 
-                  QC_check(crown_check, "Tree Data", "Major crown class changes"))
-
-crown_table <- make_kable(crown_check, "Major crown class changes")
-
 # Check for potential elevated mortality events
 live_stems_prev <- tree_data_live %>% filter(StartYear < curr_year & IsQAQC == 0) %>% 
   group_by(Plot_Name, StartYear) %>% 
@@ -291,6 +287,22 @@ QC_table <- rbind(QC_table,
                   QC_check(elev_mort, "Tree Data", "Plots with elevated mortality (> 1.6% mort/ year)"))
 
 elev_mort_table <- make_kable(elev_mort, "Plots with elevated mortality (> 1.6% mort/ year)")
+
+# Trees with major crown class changes
+crown_check1 <- tree_data_live %>% filter(IsQAQC == 0) %>% 
+  select(Plot_Name, TagCode, cycle, CrownClassCode) %>% 
+  pivot_wider(names_from = cycle,
+              values_from = CrownClassCode,
+              names_prefix = "cycle_") %>% 
+  filter(!is.na(noquote(cycle_prev)))  
+
+crown_check1$crown_change <- abs(crown_check1[,cycle_latest] - crown_check1[,cycle_prev])
+crown_check <- crown_check1 %>% filter(crown_change > 1) %>% select(-crown_change)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(crown_check, "Tree Data", "Major crown class changes"))
+
+crown_table <- make_kable(crown_check, "Major crown class changes")
 
 # Check that trees with > 3cm growth or <-0.1 cm growth have DBH verified selected
 tree_dbh <- tree_data_live %>% select(Plot_Name, TagCode, cycle, ScientificName, DBHcm, IsDBHVerified) %>% 
@@ -510,38 +522,38 @@ QC_table <- rbind(QC_table,
 
 seed_0tally_table <- make_kable(seeds_0tally, "Seedlings: species recorded with 0 or missing tally")
 
-# check for seedling tallies > 95 percentile of non-zero counts in a microplot
+# check for seedling tallies > 99 percentile of non-zero counts in a microplot
 seeds <- do.call(joinMicroSeedlings, arglist) %>% name_plot()
 seeds_new <- seeds %>% filter_week()
 seeds_old <- seeds %>% filter(StartYear < curr_year) %>% filter(!ScientificName %in% c("Not Sampled", "None present"))
 seeds_old[,21:24][seeds_old[,21:24]==0] <- NA_real_
 
 seeds_sum <- seeds_old %>% group_by(ParkUnit) %>% filter(StartYear > 2006) %>% 
-                           summarize(sd_15_30cm_95 = quantile(sd_15_30cm, probs = 0.95, na.rm = T),
-                           sd_30_100cm_95 = quantile(sd_30_100cm, probs = 0.95, na.rm = T),
-                           sd_100_150cm_95 = quantile(sd_100_150cm, probs = 0.95, na.rm = T),
-                           sd_p150cm_95 = quantile(sd_p150cm, probs = 0.95, na.rm = T))
+                           summarize(sd_15_30cm_99 = quantile(sd_15_30cm, probs = 0.99, na.rm = T),
+                           sd_30_100cm_99 = quantile(sd_30_100cm, probs = 0.99, na.rm = T),
+                           sd_100_150cm_99 = quantile(sd_100_150cm, probs = 0.99, na.rm = T),
+                           sd_p150cm_99 = quantile(sd_p150cm, probs = 0.99, na.rm = T))
 
 
-seeds_95_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, sd_15_30cm:sd_p150cm), 
+seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, sd_15_30cm:sd_p150cm), 
                             seeds_sum, by = "ParkUnit") %>% 
-                  filter(sd_15_30cm > sd_15_30cm_95 |
-                         sd_30_100cm > sd_30_100cm_95 |
-                         sd_100_150cm > sd_100_150cm_95 |
-                         sd_p150cm > sd_p150cm_95) 
+                  filter(sd_15_30cm > sd_15_30cm_99 |
+                         sd_30_100cm > sd_30_100cm_99 |
+                         sd_100_150cm > sd_100_150cm_99 |
+                         sd_p150cm > sd_p150cm_99) 
                   
-seed_cols <- as.character(c(ifelse(seeds_95_check$sd_15_30cm > seeds_95_check$sd_15_30cm_95, "sd_15_30cm", "ParkUnit"),
-               ifelse(seeds_95_check$sd_30_100cm > seeds_95_check$sd_30_100cm_95 , "sd_30_100cm", "ParkUnit"),
-               ifelse(seeds_95_check$sd_100_150cm > seeds_95_check$sd_100_150cm_95, "sd_100_150cm", "ParkUnit"),
-               ifelse(seeds_95_check$sd_p150cm > seeds_95_check$sd_p150cm_95, "sd_p150cm", "ParkUnit"))) 
+seed_cols <- as.character(c(ifelse(seeds_99_check$sd_15_30cm > seeds_99_check$sd_15_30cm_99, "sd_15_30cm", "ParkUnit"),
+               ifelse(seeds_99_check$sd_30_100cm > seeds_99_check$sd_30_100cm_99 , "sd_30_100cm", "ParkUnit"),
+               ifelse(seeds_99_check$sd_100_150cm > seeds_99_check$sd_100_150cm_99, "sd_100_150cm", "ParkUnit"),
+               ifelse(seeds_99_check$sd_p150cm > seeds_99_check$sd_p150cm_99, "sd_p150cm", "ParkUnit"))) 
 
-seeds_95_check_final <- seeds_95_check[, c("Plot_Name", unique(seed_cols))]
+seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
 
-QC_table <- rbind(QC_table, QC_check(seeds_95_check_final, "Microplot", "Seedling tallies > 95% percentile for a given park"))
+QC_table <- rbind(QC_table, QC_check(seeds_99_check_final, "Microplot", "Seedling tallies > 99% percentile for a given park"))
 
-seeds_95_table <- make_kable(seeds_95_check_final, "Seedling tallies > 95% percentile for a given park")
+seeds_99_table <- make_kable(seeds_99_check_final, "Seedling tallies > 99% percentile for a given park")
 
-# check for sapling counts > 95 percentile of non-zero counts
+# check for sapling counts > 99 percentile of non-zero counts
 saps <- do.call(joinMicroSaplings, arglist) %>% name_plot()
 saps_new <- saps %>% filter_week() %>% group_by(Plot_Name, ParkUnit) %>% 
             summarize(sap_count = sum(Count, na.rm = T), .groups = 'drop')
@@ -554,15 +566,15 @@ saps_sum <- saps_old %>% filter(IsQAQC == 0) %>% filter(StartYear > 2006) %>%
             summarize(sap_count = sum(Count), .groups = 'drop') %>% 
             filter(sap_count > 0) %>% 
             group_by(ParkUnit) %>% 
-            summarize(sap_count_95 = quantile(sap_count, probs = 0.95, na.rm = T))
+            summarize(sap_count_99 = quantile(sap_count, probs = 0.99, na.rm = T))
 
 
-saps_95_check <- left_join(saps_new, saps_sum, by = "ParkUnit") %>% 
-                 filter(sap_count > sap_count_95)
+saps_99_check <- left_join(saps_new, saps_sum, by = "ParkUnit") %>% 
+                 filter(sap_count > sap_count_99)
 
-QC_table <- rbind(QC_table, QC_check(saps_95_check, "Microplot", "Sapling tallies > 95% percentile for a given park"))
+QC_table <- rbind(QC_table, QC_check(saps_99_check, "Microplot", "Sapling tallies > 99% percentile for a given park"))
 
-saps_95_table <- make_kable(saps_95_check, "Sapling tallies > 95% percentile for a given park")
+saps_99_table <- make_kable(saps_99_check, "Sapling tallies > 99% percentile for a given park")
 
 #----- + Summarize microplot checks + -----
 micro_check <- QC_table %>% filter(Data %in% "Microplot" & Num_Records > 0) 
@@ -681,11 +693,6 @@ include_addspp_tab <- tab_include(addspp_check)
 
 #----- CWD -----
 # Check for NS SQ
-cwd <- do.call(joinCWDData, arglist) %>% 
-       name_plot() %>% 
-       filter(Plot_Name %in% new_evs_list) %>% 
-       filter(cycle %in% params$cycle_latest)
-
 cwd_vw <- get("COMN_CWD", env = VIEWS_NETN) %>% 
           mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
           name_plot() %>% 
@@ -716,6 +723,7 @@ cwd_pm <- PM_check(cwd_vw)
 
 PM_cwd_col <- sapply(names(cwd_pm), function(x) any(cwd_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
+
 PM_cwd_col[c(1)] <- TRUE # For Plot_Name
 
 cwd_pm2 <- data.frame(cwd_pm[, PM_cwd_col])
@@ -739,10 +747,53 @@ QC_table <- rbind(QC_table,
 
 cwd_check3_table <- make_kable(cwd_check3, "Plots missing at least one transect sample qualifier")
 
+# Check for plots with >99% CWD volume 
+cwd <- do.call(joinCWDData, arglist) %>% name_plot() 
+
+cwd_new <- cwd %>% filter(Plot_Name %in% new_evs_list) %>% 
+                   filter(cycle %in% params$cycle_latest)
+
+cwd_old <- cwd %>% filter(StartYear < curr_year)
+
+cwd_sum <- cwd_old %>% group_by(ParkUnit) %>% 
+  summarize(CWD_Vol_99 = quantile(CWD_Vol, probs = 0.99))
+
+cwd_99_check <- left_join(cwd_new, cwd_sum, by = "ParkUnit") %>% 
+  filter(CWD_Vol > CWD_Vol_99)
+
+QC_table <- rbind(QC_table, QC_check(cwd_99_check, "CWD", "CWD Volume > 99% percentile for a given park"))
+
+cwd_99_table <- make_kable(cwd_99_check, "CWD Volume > 99% percentile for a given park")
+
+# Check for plots with >99% CWD lenght or diameter
+
+cwdvw_new <- cwd_vw %>% filter(Plot_Name %in% new_evs_list) %>% 
+                        filter_week() %>% name_plot() %>% 
+                        select(Plot_Name, ParkUnit, StartYear, StartDate, IsQAQC, TransectCode, ScientificName,
+                               Distance, Diameter, Length, DecayClassCode)
+                        
+cwdvw_old <- cwd_vw %>% filter(StartYear < curr_year) %>% 
+                        name_plot() %>% 
+                        select(Plot_Name, ParkUnit, StartYear, StartDate, IsQAQC, TransectCode, ScientificName,
+                               Distance, Diameter, Length, DecayClassCode)
+
+cwdvw_sum <- cwdvw_old %>% group_by(ParkUnit) %>% 
+                           summarize(cwd_diam_99 = quantile(Diameter, probs = 0.99, na.rm = T),
+                                     cwd_length_99 = quantile(Length, probs = 0.99, na.rm = T))
+
+
+cwd_data_99_check <- left_join(cwdvw_new, cwdvw_sum, by = "ParkUnit") %>% 
+                     filter(Diameter > cwd_diam_99 |
+                            Length > cwd_length_99) %>% 
+                     select(Plot_Name, TransectCode, ScientificName, Distance, Diameter, Length, DecayClassCode)
+
+QC_table <- rbind(QC_table, QC_check(cwd_data_99_check, "CWD", "CWD Length and/or Diameter > 99% percentile for a given park"))
+
+cwd_data_99_table <- make_kable(cwd_data_99_check, "CWD Length and/or Diameter > 99% percentile for a given park")
+
 #----- + Summarize CWD checks + -----
 cwd_check <- QC_table %>% filter(Data %in% "CWD" & Num_Records > 0) 
 include_cwd_tab <- tab_include(cwd_check)
-
 
 #----- Soil-----
 # Check for NS SQ
@@ -795,14 +846,35 @@ soil_check3 <- soil_sq %>% filter(!is.na(SQ)) %>%
                            summarize(num_samples = length(Sample),
                            .groups = "drop") %>% 
                            filter(num_samples < 3)
-soil_check3
 
 QC_table <- rbind(QC_table, 
                   QC_check(soil_check3, "Soil", "Plots missing at least one soil sample qualifier"))
 
 soil_check3_table <- make_kable(soil_check3, "Plots missing at least one soil sample qualifier")
 
-#----- + Summarize CWD checks + -----
+# Check for soil layers > 99 percentile for a given park
+soil_samp <- do.call(joinSoilSampleData, c(arglist, list(last_lab_year = 2019))) %>% name_plot()
+
+soil_new <- soil_samp %>% filter_week()
+soil_old <- soil_samp %>% filter(StartYear < curr_year)
+
+soil_sum <- soil_old %>% group_by(ParkUnit) %>% 
+            summarize(litter_99 = quantile(Litter_cm, probs = 0.99),
+                      O_hor_99 = quantile(O_Horizon_cm, probs = 0.99),
+                      A_hor_99 = quantile(A_Horizon_cm, probs = 0.99),
+                      Depth_99 = quantile(Total_Depth_cm, probs = 0.99))
+
+soil_99_check <- left_join(soil_new, soil_sum, by = "ParkUnit") %>% 
+                 filter(Litter_cm > litter_99 |
+                        O_Horizon_cm > O_hor_99|
+                        A_Horizon_cm > A_hor_99|
+                        Total_Depth_cm > Depth_99)
+
+QC_table <- rbind(QC_table, QC_check(soil_99_check, "soil", "Soil Depth > 99% percentile for at least one horizon in a given park"))
+
+soil_99_table <- make_kable(soil_99_check, "Soil Depth > 99% percentile for at least one horizon in a given park")
+
+#----- + Summarize soil checks + -----
 soil_check <- QC_table %>% filter(Data %in% "Soil" & Num_Records > 0) 
 include_soil_tab <- tab_include(soil_check)
 
@@ -863,7 +935,7 @@ spp_newpark_table <- make_kable(spp_newpark, "Species new to a park")
 
 # check possible miss-IDed species
 spp_checks <- c('Acer saccharinum', 'Acer nigrum', 'Persicaria posumbu', 'Lonicera', 'Euonymus americanus',
-                'Kalmia latifolia', 'Picea abies')
+                'Kalmia latifolia', 'Picea abies', 'Lysimachia quadriflora', 'Ulmus alata')
 
 sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks)
 

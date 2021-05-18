@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2019-07-01"
+  week_start: "2021-05-11"
   cycle_latest: 4
 ---
 Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```
 
-```{r import, include = FALSE, cache = TRUE}
+```{r import, include = FALSE, cache = FALSE}
 forestNETN::importData()
 # path = "C:/Forest_Health/exports/NETN"
 # forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
@@ -84,7 +84,7 @@ check_null(DBI_diff_table)
 
 check_null(stand_dist_table)
 
-check_null(stand_ht_95_table)
+check_null(stand_ht_99_table)
 
 check_null(stand_ht_comp_table)
 
@@ -122,9 +122,9 @@ cat("### Microplot {.tabset}", "\n")
 ```
 
 ```{r micro_tables, echo = FALSE, include = include_micro_tab}
-check_null(micro_ns_table)
-
 check_null(micro_check3_table)
+
+check_null(micro_ns_table)
 
 check_null(sap_pm_table)
 
@@ -136,9 +136,9 @@ check_null(seed_pm_table)
 
 check_null(seed_0tally_table)
 
-check_null(seeds_95_table)
+check_null(seeds_99_table)
 
-check_null(saps_95_table)
+check_null(saps_99_table)
 
 ```
 
@@ -189,6 +189,10 @@ check_null(cwd_ns_missing_notes_table)
 check_null(cwd_pm_table)
 
 check_null(cwd_check3_table)
+
+check_null(cwd_99_table)
+
+check_null(cwd_data_99_table)
 ```
 
 
@@ -205,6 +209,8 @@ check_null(soil_ns_missing_notes_table)
 check_null(soil_pm_table)
 
 check_null(soil_check3_table)
+
+check_null(soil_99_table)
 ```
 
 
