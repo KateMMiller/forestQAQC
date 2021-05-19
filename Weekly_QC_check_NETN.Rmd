@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-05-11"
+  week_start: "2019-07-01"
   cycle_latest: 4
 ---
 Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
@@ -18,8 +18,6 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ```{r import, include = FALSE, cache = FALSE}
 forestNETN::importData()
-# path = "C:/Forest_Health/exports/NETN"
-# forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
 ```
 
 ```{r deps, include = FALSE}

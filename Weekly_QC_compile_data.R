@@ -542,12 +542,16 @@ seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, sd_15_30cm
                          sd_100_150cm > sd_100_150cm_99 |
                          sd_p150cm > sd_p150cm_99) 
                   
-seed_cols <- as.character(c(ifelse(seeds_99_check$sd_15_30cm > seeds_99_check$sd_15_30cm_99, "sd_15_30cm", "ParkUnit"),
-               ifelse(seeds_99_check$sd_30_100cm > seeds_99_check$sd_30_100cm_99 , "sd_30_100cm", "ParkUnit"),
-               ifelse(seeds_99_check$sd_100_150cm > seeds_99_check$sd_100_150cm_99, "sd_100_150cm", "ParkUnit"),
-               ifelse(seeds_99_check$sd_p150cm > seeds_99_check$sd_p150cm_99, "sd_p150cm", "ParkUnit"))) 
+seeds_99_check_final <- if(nrow(seeds_99_check) > 0){
+  seed_cols <- c(ifelse(seeds_99_check$sd_15_30cm > seeds_99_check$sd_15_30cm_99, "sd_15_30cm", "ParkUnit"),
+                 ifelse(seeds_99_check$sd_30_100cm > seeds_99_check$sd_30_100cm_99 , "sd_30_100cm", "ParkUnit"),
+                 ifelse(seeds_99_check$sd_100_150cm > seeds_99_check$sd_100_150cm_99, "sd_100_150cm", "ParkUnit"),
+                 ifelse(seeds_99_check$sd_p150cm > seeds_99_check$sd_p150cm_99, "sd_p150cm", "ParkUnit"))#) 
 
-seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
+  seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
+  return(seeds_99_check_final)
+} else {seeds_99_check}
+
 
 QC_table <- rbind(QC_table, QC_check(seeds_99_check_final, "Microplot", "Seedling tallies > 99% percentile for a given park"))
 
