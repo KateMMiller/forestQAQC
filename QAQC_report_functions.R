@@ -21,6 +21,19 @@ check_dif <- function(df, col){
   return(color)
 }
 
+check_dif_strict <- function(df, col){
+  dif <- ifelse(is.numeric(df[, col]), 
+                abs(diff(df[, col])), 
+                df[1,col] == df[2,col])
+  
+  color <- case_when(is.logical(dif) & dif == TRUE ~ "#ffffff", #white
+                     is.logical(dif) & dif == FALSE ~ diff_bad,
+                     is.numeric(dif) & dif == 0 ~ "#ffffff", 
+                     is.numeric(dif) & dif > 0 ~ diff_bad,
+                     is.na(dif) ~ "#ffffff") 
+  return(color)
+}
+
 check_dif_col <- function(df, col){
   df[,col][is.na(df[,col])] <- 0
   color <- case_when(df[,col] == 0 ~ "#ffffff",
