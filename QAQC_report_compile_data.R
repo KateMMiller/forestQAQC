@@ -447,23 +447,29 @@ cwd_vol <- do.call(joinCWDData, arglist) %>% filter_plot() %>% name_team() %>%
 
 cwd_comp <- full_join(cwd_vol %>% filter(Team == "Crew") %>% select(-Team),
                       cwd_vol %>% filter(Team == "QAQC") %>% select(-Team),
-                      by = c("Species", "Decay"),
+                      by = c("Species"),#, "Decay"),
                       suffix = c("_C", "_Q")) %>% filter(Species != "None present") %>% 
-            arrange(Species, Decay)
+            arrange(Species)#, Decay)
+
 
 cwd_join <- full_join(cwd_comp, cwd_sum, by = "Species")
 
-cwd_join$Decay <- as.integer(cwd_join$Decay)            
+cwd_join$Decay_C <- as.integer(cwd_join$Decay_C)            
+cwd_join$Decay_Q <- as.integer(cwd_join$Decay_Q)            
 
 cwd_tot <- data.frame(Species = "CWD Total", 
-                      Decay = NA_integer_, 
+                      Decay_C = mean(cwd_join$Decay_C, na.rm = T),
+                      Decay_Q = mean(cwd_join$Decay_Q, na.rm = T),
                       CWD_Vol_C = sum(cwd_join$CWD_Vol_C, na.rm = T),
                       CWD_Vol_Q = sum(cwd_join$CWD_Vol_Q, na.rm = T),
                       num_pieces_C = sum(cwd_join$num_pieces_C, na.rm = T),
                       num_pieces_Q = sum(cwd_join$num_pieces_Q, na.rm = T))
+
 cwd_comp2 <- rbind(cwd_join, cwd_tot) %>% 
              mutate_if(is.numeric, ~round(., 1)) %>% 
-             mutate(vol_dif = pct_diff(CWD_Vol_C, CWD_Vol_Q))
+             mutate(vol_dif = pct_diff(CWD_Vol_C, CWD_Vol_Q)) %>% 
+             select(Species, Decay_C, Decay_Q, CWD_Vol_C, CWD_Vol_Q, num_pieces_C, num_pieces_Q, vol_dif)
+cwd_comp2
 
 #----- Soil
 soil_samp1 <- get("COMN_SoilSample", envir = VIEWS_NETN) %>% 
