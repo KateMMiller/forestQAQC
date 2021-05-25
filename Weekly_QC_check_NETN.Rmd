@@ -6,8 +6,9 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2019-07-01"
+  week_start: "2021-05-25"
   cycle_latest: 4
+  locType: 'all'
 ---
 Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
 --------------------------------------------------
@@ -34,6 +35,7 @@ week_start <- as_date(params$week_start)
 cycle_latest <- paste0("cycle_", params$cycle_latest)
 cycle_prev <- paste0("cycle_", params$cycle_latest-1)
 cycle_prev_num <- params$cycle_latest - 1
+loc_type <- params$locType
 source("Weekly_QC_compile_data.R")
 ```
 

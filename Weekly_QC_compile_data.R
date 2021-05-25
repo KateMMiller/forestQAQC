@@ -11,7 +11,7 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = 'all')
+arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
 plotevs <- do.call(joinLocEvent, arglist1) 
 
@@ -20,7 +20,7 @@ new_evs <- plotevs %>% filter_week() %>% name_plot()
 new_evs_list <- unique(new_evs$Plot_Name)
 
 park_ev_list <- sort(unique(new_evs$ParkUnit))
-arglist = list(park = park_ev_list, to = curr_year, QAQC = TRUE, eventType = 'complete', locType = 'all')
+arglist = list(park = park_ev_list, to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
 #----- Check for complete visit info -----
 comp_visits <- new_evs %>% select(Plot_Name, PanelCode, xCoordinate, yCoordinate, ZoneCode, PhysiographyCode,
@@ -43,7 +43,7 @@ plot_check <- QC_table %>% filter(Data %in% "Plot & Visit Data" & Num_Records > 
 include_plot_tab <- tab_include(plot_check)
 
 #----- Visit Notes -----
-visit_notes <- joinVisitNotes(from = curr_year, to = curr_year) %>% 
+visit_notes <- joinVisitNotes(from = curr_year, to = curr_year, noteType = 'all', locType = loc_type) %>% 
                filter_week() %>% name_plot() %>% 
                select(Plot_Name, Note_Type, Sample_Info, Notes) %>% 
                arrange(Plot_Name, Note_Type, Sample_Info, Notes)
@@ -101,27 +101,31 @@ QC_table <- rbind(QC_table,
 stand_pm_table <- make_kable(stand_pm2, "Permanently Missing records in stand data")
 
 # Check plots with fluctuating stand structure
-stand_str <- stand %>% filter(IsQAQC == 0) %>% 
+stand_str1 <- stand %>% filter(IsQAQC == 0) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, cycle, Stand_Structure) %>% 
   pivot_wider(names_from = cycle,
               values_from = Stand_Structure,
-              names_prefix = "cycle_") %>% 
-  filter(cycle_3 != cycle_4) # Update after start cycle 5
+              names_prefix = "cycle_") 
+  
+stand_str <- if(cycle_prev %in% names(stand_str1)){filter(stand_str1, cycle_prev != cycle_latest) 
+               } else {stand_str1[-(1:nrow(stand_str1)),]} 
 
 QC_table <- rbind(QC_table, QC_check(stand_str, "Stand Data", "Stand structure in cycle 4 != cycle 3"))
 
 stand_str_table <- make_kable(stand_str, "Fluctuating stand structures")
 
 # Check plots with fluctuating microtopography
-microtop <- stand %>% filter(IsQAQC == 0) %>% 
+microtop1 <- stand %>% filter(IsQAQC == 0) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, cycle, Microtopography) %>% 
   pivot_wider(names_from = cycle,
               values_from = Microtopography,
-              names_prefix = "cycle_") %>% 
-  filter(cycle_3 != cycle_4) # Update after start cycle 5
+              names_prefix = "cycle_") 
 
+microtop <- if(cycle_prev %in% names(microtop1)){filter(microtop1, cycle_prev != cycle_latest)
+             } else {microtop1[-(1:nrow(microtop1)),]}
+  
 QC_table <- rbind(QC_table, QC_check(microtop, "Stand Data", "Microtopography in cycle 4 != cycle 3"))
 
 microtop_table <- make_kable(microtop, "Fluctuating microtopography")
@@ -155,8 +159,6 @@ QC_table <- rbind(QC_table, QC_check(stand_dist, "Stand Data", "Reported stand d
 stand_dist_table <- make_kable(stand_dist, "Recorded disturbances")
 
 # Check for potential stand height outliers
-names(VIEWS_NETN$COMN_StandTreeHeights)
-
 stand_ht <- get("COMN_StandTreeHeights", env = VIEWS_NETN) %>% 
             mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
             select(Plot_Name, ParkUnit, StartYear, StartDate, IsQAQC, CrownClassLabel, Height) %>% 
@@ -296,7 +298,10 @@ crown_check1 <- tree_data_live %>% filter(IsQAQC == 0) %>%
               names_prefix = "cycle_") %>% 
   filter(!is.na(noquote(cycle_prev)))  
 
-crown_check1$crown_change <- abs(crown_check1[,cycle_latest] - crown_check1[,cycle_prev])
+crown_check1$crown_change <- if(cycle_prev %in% names(crown_check1)){
+                                abs(crown_check1[,cycle_latest] - crown_check1[,cycle_prev])
+                                } else {0}
+
 crown_check <- crown_check1 %>% filter(crown_change > 1) %>% select(-crown_change)
 
 QC_table <- rbind(QC_table, 
@@ -313,7 +318,8 @@ tree_dbh <- tree_data_live %>% select(Plot_Name, TagCode, cycle, ScientificName,
 old_dbh <- paste0("DBHcm_cycle_", params$cycle_latest-1)
 new_dbh <- paste0("DBHcm_cycle_", params$cycle_latest)
 
-tree_dbh$DBH_diff <- tree_dbh[,new_dbh] - tree_dbh[,old_dbh]
+tree_dbh$DBH_diff <- if(old_dbh %in% names(tree_dbh)){
+  tree_dbh[,new_dbh] - tree_dbh[,old_dbh]} else {NA}
 
 # Identify Zoinks trees 
 zoinks_tree <- tree_dbh %>% filter(DBH_diff >= 3 | DBH_diff < -0.1)
@@ -327,10 +333,12 @@ zoinks_table <- make_kable(zoinks_tree, "Zoinks trees with > 3cm growth or < -0.
 tree_dbh$Missing_DBHVer = ifelse((tree_dbh$DBH_diff >= 3 | tree_dbh$DBH_diff < -0.1) & 
                                  tree_dbh[, paste0("IsDBHVerified_cycle_", params$cycle_latest)] == 0, 1, 0)
 
-tree_dbh_check <- tree_dbh %>% filter(Missing_DBHVer == 1) 
-tree_dbh_check <- tree_dbh_check[, c("Plot_Name", "TagCode", "ScientificName", 
-                                     old_dbh, new_dbh, "DBH_diff", 
-                                     paste0("IsDBHVerified_cycle_", params$cycle_latest))]
+tree_dbh_check <- tree_dbh %>% filter(Missing_DBHVer == 1) %>% data.frame()
+
+tree_dbh_check <- if(old_dbh %in% names(tree_dbh_check)){
+   tree_dbh_check[, c("Plot_Name", "TagCode", "ScientificName", old_dbh, new_dbh, "DBH_diff", 
+                      paste0("IsDBHVerified_cycle_", params$cycle_latest))]
+} else {tree_dbh_check[-(1:nrow(tree_dbh_check)),]}
 
 QC_table <- rbind(QC_table, 
                   QC_check(tree_dbh_check, "Tree Data", "DBH zoinks missing DBH Verified check"))
