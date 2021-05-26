@@ -11,11 +11,8 @@ library(kableExtra)
 source("QAQC_report_functions.R")
 #importData() #local instance
 
-#path = "C:/Forest_Health/exports/NETN"
-#importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
-
 #----- Compile data
-arglist = list(park = substr(params$plot, 1, 4), from = year, to = year, QAQC = TRUE, eventType = 'complete')
+arglist = list(park = substr(params$plot, 1, 4), from = year, to = year, QAQC = TRUE, locType = loc_type, eventType = 'complete')
 
 plotevs <- do.call(joinLocEvent, arglist) %>% filter_plot() %>% name_team()
 
@@ -117,7 +114,7 @@ diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) +
 
 #----- Tree Conditions
 tr_cond <- do.call(joinTreeConditions, 
-                   c(arglist[1:4], list(speciesType = 'all', status = 'all', canopyPosition = 'all'))) %>% 
+                   c(arglist[1:4], list(speciesType = 'all', status = 'all', canopyPosition = 'all', locType = loc_type))) %>% 
            filter_plot() %>% name_team() %>% select(Plot_Name, TagCode, TreeStatusCode, ScientificName, num_cond:Team)
 tr_cond <- make_sppcode(tr_cond) %>% select(-ScientificName, -genus, -species)
 
@@ -145,7 +142,7 @@ trcond_wide[,c(3:4)][is.na(trcond_wide[,c(3:4)])] <- 0
 
 #----- Tree Foliage Conditions
 fol_cond <- do.call(joinTreeFoliageCond,
-                   c(arglist[1:4], list(speciesType = 'all', canopyPosition = 'all', valueType = 'classes'))) %>%
+                   c(arglist[1:4], list(speciesType = 'all', canopyPosition = 'all', valueType = 'classes', locType = loc_type))) %>%
   filter_plot() %>% name_team() %>% select(Plot_Name, TagCode, ScientificName, Team, Txt_Leaves_Aff_C:Txt_Leaf_Area_N) %>% 
   arrange(Team, TagCode)
 
@@ -338,7 +335,7 @@ quad_spp_class[,4:11][quad_spp_class[,4:11] == "75-95%"] <- 8
 quad_spp_class[,4:11][quad_spp_class[,4:11] == "95-100%"] <- 9
 quad_spp_class[,4:11][is.na(quad_spp_class[,4:11])] <- 0
 
-quad_spp_class <- quad_spp_class %>% mutate(across(UC:UL, ~as.numeric(.)))
+quad_spp_class <- suppressWarnings(quad_spp_class %>% mutate(across(UC:UL, ~as.numeric(.))))
 
 quad_spp2 <- full_join(quad_spp, quad_spp_class, by = c("Team", "ScientificName", "IsGerminant"),
                        suffix = c("", "_class"))
@@ -506,3 +503,4 @@ soil_comp <- full_join(soil_wide %>% filter(Team == "Crew") %>% select(-Team),
              mutate_if(is.numeric, ~round(., 1))
 
 }
+

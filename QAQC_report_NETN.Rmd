@@ -6,8 +6,9 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2019
-  plot: "ROVA-004"
+  year: 2021
+  plot: "ACAD-999"
+  locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
 QAQC Report for: <span style="font-weight:bold;">`r params$plot` `r params$year`</span> {.tabset .tabset-pills}
@@ -33,6 +34,7 @@ library(kableExtra)
 # Set up params (tends to work better)
 year = as.numeric(params$year)
 plot = params$plot
+loc_type = params$locType
 
 source("QAQC_report_functions.R")
 ```
@@ -828,6 +830,4 @@ check_table <- kable(data_checks, format = "html", align = c("c", "c", "l", "l")
 ```{r check_table_print}
 check_table
 ```
-
-
 </div>
