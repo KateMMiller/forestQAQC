@@ -6,9 +6,10 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-05-25"
-  cycle_latest: 4
+  week_start: "2021-06-07"
+  cycle_latest_num: 4
   locType: 'all'
+
 ---
 Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
 --------------------------------------------------
@@ -29,13 +30,17 @@ library(knitr)
 library(kableExtra)
 ```
 
-```{r compile}
+```{r set_params, echo = FALSE, include = TRUE}
 curr_year <- year(params$week_start)
 week_start <- as_date(params$week_start)
-cycle_latest <- paste0("cycle_", params$cycle_latest)
-cycle_prev <- paste0("cycle_", params$cycle_latest-1)
-cycle_prev_num <- params$cycle_latest - 1
+cycle_latest <- paste0("cycle_", params$cycle_latest_num)
+cycle_prev <- paste0("cycle_", params$cycle_latest_num-1)
+cycle_prev_num <- params$cycle_latest_num - 1
 loc_type <- params$locType
+```
+
+```{r compile}
+
 source("Weekly_QC_compile_data.R")
 ```
 
