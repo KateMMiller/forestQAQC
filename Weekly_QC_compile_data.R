@@ -963,6 +963,7 @@ spp_newpark_table <- make_kable(spp_newpark, "Species new to a park")
 
 # check possible miss-IDed species
 spp_checks <- c('Acer saccharinum', 'Acer nigrum', 'Persicaria posumbu', 'Lonicera', 'Euonymus americanus',
+                'Ilex montana', 'Larix decidua',
                 'Kalmia latifolia', 'Picea abies', 'Lysimachia quadriflora', 'Ulmus alata')
 
 sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks)
