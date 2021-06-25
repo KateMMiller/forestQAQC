@@ -19,7 +19,12 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
-forestNETN::importData()
+#forestNETN::importData()
+forestNETN::importCSV(path = "D:/NETN/Monitoring_Projects/Forest_Health/2021_data/weekly_databases",
+                     zip_name = "NETN_Forest_20210625_THING1.zip")
+# forestNETN::importCSV(path = "D:/NETN/Monitoring_Projects/Forest_Health/2021_data/weekly_databases", 
+#                       zip_name = "NETN_Forest_20210625_THING2.zip")
+
 ```
 
 ```{r deps, include = FALSE}
@@ -28,7 +33,6 @@ library(tidyverse)
 library(lubridate)
 library(knitr)
 library(kableExtra)
-library(htmltools)
 ```
 
 ```{r set_params, echo = FALSE, include = TRUE}
@@ -114,6 +118,8 @@ check_null(tree_data_pm_table)
 check_null(status_table)
 
 check_null(elev_mort_table)
+
+check_null(em_spp_table)
 
 check_null(crown_table)
 

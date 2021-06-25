@@ -196,10 +196,10 @@ stand_ht_prev <- do.call(joinStandData, arglist) %>% name_plot() %>%
                  filter(Plot_Name %in% new_evs_list) %>% 
                  filter(cycle == cycle_prev_num) %>% 
                  select(Plot_Name, Avg_Height_Codom, Avg_Height_Inter) %>% 
-                 mutate(Codom_up50 = Avg_Height_Codom + Avg_Height_Codom*0.5,
-                        Codom_low50 = Avg_Height_Codom - Avg_Height_Codom*0.5,
-                        Inter_up50 = Avg_Height_Inter + Avg_Height_Inter*0.5,
-                        Inter_low50 = Avg_Height_Inter - Avg_Height_Inter*0.5) 
+                 mutate(Codom_prev_up50 = Avg_Height_Codom + Avg_Height_Codom*0.5,
+                        Codom_prev_low50 = Avg_Height_Codom - Avg_Height_Codom*0.5,
+                        Inter_prev_up50 = Avg_Height_Inter + Avg_Height_Inter*0.5,
+                        Inter_prev_low50 = Avg_Height_Inter - Avg_Height_Inter*0.5) 
 
 stand_ht_new_wide <- full_join(stand_ht_new %>% filter(CrownClassLabel == "Co-dominant") %>% 
                                  select(Plot_Name, Height),
@@ -209,10 +209,13 @@ stand_ht_new_wide <- full_join(stand_ht_new %>% filter(CrownClassLabel == "Co-do
                                suffix = c("_codom", "_inter"))
 
 stand_ht_comp <- left_join(stand_ht_new_wide, stand_ht_prev, by = "Plot_Name") %>% 
-                 filter((Height_codom > Codom_up50 & !is.na(Codom_up50))| 
-                          (Height_codom < Codom_low50 & !is.na(Codom_low50))| 
-                            (Height_inter > Inter_up50 & !is.na(Inter_up50))| 
-                              (Height_inter < Inter_low50 & !is.na(Inter_low50)))
+                 filter((Height_codom > Codom_prev_up50 & !is.na(Codom_prev_up50))| 
+                          (Height_codom < Codom_prev_low50 & !is.na(Codom_prev_low50))| 
+                            (Height_inter > Inter_prev_up50 & !is.na(Inter_prev_up50))| 
+                              (Height_inter < Inter_prev_low50 & !is.na(Inter_prev_low50))) %>% 
+                 select(Plot_Name, Height_codom, Height_inter, Avg_Height_Codom, Avg_Height_Inter) %>% 
+                 rename(Prev_Codom_Avg = Avg_Height_Codom, Prev_Inter_Avg = Avg_Height_Inter) %>% 
+                 unique()
 
 QC_table <- rbind(QC_table, QC_check(stand_ht_comp, "Stand Data", "Stand heights 50% higher or lower than previous visit"))
 
@@ -299,10 +302,28 @@ elev_mort <- full_join(live_stems_new, live_stems_prev,
   mutate(mort = 100*(num_live_new - num_live_old)/(num_live_old * (StartYear_new - StartYear_old))) %>% 
   filter(mort < -1.6)
 
+
 QC_table <- rbind(QC_table, 
                   QC_check(elev_mort, "Tree Data", "Plots with elevated mortality (> 1.6% mort/ year)"))
 
 elev_mort_table <- make_kable(elev_mort, "Plots with elevated mortality (> 1.6% mort/ year)")
+
+# Report more detail on species composition in elevated mortality plots
+em_live_old <- tree_data_old %>% filter(Plot_Name %in% elev_mort$Plot_Name) %>% 
+                                 filter(TreeStatusCode %in% c(alive, recr, "AM")) %>% 
+                                 select(Plot_Name, TagCode, ScientificName)
+
+em_dead_new <- tree_data_new %>% filter(Plot_Name %in% elev_mort$Plot_Name) %>% 
+                                 filter(TreeStatusCode %in% dead) %>% 
+                                 select(Plot_Name, TagCode, ScientificName, TreeStatusCode)
+
+em_spp <- left_join(em_live_old, em_dead_new, by = c("Plot_Name", "TagCode", "ScientificName")) %>% 
+           filter(!is.na(TreeStatusCode))
+
+QC_table <- rbind(QC_table, 
+                  QC_check(em_spp, "Tree Data", "Elevated mortality by tree species"))
+
+em_spp_table <- make_kable(em_spp, "Elevated mortality by tree species")
 
 # Trees with major crown class changes
 crown_check1 <- tree_data_live %>% filter(IsQAQC == 0) %>% 
