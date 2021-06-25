@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-06-07"
+  week_start: "2021-06-21"
   cycle_latest_num: 4
   locType: 'all'
 
@@ -135,9 +135,13 @@ check_null(sap_pm_table)
 
 check_null(shrub_pm_table)
 
+check_null(shrub_ss_sq_table)
+
 check_null(shrub_0cov_table)
 
 check_null(seed_pm_table)
+
+check_null(seed_ss_sq_table)
 
 check_null(seed_0tally_table)
 
@@ -162,6 +166,10 @@ check_null(quad_data_pm_table)
 check_null(quad_spp_pm_table)
 
 check_null(quad_0cov_table)
+
+check_null(quad_sq_data_table)
+
+check_null(quad_sq_spp_table)
 
 ```
 
