@@ -78,7 +78,7 @@ visit_table <- kable(visit_notes, format = 'html', align = c('c', 'c', 'c', 'l')
                # row_spec(RC_visit_note_type[,1], extra_css = 'border-bottom: 1px solid #000000') %>%  
                row_spec(c(0, nrow(visit_notes)), extra_css = 'border-bottom: 1px solid #000000')
 
-include_visit_notes <- tab_include(visit_notes) #++++++ UPDATE AFTER FIGURE OUT TAB CONTROL APPROACH ++++++
+include_visit_notes <- tab_include(visit_notes) #
 
 #----- Stand Data -----
 stand <- do.call(joinStandData, arglist) %>% name_plot() %>% select(-c(Network:PlotTypeCode)) %>% 
@@ -160,7 +160,13 @@ DBI_diff_table <- make_kable(dbi_diff, "DBI change > 1 point from previous cycle
 
 # Disturbances
 stand_dist <- do.call(joinStandDisturbance, c(arglist, list(from = curr_year))) %>% 
-  filter_week() %>% filter(DisturbanceCode > 0)
+  filter_week() %>% filter(DisturbanceCode > 0) %>% 
+  select(Plot_Name, StartYear, IsQAQC, DisturbanceCode, DisturbanceSummary, ThresholdCode,
+         ThresholdLabel, DisturbanceCoverClassLabel, DisturbanceNote) %>% 
+  rename(Summary = DisturbanceSummary, 
+         Label = ThresholdLabel,
+         CoverClass = DisturbanceCoverClassLabel,
+         Note = DisturbanceNote)
 
 QC_table <- rbind(QC_table, QC_check(stand_dist, "Stand Data", "Reported stand disturbances"))
 
@@ -501,6 +507,19 @@ QC_table <- rbind(QC_table,
 
 shrub_pm_table <- make_kable(shrub_data_pm2, "Shrubs: Permanently Missing records")
 
+# Check for plots with SS shrubsample qualifier and no species data
+shrub_ss_sq <- get("COMN_MicroplotShrubs", envir = VIEWS_NETN) %>% 
+               mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
+               name_plot() %>% 
+               filter(Plot_Name %in% new_evs_list) %>% 
+               select(Plot_Name, StartYear, IsQAQC, SQShrubCode, MicroplotCode, ScientificName, CoverClassCode) %>%
+               filter(SQShrubCode %in% "SS" & is.na(ScientificName))
+
+QC_table <- rbind(QC_table, 
+                  QC_check(shrub_ss_sq, "Microplot", "Shrubs: SS sample qualifier without cover data"))
+
+shrub_ss_sq_table <- make_kable(shrub_ss_sq, "Shrubs: SS sample qualifier without cover data")
+
 # Check for shrub species entered with no cover
 shrubs_0cov <- shrubs %>% filter((!ScientificName %in% c("Not Sampled", "None present")) & 
                                   (Pct_Cov_UR == 0 & Pct_Cov_UL == 0 & Pct_Cov_B == 0) |
@@ -531,6 +550,19 @@ QC_table <- rbind(QC_table,
                   QC_check(seed_data_pm2, "Microplot", "Seedlings: Permanently Missing records"))
 
 seed_pm_table <- make_kable(seed_data_pm2, "Seedlings: Permanently Missing records")
+
+# Check for plots with SS sample qualifier and no species data
+seed_ss_sq <- get("NETN_MicroplotSeedlings", envir = VIEWS_NETN) %>% 
+              mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
+              name_plot() %>% 
+              filter(Plot_Name %in% new_evs_list) %>% 
+              select(Plot_Name, StartYear, IsQAQC, SQSeedlingCode, MicroplotCode, ScientificName, SizeClassLabel) %>%
+              filter(SQSeedlingCode %in% "SS" & is.na(ScientificName))
+
+QC_table <- rbind(QC_table, 
+                  QC_check(seed_ss_sq, "Microplot", "Seedlings: SS sample qualifier without seedling tallies"))
+
+seed_ss_sq_table <- make_kable(seed_ss_sq, "Seedlings: SS sample qualifier without seedling tallies")
 
 # Check for plots with species recorded but 0 tallies
 seeds_0tally <- seeds %>% filter((!ScientificName %in% c("Not Sampled", "None present")) & 
@@ -679,6 +711,34 @@ QC_table <- rbind(QC_table,
                   QC_check(quad_0cov, "Quadrat", "Quadrat Species: species recorded with 0 or missing cover"))
 
 quad_0cov_table <- make_kable(quad_0cov, "Quadrat Species: species recorded with 0 or missing cover")
+
+# Check for quadrats with SS sample qualifier, but no quad character data (eg potentially lost)
+quad_sq_data <- get("COMN_QuadCharacter", envir = VIEWS_NETN) %>% 
+                mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
+                name_plot() %>% 
+                filter(Plot_Name %in% new_evs_list) %>% 
+                select(Plot_Name, StartYear, IsQAQC, SQQuadCharCode, CoverClassCode) %>%
+                filter(SQQuadCharCode %in% "SS" & is.na(CoverClassCode))
+
+QC_table <- rbind(QC_table, 
+                  QC_check(quad_sq_data, "Quadrat", "Quadrat Data: SS sample qualifier without % cover data"))
+
+quad_sq_data_table <- make_kable(quad_sq_data, "Quadrat Data: SS sample qualifier without % cover data")
+
+
+# Check for quadrats with SS sample qualifier, but no quad species data (eg potentially lost)
+quad_sq_spp <- get("NETN_QuadSpecies", envir = VIEWS_NETN) %>% 
+  mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
+  name_plot() %>% 
+  filter(Plot_Name %in% new_evs_list) %>% 
+  select(Plot_Name, StartYear, IsQAQC, SQQuadSppCode, CoverClassCode) %>%
+  filter(SQQuadSppCode %in% "SS" & is.na(CoverClassCode))
+
+QC_table <- rbind(QC_table, 
+                  QC_check(quad_sq_spp, "Quadrat", "Quadrat Species: SS sample qualifier without % cover data"))
+
+quad_sq_spp_table <- make_kable(quad_sq_spp, "Quadrat Species: SS sample qualifier without % cover data")
+
 
 #----- + Summarize quadrat checks + -----
 quad_check <- QC_table %>% filter(Data %in% "Quadrat" & Num_Records > 0) 
