@@ -25,6 +25,10 @@ p {
   font-size: 14px;
 }
 
+.indent {
+  text-indent: 20px;
+}
+
 
 h1 {
   font-family: "FrutigerLTStd-Black","Arial",Arial,sans-serif;
