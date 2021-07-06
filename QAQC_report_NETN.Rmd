@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2021
-  plot: "ACAD-999"
+  plot: "ACAD-087"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -528,19 +528,19 @@ cwd_sum_tab <- kable(cwd_comp2 %>% select(-vol_dif), format = 'html', align = 'c
 
 ```{r, soil_tabs, include = SOILSAMPLE}
 if(SOILSAMPLE == TRUE){
-soil_table <- kable(soil_comp, format = "html", align = "c", col.names = c("Sample", rep(c("Crew", "QAQC"), 4))) %>% 
+soil_table <- kable(soil_comp, format = "html", align = "c", col.names = c("Sample", rep(c("Crew", "QAQC"), 4))) %>%
               kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = FALSE,
-                             position = 'left', font_size = 14) %>% 
+                             position = 'left', font_size = 14) %>%
               add_header_above(c("", "Litter Depth" = 2, "O Horizon" = 2, "A Horizon" = 2, "Total Depth" = 2),
                             extra_css = "border-bottom: 1px solid #000000; border-right: 3px solid #ffffff;",
-                            line = FALSE) %>% 
-              row_spec(c(0, nrow(soil_comp)), extra_css = 'border-bottom: 1px solid #000000;') %>% 
-              column_spec(1, border_left = TRUE) %>% 
+                            line = FALSE) %>%
+              row_spec(c(0, nrow(soil_comp)), extra_css = 'border-bottom: 1px solid #000000;') %>%
+              column_spec(1, border_left = TRUE) %>%
               column_spec(c(1, seq(3, 9, 2)), border_right = TRUE) %>%
-              column_spec(seq(2, 8, 2), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
-              column_spec(2:3, background = ifelse(soil_comp$Litter_C == soil_comp$Litter_Q, "#ffffff", diff_ok)) %>% 
-              column_spec(4:5, background = ifelse(soil_comp$O_hor_C == soil_comp$O_hor_Q, "#ffffff", diff_ok)) %>% 
-              column_spec(6:7, background = ifelse(soil_comp$A_hor_C == soil_comp$A_hor_Q, "#ffffff", diff_ok)) %>% 
+              column_spec(seq(2, 8, 2), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>%
+              column_spec(2:3, background = ifelse(soil_comp$Litter_C == soil_comp$Litter_Q, "#ffffff", diff_ok)) %>%
+              column_spec(4:5, background = ifelse(soil_comp$O_hor_C == soil_comp$O_hor_Q, "#ffffff", diff_ok)) %>%
+              column_spec(6:7, background = ifelse(soil_comp$A_hor_C == soil_comp$A_hor_Q, "#ffffff", diff_ok)) %>%
               column_spec(8:9, background = ifelse(soil_comp$Total_Depth_C == soil_comp$Total_Depth_Q, "#ffffff", diff_ok))
 }
 ```
