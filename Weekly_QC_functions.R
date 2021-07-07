@@ -14,6 +14,54 @@ add_cycle <- function(df){
   return(df)
 }
 
+add_cycle_MIDN <- function(df){
+  midn <- c("APCO", "BOWA", "FRSP", "GETT", "HOFU", "PETE", "RICH", "VAFO")
+  ncbn <- c("GEWA", "SAHI", "THST")
+  
+  #+++++ UPDATE AFTER 2021 SEASON +++++#
+  
+  df$cycle[df$StartYear %in% c(2007:2010) & df$ParkUnit %in% midn] <- 1
+  df$cycle[df$StartYear %in% c(2011:2014) & df$ParkUnit %in% midn] <- 2
+  df$cycle[df$StartYear %in% c(2015:2018) & df$ParkUnit %in% midn] <- 3
+  df$cycle[df$StartYear %in% c(2019:2022) & df$ParkUnit %in% midn] <- 4
+  
+  df$cycle[df$StartYear %in% c(2008:2011) & df$ParkUnit %in% ncbn] <- 1
+  df$cycle[df$StartYear %in% c(2012:2015) & df$ParkUnit %in% ncbn] <- 2
+  df$cycle[df$StartYear %in% c(2016:2019) & df$ParkUnit %in% ncbn] <- 3
+  df$cycle[df$StartYear %in% c(2020:2023) & df$ParkUnit %in% ncbn] <- 4
+  
+  df$cycle[df$StartYear %in% c(2011:2014) & df$ParkUnit %in% "COLO"] <- 1
+  df$cycle[df$StartYear %in% c(2015:2018) & df$ParkUnit %in% "COLO"] <- 2
+  df$cycle[df$StartYear %in% c(2019:2022) & df$ParkUnit %in% "COLO"] <- 3
+  df$cycle[df$StartYear %in% c(2023:2026) & df$ParkUnit %in% "COLO"] <- 4
+  
+  df$cycle[df$StartYear %in% c(2019:2022) & df$ParkUnit %in% "ASIS"] <- 1
+  df$cycle[df$StartYear %in% c(2023:2026) & df$ParkUnit %in% "ASIS"] <- 2
+  
+  return(df)
+}
+
+# Find latest and previous cycles for MIDN, since parks aren't on same cycle
+cycle_df <- data.frame(park = c("APCO", "BOWA", "FRSP", "GETT", "HOFU", "PETE", "RICH", "VAFO", 
+                                "GEWA", "SAHI", "THST", 
+                                "COLO", "ASIS"),
+                       group = c("MIDN", "MIDN", "MIDN", "MIDN", "MIDN", "MIDN", "MIDN", "MIDN",
+                                 "NCBN", "NCBN", "NCBN",
+                                 "COLO", "ASIS"),
+                       cycle_latest_num = c(rep(4, 8), rep(4, 3), 3, 1))
+cycle_df$cycle_latest <- paste0("cycle_", cycle_df$cycle_latest_num)
+cycle_df$cycle_prev_num <- cycle_df$cycle_latest_num - 1
+cycle_df$cycle_prev <- paste0("cycle_", cycle_df$cycle_latest_num - 1)
+
+get_latest <- function(parkcode){
+  cycle_df %>% filter(park == parkcode) %>% select(cycle_latest_num) %>% as.numeric()
+}
+
+get_prev <- function(parkcode){
+  cycle_df %>% filter(park == parkcode) %>% select(cycle_prev_num) %>% as.numeric()
+}
+#------
+
 # Determine whether to include/drop tab in output
 tab_include <- function(df){ifelse(nrow(df) > 0, TRUE, FALSE)}
 
