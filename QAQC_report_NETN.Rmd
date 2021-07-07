@@ -40,7 +40,7 @@ source("QAQC_report_functions.R")
 ```
 
 ```{r compile_data, include = FALSE}
-source("QAQC_report_compile_data.R")
+source("QAQC_report_compile_NETN.R")
 ```
 
 ```{r stand_tables, include = FALSE}
