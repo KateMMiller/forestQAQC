@@ -44,11 +44,12 @@ check_dif_col <- function(df, col){
 
 check_dbh <- function(df, col){
   df$diff <- abs(df[,col])
-  #df$diff[is.na(df$diff)]
+
   color = case_when(df$diff > 0.2 ~ diff_bad,
-                    between(df$diff, 0.01, 0.2) ~ diff_ok,
+                    between(df$diff, 0.1, 0.2) ~ diff_ok,
                     df$diff == 0 ~ "#ffffff", 
-                    is.na(df$diff) ~ "#ffffff")
+                    is.na(df$diff) ~ "#ffffff", 
+                    TRUE ~ "#ffffff")
   return(color)
 }
 
