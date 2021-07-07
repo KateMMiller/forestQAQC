@@ -1,0 +1,251 @@
+---
+output: 
+  html_document:
+    css: www/styles_weeklyQC.css
+    anchor_sections: FALSE
+    includes:
+        in_header: "header_manual.html"
+params:
+  week_start: "2019-09-01"
+  locType: 'all'
+
+---
+Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$week_start`</span> {.tabset .tabset-pills}
+--------------------------------------------------
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+
+```{r import, include = FALSE, cache = FALSE}
+forestMIDN::importData()
+
+```
+
+```{r deps, include = FALSE}
+library(forestMIDN)
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(kableExtra)
+```
+
+```{r set_params, echo = FALSE, include = TRUE}
+curr_year <- year(params$week_start)
+week_start <- as_date(params$week_start)
+loc_type <- params$locType
+```
+
+```{r compile}
+source("Weekly_QC_functions.R")
+source("Weekly_QC_compile_MIDN.R")
+```
+
+### QC Checks {.tabset}
+#### Summary {.tabset}
+```{r visits_checked, echo = F, results = 'hide'}
+visits_checked <- noquote(paste(new_evs_list, collapse = ", "))
+```
+The following plot visits were checked for this report: <br>
+<br>
+<div class = 'indent'>`r visits_checked`</div>
+<br>
+The table below documents the Quality Control checks that were performed and number of records returned that require further review by database tab. If any records are returned for a given database tab, a separate tab corresponding to that tab reports the data that require further review. Note that this report also compiles priority forest pest/pathogen and invasive plant early detection species detected in a plot. 
+
+```{r QC_results}
+QC_check_table
+```
+
+```{r visit_notes, echo = FALSE, include = include_visit_notes, results = 'asis'}
+cat("#### Visit Notes {.tabset}", "\n")
+if(include_visit_notes == TRUE){
+visit_table
+  }
+```
+
+```{r plot_tab, echo = FALSE, include = include_plot_tab, results = 'asis'}
+cat("### Plot & Visit Data {.tabset}", "\n")
+
+```
+
+```{r plot_tables, echo = FALSE, include = include_plot_tab}
+check_null(plot_na_table)
+
+check_null(miss_dir_table)
+```
+
+
+```{r stand_tab, echo = FALSE, include = include_stand_tab, results = 'asis'}
+cat("### Stand {.tabset}", "\n")
+
+```
+
+```{r stand_tables, echo = FALSE, include = include_stand_tab}
+check_null(stand_pm_table)
+
+check_null(stand_str_table)
+
+check_null(microtop_table)
+
+check_null(DBI_1_table)
+
+check_null(DBI_diff_table)
+
+check_null(stand_dist_table)
+
+check_null(stand_ht_99_table)
+
+check_null(stand_ht_comp_table)
+
+```
+
+```{r tree_tab, echo = FALSE, include = include_tree_tab, results = 'asis'}
+cat("### Tree {.tabset}", "\n")
+
+```
+
+```{r tree_tables, echo = FALSE, include = include_tree_tab}
+check_null(tree_data_pm_table)
+
+check_null(status_table)
+
+check_null(elev_mort_table)
+
+check_null(em_spp_table)
+
+check_null(crown_table)
+
+check_null(zoinks_table)
+
+check_null(tree_dbh_table)
+
+check_null(fol_maj_table)
+
+check_null(trcond_spp_table)
+
+check_null(pest_table)
+
+```
+
+```{r micro_tab, echo = FALSE, include = include_micro_tab, results = 'asis'}
+cat("### Microplot {.tabset}", "\n")
+
+```
+
+```{r micro_tables, echo = FALSE, include = include_micro_tab}
+check_null(micro_check3_table)
+
+check_null(micro_ns_table)
+
+check_null(sap_pm_table)
+
+check_null(sap_data_pm_table) # New for MIDN
+
+check_null(sap_elev_mort_table) # New for MIDN
+
+check_null(sap_em_spp_table) # New for MIDN
+
+check_null(zoinks_sap_table) # New for MIDN
+
+check_null(sap_dbh_table) # New for MIDN
+
+check_null(shrub_pm_table)
+
+check_null(shrub_ss_sq_table)
+
+check_null(shrub_0cov_table)
+
+```
+
+```{r quad_tab, echo = FALSE, include = include_quad_tab, results = 'asis'}
+cat("### Quadrat {.tabset}", "\n")
+
+```
+
+```{r quad_tables, echo = FALSE, include = include_quad_tab}
+check_null(quad_ns_table)
+
+check_null(quad_ns_missing_notes_table)
+
+check_null(quad_data_pm_table)
+
+check_null(quad_spp_pm_table)
+
+check_null(quad_seed_pm_table) # Updated for MIDN
+
+check_null(quad_0cov_table) # Updated quad names for MIDN
+
+check_null(quad_sq_data_table)
+
+check_null(quad_sq_spp_table)
+
+check_null(seed_pm_table) # Updated for MIDN
+
+check_null(seed_ss_sq_table) # Updated for MIDN
+
+check_null(seed_0tally_table) # Updated for MIDN
+
+check_null(seeds_99_table) # Updated for MIDN
+```
+
+
+```{r addspp_tab, echo = FALSE, include = include_addspp_tab, results = 'asis'}
+cat("### Additional Species {.tabset}", "\n")
+
+```
+
+```{r addspp_tables, echo = FALSE, include = include_addspp_tab}
+check_null(addspp_ns_table)
+
+check_null(addspp_ns_missing_notes_table)
+
+check_null(addspp_na_sq_table)
+
+```
+
+
+```{r cwd_tab, echo = FALSE, include = include_cwd_tab, results = 'asis'}
+cat("### CWD {.tabset}", "\n")
+
+```
+
+```{r cwd_tables, echo = FALSE, include = include_cwd_tab}
+check_null(cwd_ns_table)
+
+check_null(cwd_ns_missing_notes_table)
+
+check_null(cwd_pm_table)
+
+check_null(cwd_check3_table)
+
+check_null(cwd_99_table)
+
+check_null(cwd_data_99_table)
+```
+
+```{r plantID_tab, echo = FALSE, include = include_plantID_tab, results = 'asis'}
+cat("### Plant ID {.tabset}", "\n")
+
+```
+
+```{r plantID_tables, echo = FALSE, include = include_plantID_tab}
+check_null(spp_newplot_table)
+
+check_null(spp_newpark_table)
+
+check_null(sppID_table) # Updated for MIDN species
+
+```
+
+
+```{r ISED_tab, echo = FALSE, include = include_ISED_tab, results = 'asis'}
+cat("### Early Detections {.tabset}", "\n")
+
+```
+
+```{r ISED_tables, echo = FALSE, include = include_ISED_tab}
+check_null(ised_table)
+```
+
+
+
