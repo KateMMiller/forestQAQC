@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2019
-  plot: "APCO-004"
+  plot: "VAFO-040"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -120,9 +120,11 @@ pct_tab <- kable(stand2 %>% select(Team, Txt_Understory_Low, Txt_Understory_Mid,
                  column_spec(2:10, border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
                  column_spec(1:2, border_left = TRUE) %>% column_spec(10, border_right = TRUE)
 
-row_changes_tr <- sapply(seq_along(tree_hts_wide), function(x){
+row_changes_tr1 <- sapply(seq_along(tree_hts_wide), function(x){
   check = ifelse(tree_hts_wide$CrownClassLabel[x] != tree_hts_wide$CrownClassLabel[x + 1], x, NA)
   }) %>% data.frame() %>% na.omit(.)
+
+row_changes_tr <- ifelse(nrow(row_changes_tr1) == 0, 0, row_changes_tr1[,1])
 
 trht_tab <- kable(tree_hts_wide %>% select(TagCode, CrownClassLabel, Crew, QAQC, ht_diff),
                   format = 'html', align = 'c',
@@ -138,7 +140,7 @@ trht_tab <- kable(tree_hts_wide %>% select(TagCode, CrownClassLabel, Crew, QAQC,
                                                         is.na(tree_hts_wide$ht_diff) ~ diff_bad,
                                                         TRUE ~ "#ffffff")) %>%
                   row_spec(nrow(tree_hts_wide), extra_css = "border-bottom: 1px solid #000000;") %>%
-                  row_spec(row_changes_tr[,1], extra_css = "border-bottom: 1px solid #000000;") %>%
+                  row_spec(row_changes_tr, extra_css = "border-bottom: 1px solid #000000;") %>%
                   column_spec(c(1, 2, 3, 5), border_left = TRUE) %>% column_spec(5, border_right = TRUE) %>%
                   column_spec(c(3), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;")
 
@@ -166,7 +168,7 @@ tree_tab <- kable(tree_wide2 %>% select(-fol_diff, -dec_diff, -HWA_diff, -BBD_di
                                 "Crew", "QAQC", "Crew", "QAQC", "Crew", "QAQC",
                                 "Crew", "QAQC", "Crew", "QAQC", "Crew", "QAQC")) %>% 
             kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', 
-                          full_width = FALSE, position = 'left', font_size = 13) %>% 
+                          full_width = TRUE, position = 'left', font_size = 12.5) %>% 
             add_header_above(c("", "", "DBH" = 3, "Verified" = 2, "Status" = 2, "Crown Class" = 2,
                                "Total Foliage" = 2, "Decay" = 2, "HWA" = 2, "BBD" = 2),
                              extra_css = "border-bottom: 1px solid #000000; border-right: 3px solid #ffffff;",
@@ -262,7 +264,7 @@ folcond_tab <- kable(folcond_wide %>% select(TagCode:Txt_Leaves_Aff_W_Q),
                      format = 'html', align = 'c',
                      col.names = c("Tree", rep(c("Crew", "QAQC"), 10))) %>% 
               kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', 
-                            full_width = FALSE, position = 'left', font_size = 13) %>% 
+                            full_width = FALSE, position = 'left', font_size = 12.5) %>% 
               add_header_above(c("", "% Lvs. Aff." = 2, "% Leaf Area" = 2, "% Lvs. Aff." = 2, "% Leaf Area" = 2,
                                  "% Lvs. Aff." = 2, "% Lvs. Aff." = 2, "% Leaf Area" = 2, "% Lvs. Aff." = 2,
                                  "% Lvs. Aff." = 2, "% Lvs. Aff." = 2),
