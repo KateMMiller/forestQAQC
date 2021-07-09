@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-06-27"
+  week_start: "2021-07-04"
   cycle_latest_num: 4
   locType: 'all'
 
@@ -46,7 +46,7 @@ loc_type <- params$locType
 
 ```{r compile}
 
-source("Weekly_QC_compile_data.R")
+source("Weekly_QC_compile_NETN.R")
 ```
 
 ### QC Checks {.tabset}
