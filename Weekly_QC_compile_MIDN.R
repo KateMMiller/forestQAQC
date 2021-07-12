@@ -1171,7 +1171,7 @@ spp_newpark_table <- make_kable(spp_newpark, "Species new to a park")
 # check possible miss-IDed species
 spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spicatum', 'Acer',
                 'Betula alleghaniensis',
-                'Gaylussacia baccata', 'Gaylussacia dumosa',
+                'Gaylussacia baccata', 'Gaylussacia dumosa', 'Gaylussacia frondosa', 'Gaylussacia',
                 'Ilex montana', 'Ilex verticillata', 'Ilex mucronata',
                 'Kalmia angustifolia', 'Lonicera', 'Maianthemum', 'Myrica gale', 'Nyssa biflora',
                 'Persea palustris','Persicaria posumbu', 
