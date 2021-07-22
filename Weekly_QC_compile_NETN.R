@@ -43,7 +43,7 @@ plot_check <- QC_table %>% filter(Data %in% "Plot & Visit Data" & Num_Records > 
 include_plot_tab <- tab_include(plot_check)
 
 #----- Visit Notes -----
-visit_notes <- joinVisitNotes(from = curr_year, to = curr_year, noteType = 'all', locType = loc_type) %>% 
+visit_notes <- joinVisitNotes(from = curr_year, to = curr_year, noteType = 'visit', locType = loc_type) %>% 
                filter_week() %>% name_plot() %>% 
                select(Plot_Name, Note_Type, Sample_Info, Notes) %>% 
                arrange(Plot_Name, Note_Type, Sample_Info, Notes)
@@ -1101,14 +1101,15 @@ ised_table <- make_kable(ised_join, "Invasive species early detections")
 ISED_check <- QC_table %>% filter(Data %in% "Early Detection" & Num_Records > 0) 
 include_ISED_tab <- tab_include(ISED_check)
 
-
 #+++++ Compile final QC Table
+QC_table$Notes <- as.character(NA)
 QC_check_table <-  kable(QC_table, format = 'html', align = 'c', caption = "QC checking results",
-                         col.names = c("Data Tab", "Check Description", "Number of Records")) %>% 
+                         col.names = c("Data Tab", "Check Description", "Number of Records", "Notes")) %>% 
                    kable_styling(fixed_thead = TRUE, bootstrap_options = c('condensed'), 
                                  full_width = TRUE, position = 'left', font_size = 12) %>%
                    row_spec(0, extra_css = "border-top: 1px solid #000000; border-bottom: 1px solid #000000;") %>% 
                    column_spec(2:ncol(QC_table), background = ifelse(QC_table$Num_Records > 0, "#F2F2A0", "#ffffff")) %>% 
                    collapse_rows(1, valign = 'top') %>% 
-                   row_spec(nrow(QC_table), extra_css = 'border-bottom: 1px solid #000000;') 
+                   row_spec(nrow(QC_table), extra_css = 'border-bottom: 1px solid #000000;') %>% 
+                   column_spec(3, width = "150px")
 

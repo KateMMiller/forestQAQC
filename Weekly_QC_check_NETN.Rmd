@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-07-04"
+  week_start: "2021-05-01"
   cycle_latest_num: 4
   locType: 'all'
 
@@ -15,7 +15,7 @@ Weekly QC Report for week starting: <span style="font-weight:bold;">`r params$we
 --------------------------------------------------
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-
+options(knitr.kable.NA = '')
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
@@ -60,10 +60,11 @@ The following plot visits were checked for this report: <br>
 <br>
 The table below documents the Quality Control checks that were performed and number of records returned that require further review by database tab. If any records are returned for a given database tab, a separate tab corresponding to that tab reports the data that require further review. Note that this report also compiles priority forest pest/pathogen and invasive plant early detection species detected in a plot. 
 
+<div contenteditable='true'>
 ```{r QC_results}
 QC_check_table
 ```
-
+</div>
 ```{r visit_notes, echo = FALSE, include = include_visit_notes, results = 'asis'}
 cat("#### Visit Notes {.tabset}", "\n")
 if(include_visit_notes == TRUE){
