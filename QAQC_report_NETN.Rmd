@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2021
-  plot: "ACAD-087"
+  plot: "ACAD-160"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -372,7 +372,16 @@ seeds_tab <- kable(seeds_comp %>% select(-tot_seeds_C, -tot_seeds_Q), format = '
              row_spec(c(0, nrow(seeds_comp)), extra_css = "border-bottom: 1px solid #000000;") %>% 
              row_spec(row_changes2[,1], extra_css = "border-bottom: 1px solid #000000;")
 
-regen_tab <- kable(regen_comp %>% select(-seed_pct_diff, -sap_pct_diff, -stock_pct_diff), 
+regen_tab <- if(nrow(regen_comp) == 0){
+             kable(data.frame(x = "No regeneration observed in both visits."), format = "html", align = 'c',
+                   col.names = "") %>% 
+             kable_styling(fixed_thead = TRUE, bootstrap_options = "condensed", full_width = FALSE,
+                           font_size = 14) %>% 
+             
+             row_spec(0:1, extra_css = 'border-bottom: 1px solid #000000;') %>% 
+             column_spec(1, border_left = T, border_right = T)
+             } else {
+             kable(regen_comp %>% select(-seed_pct_diff, -sap_pct_diff, -stock_pct_diff), 
                    format = 'html', align = 'c',
                    col.names = c("Species", rep(c("Crew", "QAQC"), 3))) %>% 
              kable_styling(fixed_thead = TRUE, bootstrap_options = "condensed", 
@@ -386,7 +395,7 @@ regen_tab <- kable(regen_comp %>% select(-seed_pct_diff, -sap_pct_diff, -stock_p
              row_spec(c(0, nrow(regen_comp)), extra_css = "border-bottom: 1px solid #000000;") %>% 
              column_spec(c(1, seq(3, 7, 2)), border_right = TRUE) %>%
              column_spec(seq(2, 6, 2), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
-             column_spec(1, border_left = TRUE)
+             column_spec(1, border_left = TRUE)}
 
 
 ```
