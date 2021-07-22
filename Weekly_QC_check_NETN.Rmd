@@ -60,11 +60,9 @@ The following plot visits were checked for this report: <br>
 <br>
 The table below documents the Quality Control checks that were performed and number of records returned that require further review by database tab. If any records are returned for a given database tab, a separate tab corresponding to that tab reports the data that require further review. Note that this report also compiles priority forest pest/pathogen and invasive plant early detection species detected in a plot. 
 
-<div contenteditable='true'>
 ```{r QC_results}
 QC_check_table
 ```
-</div>
 
 
 ```{r visit_notes, echo = FALSE, include = include_visit_notes, results = 'asis'}
