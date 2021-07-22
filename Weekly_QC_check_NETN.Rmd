@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-05-01"
+  week_start: "2021-06-01"
   cycle_latest_num: 4
   locType: 'all'
 
@@ -65,15 +65,17 @@ The table below documents the Quality Control checks that were performed and num
 QC_check_table
 ```
 </div>
+
+
 ```{r visit_notes, echo = FALSE, include = include_visit_notes, results = 'asis'}
-cat("#### Visit Notes {.tabset}", "\n")
+cat("#### Visit Notes", "\n")
 if(include_visit_notes == TRUE){
 visit_table
   }
 ```
 
 ```{r plot_tab, echo = FALSE, include = include_plot_tab, results = 'asis'}
-cat("### Plot & Visit Data {.tabset}", "\n")
+cat("### Plot & Visit Data", "\n")
 
 ```
 

@@ -977,9 +977,11 @@ soil_99_check <- left_join(soil_new, soil_sum, by = "ParkUnit") %>%
                  filter(Litter_cm > litter_99 |
                         O_Horizon_cm > O_hor_99|
                         A_Horizon_cm > A_hor_99|
-                        Total_Depth_cm > Depth_99)
+                        Total_Depth_cm > Depth_99) %>% 
+                 select(Plot_Name, StartYear, num_samps, Litter_cm:A_Horizon_cm, 
+                        litter_99:Depth_99)
 
-QC_table <- rbind(QC_table, QC_check(soil_99_check, "soil", "Soil Depth > 99% percentile for at least one horizon in a given park"))
+QC_table <- rbind(QC_table, QC_check(soil_99_check, "Soil", "Soil Depth > 99% percentile for at least one horizon in a given park"))
 
 soil_99_table <- make_kable(soil_99_check, "Soil Depth > 99% percentile for at least one horizon in a given park")
 
