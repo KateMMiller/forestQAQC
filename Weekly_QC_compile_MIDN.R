@@ -565,7 +565,7 @@ QC_table <- rbind(QC_table,
 
 sap_data_pm_table <- make_kable(sap_data_pm2, "Saplings: Permanently Missing records in sapling data")
 
-# Check for zombie trees
+# Check for zombie saplings
 alive <- c("1","AB","AF","AL","AS")
 recr <- c("RB","RF","RL","RS") 
 dead <- c("2","DB","DC","DL","DS")
@@ -651,7 +651,7 @@ QC_table <- rbind(QC_table,
 
 sap_em_spp_table <- make_kable(sap_em_spp, "Saplings: Elevated mortality by tree species")
 
-# Check that trees with > 2cm growth or <-0.1 cm growth have DBH verified selected
+# Check that saplings with > 2cm growth or <-0.1 cm growth have DBH verified selected
 sap_live_prev <- sap_data_old %>% filter(SaplingStatusCode %in% alive) %>% 
   filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, DBHcm)
@@ -668,7 +668,7 @@ sap_dbh <- left_join(sap_live_latest, sap_live_prev,
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
 
 # Identify Zoinks saps 
-zoinks_sap <- sap_dbh %>% filter(DBH_diff >= 3 | DBH_diff < -0.1)
+zoinks_sap <- sap_dbh %>% filter(DBH_diff >= 2 | DBH_diff < -0.1)
 
 QC_table <- rbind(QC_table, 
                   QC_check(zoinks_sap, "Microplot", "Saplings: Zoinks saplings with > 2cm growth or < -0.1cm growth"))
