@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2019-09-01"
+  week_start: "2021-08-01"
   locType: 'all'
 
 ---
@@ -56,31 +56,31 @@ The table below documents the Quality Control checks that were performed and num
 QC_check_table
 ```
 
-```{r visit_notes, echo = FALSE, include = include_visit_notes, results = 'asis'}
+```{r visit_notes, echo = FALSE, eval = include_visit_notes, results = 'asis'}
 cat("#### Visit Notes {.tabset}", "\n")
 if(include_visit_notes == TRUE){
 visit_table
   }
 ```
 
-```{r plot_tab, echo = FALSE, include = include_plot_tab, results = 'asis'}
+```{r plot_tab, echo = FALSE, eval = include_plot_tab, results = 'asis'}
 cat("### Plot & Visit Data {.tabset}", "\n")
 
 ```
 
-```{r plot_tables, echo = FALSE, include = include_plot_tab}
+```{r plot_tables, echo = FALSE, eval = include_plot_tab}
 check_null(plot_na_table)
 
 check_null(miss_dir_table)
 ```
 
 
-```{r stand_tab, echo = FALSE, include = include_stand_tab, results = 'asis'}
+```{r stand_tab, echo = FALSE, eval = include_stand_tab, results = 'asis'}
 cat("### Stand {.tabset}", "\n")
 
 ```
 
-```{r stand_tables, echo = FALSE, include = include_stand_tab}
+```{r stand_tables, echo = FALSE, eval = include_stand_tab}
 check_null(stand_pm_table)
 
 check_null(stand_str_table)
@@ -99,12 +99,12 @@ check_null(stand_ht_comp_table)
 
 ```
 
-```{r tree_tab, echo = FALSE, include = include_tree_tab, results = 'asis'}
+```{r tree_tab, echo = FALSE, eval = include_tree_tab, results = 'asis'}
 cat("### Tree {.tabset}", "\n")
 
 ```
 
-```{r tree_tables, echo = FALSE, include = include_tree_tab}
+```{r tree_tables, echo = FALSE, eval = include_tree_tab}
 check_null(tree_data_pm_table)
 
 check_null(status_table)
@@ -127,12 +127,12 @@ check_null(pest_table)
 
 ```
 
-```{r micro_tab, echo = FALSE, include = include_micro_tab, results = 'asis'}
+```{r micro_tab, echo = FALSE, eval = include_micro_tab, results = 'asis'}
 cat("### Microplot {.tabset}", "\n")
 
 ```
 
-```{r micro_tables, echo = FALSE, include = include_micro_tab}
+```{r micro_tables, echo = FALSE, eval = include_micro_tab}
 check_null(micro_check3_table)
 
 check_null(micro_ns_table)
@@ -157,12 +157,12 @@ check_null(shrub_0cov_table)
 
 ```
 
-```{r quad_tab, echo = FALSE, include = include_quad_tab, results = 'asis'}
+```{r quad_tab, echo = FALSE, eval = include_quad_tab, results = 'asis'}
 cat("### Quadrat {.tabset}", "\n")
 
 ```
 
-```{r quad_tables, echo = FALSE, include = include_quad_tab}
+```{r quad_tables, echo = FALSE, eval = include_quad_tab}
 check_null(quad_ns_table)
 
 check_null(quad_ns_missing_notes_table)
@@ -189,12 +189,12 @@ check_null(seeds_99_table) # Updated for MIDN
 ```
 
 
-```{r addspp_tab, echo = FALSE, include = include_addspp_tab, results = 'asis'}
+```{r addspp_tab, echo = FALSE, eval = include_addspp_tab, results = 'asis'}
 cat("### Additional Species {.tabset}", "\n")
 
 ```
 
-```{r addspp_tables, echo = FALSE, include = include_addspp_tab}
+```{r addspp_tables, echo = FALSE, eval = include_addspp_tab}
 check_null(addspp_ns_table)
 
 check_null(addspp_ns_missing_notes_table)
@@ -204,12 +204,12 @@ check_null(addspp_na_sq_table)
 ```
 
 
-```{r cwd_tab, echo = FALSE, include = include_cwd_tab, results = 'asis'}
+```{r cwd_tab, echo = FALSE, eval = include_cwd_tab, results = 'asis'}
 cat("### CWD {.tabset}", "\n")
 
 ```
 
-```{r cwd_tables, echo = FALSE, include = include_cwd_tab}
+```{r cwd_tables, echo = FALSE, eval = include_cwd_tab}
 check_null(cwd_ns_table)
 
 check_null(cwd_ns_missing_notes_table)
@@ -223,12 +223,12 @@ check_null(cwd_99_table)
 check_null(cwd_data_99_table)
 ```
 
-```{r plantID_tab, echo = FALSE, include = include_plantID_tab, results = 'asis'}
+```{r plantID_tab, echo = FALSE, eval = include_plantID_tab, results = 'asis'}
 cat("### Plant ID {.tabset}", "\n")
 
 ```
 
-```{r plantID_tables, echo = FALSE, include = include_plantID_tab}
+```{r plantID_tables, echo = FALSE, eval = include_plantID_tab}
 check_null(spp_newplot_table)
 
 check_null(spp_newpark_table)
@@ -238,12 +238,12 @@ check_null(sppID_table) # Updated for MIDN species
 ```
 
 
-```{r ISED_tab, echo = FALSE, include = include_ISED_tab, results = 'asis'}
+```{r ISED_tab, echo = FALSE, eval = include_ISED_tab, results = 'asis'}
 cat("### Early Detections {.tabset}", "\n")
 
 ```
 
-```{r ISED_tables, echo = FALSE, include = include_ISED_tab}
+```{r ISED_tables, echo = FALSE, eval = include_ISED_tab}
 check_null(ised_table)
 ```
 
