@@ -612,7 +612,7 @@ sap_status_check <- left_join(sap_status_latest, sap_status_prev, by = c("Plot_N
 QC_table <- rbind(QC_table, 
                   QC_check(sap_status_check, "Microplot", "Saplings: Zombie and excluded saplings"))
 
-status_table <- make_kable(sap_status_check, "Saplings: Zombie and excluded saplints")
+status_table <- make_kable(sap_status_check, "Saplings: Zombie and excluded saplings")
 
 # Check for potential elevated mortality events
 live_saps_prev <- sap_data_live %>% filter(StartYear >= (curr_year - 5) & StartYear < curr_year) %>% 
