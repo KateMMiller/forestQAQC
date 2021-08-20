@@ -18,6 +18,9 @@ plotevs <- do.call(joinLocEvent, arglist1)
 
 old_evs <- plotevs %>% filter(StartDate < params$week_start)
 new_evs <- plotevs %>% filter_week() %>% name_plot()
+
+if(nrow(new_evs) == 0){stop("Specified week returned 0 visits to check.")}
+
 new_evs_list <- unique(new_evs$Plot_Name)
 
 park_ev_list <- sort(unique(new_evs$ParkUnit)) #use for checks on current year
