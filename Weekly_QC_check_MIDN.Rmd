@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-08-01"
+  week_start: "2021-07-01"
   locType: 'all'
 
 ---
@@ -44,7 +44,7 @@ source("Weekly_QC_compile_MIDN.R")
 ### QC Checks {.tabset}
 #### Summary {.tabset}
 ```{r visits_checked, echo = F, results = 'hide'}
-visits_checked <- noquote(paste(new_evs_list, collapse = ", "))
+visits_checked <- noquote(paste(sort(new_evs_list), collapse = ", "))
 ```
 The following plot visits were checked for this report: <br>
 <br>
