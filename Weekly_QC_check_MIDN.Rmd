@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-07-01"
+  week_start: "2021-08-22"
   locType: 'all'
 
 ---
@@ -138,6 +138,8 @@ check_null(micro_check3_table)
 check_null(micro_ns_table)
 
 check_null(sap_pm_table)
+
+check_null(sap_status_table)
 
 check_null(sap_data_pm_table) # New for MIDN
 
