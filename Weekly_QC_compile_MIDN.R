@@ -439,7 +439,7 @@ QC_table <- rbind(QC_table,
 fol_maj_table <- make_kable(fol_major, "Plots with potential foliage outbreak (2+ trees with TotFol > 50%)")
 
 # Check tree conditions 
-tree_cond <- joinTreeConditions(to = curr_year, QAQC = FALSE, locType = 'all') %>% 
+tree_cond <- joinTreeConditions(from = curr_year, to = curr_year, QAQC = FALSE, locType = 'all') %>% 
              name_plot() %>% 
              filter(Plot_Name %in% new_evs_list) 
 
