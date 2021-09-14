@@ -54,6 +54,8 @@ tree_cols = c("ParkUnit", "PlotCode", "StartYear", "CrownClassLabel", "TagCode",
 missing_teams <- setdiff(tree_cols, names(tree_hts_wide))
 tree_hts_wide[missing_teams] <- NA_real_
 tree_hts_wide$ht_diff <- abs(tree_hts_wide$Crew - tree_hts_wide$QAQC)
+tree_hts_wide$ht_pct_diff <- pct_diff(tree_hts_wide$Crew, tree_hts_wide$QAQC)
+check_20pct_diff(tree_hts_wide, "ht_pct_diff")
 
 #----- Tree Data
 live <- c("AB", "AF", "AL", "AS", "AM", "RB", "RF", "RL", "RS")
@@ -550,5 +552,4 @@ cwd_comp2 <- rbind(cwd_join, cwd_tot) %>%
              mutate_if(is.numeric, ~round(., 1)) %>% 
              mutate(vol_dif = pct_diff(CWD_Vol_C, CWD_Vol_Q)) %>% 
              select(Species, Decay_C, Decay_Q, CWD_Vol_C, CWD_Vol_Q, num_pieces_C, num_pieces_Q, vol_dif)
-cwd_comp2
 

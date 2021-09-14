@@ -54,6 +54,8 @@ tree_cols = c("ParkUnit", "PlotCode", "StartYear", "CrownClassLabel", "TagCode",
 missing_teams <- setdiff(tree_cols, names(tree_hts_wide))
 tree_hts_wide[missing_teams] <- NA_real_
 tree_hts_wide$ht_diff <- abs(tree_hts_wide$Crew - tree_hts_wide$QAQC)
+tree_hts_wide$ht_pct_diff <- pct_diff(tree_hts_wide$Crew, tree_hts_wide$QAQC)
+check_20pct_diff(tree_hts_wide, "Crew", "QAQC", "ht_pct_diff")
 
 #----- Tree Data
 live <- c("AB", "AF", "AL", "AS", "AM", "RB", "RF", "RL", "RS")

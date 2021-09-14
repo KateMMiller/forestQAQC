@@ -116,6 +116,15 @@ check_pct_diff <- function(df, col1, col2, pct_diff){
   return(color)
 }
 
+check_20pct_diff <- function(df, col){
+  vec = df[,col]
+  color = case_when(vec > 0 & vec < 1 ~ '#ffffff', 
+                    vec >= 1 & vec < 20 ~ diff_ok, 
+                    vec > 20 ~ diff_bad,
+                    TRUE ~ "#ffffff")
+  return(color)
+}
+
 
 pct_diff <- function(col1, col2){
   pct_diff =  (abs(col1 - col2)/((col1 + col2)/2))*100
