@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-08-22"
+  week_start: "2021-08-01"
   locType: 'all'
 
 ---
@@ -62,6 +62,8 @@ if(include_visit_notes == TRUE){
 visit_table
   }
 ```
+<br>
+<br>
 
 ```{r plot_tab, echo = FALSE, eval = include_plot_tab, results = 'asis'}
 cat("### Plot & Visit Data {.tabset}", "\n")
@@ -229,16 +231,25 @@ check_null(cwd_data_99_table)
 cat("### Plant ID {.tabset}", "\n")
 
 ```
-
-```{r plantID_tables, echo = FALSE, eval = include_plantID_tab}
+<details open><summary class='drop'><h3>Species new to plot</h3></summary>
+```{r plantID_tables1, echo = FALSE, eval = include_plantID_tab}
 check_null(spp_newplot_table)
-
-check_null(spp_newpark_table)
-
-check_null(sppID_table) # Updated for MIDN species
-
 ```
+</details>
 
+<details open><summary class='drop'><h3>Species new to park</h3></summary>
+```{r plantID_tables2, echo = FALSE, eval = include_plantID_tab}
+check_null(spp_newpark_table)
+```
+</details>
+
+<details open><summary class='drop'><h3>Potentially incorrect IDs</h3></summary>
+```{r}
+check_null(sppID_table) # Updated for MIDN species
+```
+</details>
+<br>
+<br>
 
 ```{r ISED_tab, echo = FALSE, eval = include_ISED_tab, results = 'asis'}
 cat("### Early Detections {.tabset}", "\n")

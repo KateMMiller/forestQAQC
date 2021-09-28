@@ -82,7 +82,8 @@ visit_table <- kable(visit_notes, format = 'html', align = c('c', 'c', 'c', 'l')
                collapse_rows(1, valign = 'top') %>% 
                row_spec(RC_visit_notes[,1], extra_css = "border-bottom: 1px solid #000000;") %>%  
                # row_spec(RC_visit_note_type[,1], extra_css = 'border-bottom: 1px solid #000000') %>%  
-               row_spec(c(0, nrow(visit_notes)), extra_css = 'border-bottom: 1px solid #000000')
+               row_spec(c(0, nrow(visit_notes)), extra_css = 'border-bottom: 1px solid #000000') %>% 
+               scroll_box(height = "800px")
 
 include_visit_notes <- tab_include(visit_notes) #
 
@@ -1163,32 +1164,41 @@ spp_parkcheck <- full_join(spplist_new, park_spplist,
 spp_parkcheck[, 7:19][is.na(spp_parkcheck[, 7:19])] <- 0
 
 spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
-                                 select(-StartYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
-                                 -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, ScientificName)
+  select(-StartYear, -cycle, -TSN, -BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
+         -quad_pct_freq, -pres_new, -pres_old) %>% 
+  arrange(Plot_Name, ScientificName) %>% 
+  mutate(across(where(is.numeric), round, 2))
 
 QC_table <- rbind(QC_table, 
                   QC_check(spp_newpark, "Plant ID", "Species new to a park"))
 
-spp_newpark_table <- make_kable(spp_newpark, "Species new to a park")
+spp_newpark_table <- make_kable(spp_newpark, "Species new to a park") %>% 
+                     scroll_box(height = "600px")
 
 # check possible miss-IDed species
 spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spicatum', 'Acer',
                 'Betula alleghaniensis',
                 'Gaylussacia baccata', 'Gaylussacia dumosa', 'Gaylussacia frondosa', 'Gaylussacia',
-                'Ilex montana', 'Ilex verticillata', 'Ilex mucronata',
+                'Ilex decidua', 'Ilex montana', 'Ilex verticillata', 'Ilex mucronata',
+                'Juniperus', 'Juniperus communis', 'Juniperus horizontalis',
                 'Kalmia angustifolia', 'Lonicera', 'Maianthemum', 'Myrica gale', 'Nyssa biflora',
                 'Persea palustris','Persicaria posumbu', 
                 'Picea', 'Picea abies', 'Picea glauca', 'Picea mariana', 'Picea rubens', 
-                'Symphoricarpos albus',
+                'Symphoricarpos albus', 'Toxicodendron',
                 'Ulmus alata', 'Vaccinium angustifolium', 'Vaccinium myrtilloides'
                 )
 
-sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks)
+sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks) %>% 
+  arrange(ScientificName, Plot_Name) %>%  
+  select(-StartYear, -cycle, -TSN, -BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
+         -quad_pct_freq, -pres) %>% 
+  mutate(across(where(is.numeric), round, 2))
 
 QC_table <- rbind(QC_table, 
                   QC_check(sppID_check, "Plant ID", "Potentially incorrect species entries"))
 
-sppID_table <- make_kable(sppID_check, "Potentially incorrect species entries")
+sppID_table <- make_kable(sppID_check, "Potentially incorrect species entries") %>% 
+  scroll_box(height = "600px")
 
 #----- + Summarize Plant ID checks + -----
 plantID_check <- QC_table %>% filter(Data %in% "Plant ID" & Num_Records > 0) 
@@ -1245,5 +1255,6 @@ QC_check_table <-  kable(QC_table, format = 'html', align = 'c', caption = "QC c
                    row_spec(0, extra_css = "border-top: 1px solid #000000; border-bottom: 1px solid #000000;") %>% 
                    column_spec(2:ncol(QC_table), background = ifelse(QC_table$Num_Records > 0, "#F2F2A0", "#ffffff")) %>% 
                    collapse_rows(1, valign = 'top') %>% 
-                   row_spec(nrow(QC_table), extra_css = 'border-bottom: 1px solid #000000;') 
+                   row_spec(nrow(QC_table), extra_css = 'border-bottom: 1px solid #000000;')  %>% 
+                   scroll_box(height = "800px")
 
