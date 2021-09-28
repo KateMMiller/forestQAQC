@@ -55,6 +55,9 @@ The table below documents the Quality Control checks that were performed and num
 ```{r QC_results}
 QC_check_table
 ```
+<br>
+<br>
+
 
 ```{r visit_notes, echo = FALSE, eval = include_visit_notes, results = 'asis'}
 cat("#### Visit Notes {.tabset}", "\n")
