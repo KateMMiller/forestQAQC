@@ -1178,6 +1178,7 @@ spp_newpark_table <- make_kable(spp_newpark, "Species new to a park") %>%
 # check possible miss-IDed species
 spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spicatum', 'Acer',
                 'Betula alleghaniensis',
+                'Celtis laevigata', 'Clethra acuminata',
                 'Gaylussacia baccata', 'Gaylussacia dumosa', 'Gaylussacia frondosa', 'Gaylussacia',
                 'Ilex decidua', 'Ilex montana', 'Ilex verticillata', 'Ilex mucronata',
                 'Juniperus', 'Juniperus communis', 'Juniperus horizontalis',
