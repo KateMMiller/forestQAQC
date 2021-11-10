@@ -290,7 +290,6 @@ quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(Team == "Crew") %>% sel
          UC_dif, UR_dif, MR_dif, BR_dif,
          BC_dif, BL_dif, ML_dif, UL_dif)
 
-head(quad_tramp_wide2)
 
 #----- Quadrat Character
 quad_chr <- do.call(joinQuadData, c(arglist, list(valueType = 'classes'))) %>% filter_plot() %>% name_team() %>% 
@@ -349,11 +348,7 @@ quad_chr_comp <- full_join(quad_chr2 %>% filter(Team == "Crew") %>% select(-Team
                               BC_dif, BL_dif, ML_dif, UL_dif) %>% 
                        rename(Character = CharacterLabel)
 
-head(quad_chr_comp)
-head(quad_tramp_wide2)
-
 quad_chr_comb <- rbind(quad_tramp_wide2, quad_chr_comp)
-head(quad_chr_comb)
 
 #----- Quadrat species
 quad_spp1 <- do.call(joinQuadSpecies, arglist) %>% filter_plot() %>% name_team() 
