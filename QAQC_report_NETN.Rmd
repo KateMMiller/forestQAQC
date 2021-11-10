@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2021
-  plot: "ACAD-160"
+  year: 2019
+  plot: "ACAD-047"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -21,6 +21,7 @@ options(knitr.kable.NA = '')
 ```{r import, include = FALSE, cache = FALSE}
 forestNETN::importData()
 #path = "C:/Forest_Health/exports/NETN"
+#forestNETN::importCSV(path = "C:/Forest_Health/exports/NETN/", zip_name = "NETN_Forest_20210617.zip")
 #forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
 ```
 
@@ -125,7 +126,8 @@ pct_tab <- kable(stand2 %>% select(Team, Txt_Understory_Low, Txt_Understory_Mid,
 
 row_changes_tr <- sapply(seq_along(tree_hts_wide), function(x){
   check = ifelse(tree_hts_wide$CrownClassLabel[x] != tree_hts_wide$CrownClassLabel[x + 1], x, NA)
-  }) %>% data.frame() %>% na.omit(.)
+  }) %>% data.frame() %>% na.omit(.) %>% as.numeric()
+
 
 trht_tab <- kable(tree_hts_wide %>% select(TagCode, CrownClassLabel, Crew, QAQC, ht_pct_diff),
                   format = 'html', align = 'c',
@@ -398,22 +400,22 @@ regen_tab <- if(nrow(regen_comp) == 0){
 ```
 
 ```{r quad_tables, include = FALSE}
-chr_tab <- kable(quad_chr_comp %>% select(Character:UL_Q), format = 'html', align = 'c', 
+chr_tab <- kable(quad_chr_comb %>% select(Character:UL_Q), format = 'html', align = 'c', 
                  col.names = c("Character", rep(c("Crew", "QAQC"), 8))) %>% 
            kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed',
                          full_width = TRUE, position = 'left', font_size = 12) %>% 
            add_header_above(c("", "UC" = 2, "UR" = 2, "MR" = 2, "BR" = 2, "BC" = 2, "BL" = 2, "ML" = 2, "UL" = 2),
                             extra_css = "border-bottom: 1px solid #000000; border-right: 3px solid #ffffff;",
                             line = FALSE) %>% 
-           column_spec(2:3, background = check_dif_col(quad_chr_comp, "UC_dif")) %>% 
-           column_spec(4:5, background = check_dif_col(quad_chr_comp, "UR_dif")) %>% 
-           column_spec(6:7, background = check_dif_col(quad_chr_comp, "MR_dif")) %>% 
-           column_spec(8:9, background = check_dif_col(quad_chr_comp, "BR_dif")) %>% 
-           column_spec(10:11, background = check_dif_col(quad_chr_comp, "BC_dif")) %>% 
-           column_spec(12:13, background = check_dif_col(quad_chr_comp, "BL_dif")) %>%
-           column_spec(14:15, background = check_dif_col(quad_chr_comp, "ML_dif")) %>% 
-           column_spec(16:17, background = check_dif_col(quad_chr_comp, "UL_dif")) %>% 
-           row_spec(c(0, nrow(quad_chr_comp)), extra_css = "border-bottom: 1px solid #000000;") %>% 
+           column_spec(2:3, background = check_dif_col(quad_chr_comb, "UC_dif")) %>% 
+           column_spec(4:5, background = check_dif_col(quad_chr_comb, "UR_dif")) %>% 
+           column_spec(6:7, background = check_dif_col(quad_chr_comb, "MR_dif")) %>% 
+           column_spec(8:9, background = check_dif_col(quad_chr_comb, "BR_dif")) %>% 
+           column_spec(10:11, background = check_dif_col(quad_chr_comb, "BC_dif")) %>% 
+           column_spec(12:13, background = check_dif_col(quad_chr_comb, "BL_dif")) %>%
+           column_spec(14:15, background = check_dif_col(quad_chr_comb, "ML_dif")) %>% 
+           column_spec(16:17, background = check_dif_col(quad_chr_comb, "UL_dif")) %>% 
+           row_spec(c(0, nrow(quad_chr_comb)), extra_css = "border-bottom: 1px solid #000000;") %>% 
            column_spec(c(1, seq(3, 17, 2)), border_right = TRUE) %>%
            column_spec(seq(2, 16, 2), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
            column_spec(1, border_left = TRUE)

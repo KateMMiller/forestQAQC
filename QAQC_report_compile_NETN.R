@@ -9,7 +9,10 @@ library(htmltools)
 library(knitr)
 library(kableExtra)
 source("QAQC_report_functions.R")
-#importData() #local instance
+
+importData() #local instance
+
+#importCSV(path = "C:/Forest_Health/exports/NETN/", zip_name = "NETN_Forest_20210617.zip")
 
 #----- Compile data
 arglist = list(park = substr(params$plot, 1, 4), from = year, to = year, QAQC = TRUE, locType = loc_type, eventType = 'complete')
@@ -55,7 +58,8 @@ missing_teams <- setdiff(tree_cols, names(tree_hts_wide))
 tree_hts_wide[missing_teams] <- NA_real_
 tree_hts_wide$ht_diff <- abs(tree_hts_wide$Crew - tree_hts_wide$QAQC)
 tree_hts_wide$ht_pct_diff <- pct_diff(tree_hts_wide$Crew, tree_hts_wide$QAQC)
-check_20pct_diff(tree_hts_wide, "Crew", "QAQC", "ht_pct_diff")
+
+#check_20pct_diff(tree_hts_wide, "ht_pct_diff")
 
 #----- Tree Data
 live <- c("AB", "AF", "AL", "AS", "AM", "RB", "RF", "RL", "RS")
@@ -256,6 +260,38 @@ regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1) %>%
               select(ScientificName, seed_den_C, seed_den_Q, sap_den_C, sap_den_Q,
                      stock_C, stock_Q, everything())
 
+#----- Quadrat Character for trampled
+quad_tramp <- get("COMN_QuadCharacter", envir = VIEWS_NETN) 
+
+quad_tramp <- quad_tramp %>% mutate(Plot_Name  = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
+  filter_plot() %>% name_team() %>% select(Plot_Name, Team, StartYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% unique()
+
+quad_tramp_wide <- quad_tramp %>% select(-SQQuadCharCode) %>% pivot_wider(names_from = c("QuadratCode"), 
+                                                                          values_from = "IsTrampled")
+
+quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(Team == "Crew") %>% select(-Team), 
+                              quad_tramp_wide %>% filter(Team == "QAQC") %>% select(-Team),
+                              by = c("Plot_Name", "StartYear"),
+                              suffix = c("_C", "_Q")) %>% 
+  mutate(UC_dif = abs(UC_C - UC_Q),
+         UR_dif = abs(UR_C - UR_Q),
+         MR_dif = abs(MR_C - MR_Q),
+         BR_dif = abs(BR_C - BR_Q),
+         BC_dif = abs(BC_C - BC_Q),
+         BL_dif = abs(BL_C - BL_Q),
+         ML_dif = abs(ML_C - ML_Q),
+         UL_dif = abs(UL_C - UL_Q),
+         Character = "Trampled") %>% 
+  select(Character, 
+         UC_C, UC_Q, UR_C, UR_Q,
+         MR_C, MR_Q, BR_C, BR_Q,
+         BC_C, BC_Q, BL_C, BL_Q,
+         ML_C, ML_Q, UL_C, UL_Q,
+         UC_dif, UR_dif, MR_dif, BR_dif,
+         BC_dif, BL_dif, ML_dif, UL_dif)
+
+head(quad_tramp_wide2)
+
 #----- Quadrat Character
 quad_chr <- do.call(joinQuadData, c(arglist, list(valueType = 'classes'))) %>% filter_plot() %>% name_team() %>% 
             select(Team, CharacterLabel, starts_with("Txt")) 
@@ -265,7 +301,7 @@ quad_chr <- setNames(quad_chr, c(names(quad_chr[,1:2]), newname))
 
 # quad_cov <- data.frame(txt = c("0%", "<1%", "1-2%", "2-5%", "5-10%", "10-25%", "25-50%", "50-75%", "75-95%", "95-100%"),
 #                        pct_class = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
-
+head(quad_chr)
 quad_chr_class <- quad_chr
 quad_chr_class[,3:10][quad_chr_class[,3:10] == "0%"] <- 0
 quad_chr_class[,3:10][quad_chr_class[,3:10] == "<1%"] <- 1
@@ -279,6 +315,7 @@ quad_chr_class[,3:10][quad_chr_class[,3:10] == "75-95%"] <- 8
 quad_chr_class[,3:10][quad_chr_class[,3:10] == "95-100%"] <- 9
 
 quad_chr_class <- quad_chr_class %>% mutate(across(UC:UL, ~as.numeric(.)))
+
 quad_chr2 <- full_join(quad_chr, quad_chr_class, by = c("Team", "CharacterLabel"),
                        suffix = c("", "_class")) %>% 
                        mutate(order = case_when(CharacterLabel == "Soil" ~ 1,
@@ -291,9 +328,9 @@ quad_chr2 <- full_join(quad_chr, quad_chr_class, by = c("Team", "CharacterLabel"
                                                 ))
 
 quad_chr_comp <- full_join(quad_chr2 %>% filter(Team == "Crew") %>% select(-Team), 
-                       quad_chr2 %>% filter(Team == "QAQC") %>% select(-Team),
-                       by = c("CharacterLabel", "order"),
-                       suffix = c("_C", "_Q")) %>% 
+                           quad_chr2 %>% filter(Team == "QAQC") %>% select(-Team),
+                           by = c("CharacterLabel", "order"),
+                           suffix = c("_C", "_Q")) %>% 
                        mutate(UC_dif = abs(UC_class_C - UC_class_Q),
                               UR_dif = abs(UR_class_C - UR_class_Q),
                               MR_dif = abs(MR_class_C - MR_class_Q),
@@ -312,6 +349,11 @@ quad_chr_comp <- full_join(quad_chr2 %>% filter(Team == "Crew") %>% select(-Team
                               BC_dif, BL_dif, ML_dif, UL_dif) %>% 
                        rename(Character = CharacterLabel)
 
+head(quad_chr_comp)
+head(quad_tramp_wide2)
+
+quad_chr_comb <- rbind(quad_tramp_wide2, quad_chr_comp)
+head(quad_chr_comb)
 
 #----- Quadrat species
 quad_spp1 <- do.call(joinQuadSpecies, arglist) %>% filter_plot() %>% name_team() 
