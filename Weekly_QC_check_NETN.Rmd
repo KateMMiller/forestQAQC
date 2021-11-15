@@ -22,8 +22,6 @@ options(knitr.kable.NA = '')
 forestNETN::importData()
 # forestNETN::importCSV(path = "D:/NETN/Monitoring_Projects/Forest_Health/2021_data/weekly_databases",
 #                      zip_name = "NETN_Forest_20210625_THING1.zip")
-# forestNETN::importCSV(path = "D:/NETN/Monitoring_Projects/Forest_Health/2021_data/weekly_databases",
-#                       zip_name = "NETN_Forest_20210625_THING2.zip")
 
 ```
 
@@ -185,6 +183,8 @@ check_null(quad_0cov_table)
 check_null(quad_sq_data_table)
 
 check_null(quad_sq_spp_table)
+
+check_null(quad_tramp_table)
 
 ```
 
