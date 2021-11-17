@@ -803,6 +803,67 @@ quad_seed <- do.call(joinQuadSeedlings, arglist) %>%
              filter(Plot_Name %in% new_evs_list) %>% 
              filter(StartYear %in% curr_year)
 
+#check for trampled quadrats
+quad_tramp <- get("COMN_QuadCharacter", envir = VIEWS_MIDN) 
+
+quad_tramp2 <- quad_tramp %>% mutate(Plot_Name = 
+                                       paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
+  filter(IsQAQC == 0) %>% 
+  filter(Plot_Name %in% new_evs_list) %>% 
+  select(Plot_Name, StartYear, QuadratCode, SQQuadCharCode, IsTrampled, IsQAQC) %>% 
+  unique()
+
+quad_tramp3 <- left_join(quad_tramp2, plotevs %>% select(Plot_Name, StartYear, cycle, IsQAQC), 
+                         by = c("Plot_Name", "StartYear", "IsQAQC")) %>% 
+                        filter(cycle %in% c(cycle_latest_num, cycle_prev_num)) 
+
+quad_tramp_wide <- quad_tramp3 %>% select(Plot_Name, StartYear, cycle, QuadratCode, IsTrampled) %>% 
+  pivot_wider(names_from = c("QuadratCode"), values_from = "IsTrampled")
+
+quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(cycle %in% cycle_prev_num) %>% 
+                                select(-cycle, -StartYear),
+                              quad_tramp_wide %>% filter(cycle %in% cycle_latest_num) %>% 
+                                select(-cycle, -StartYear),
+                              by = c("Plot_Name"),
+                              suffix = c("_C3", "_C4"))
+
+
+quad_tramp_wide3 <- quad_tramp_wide2 %>% mutate(A2_dif = abs(A2_C3 - A2_C4),
+                                                A5_dif = abs(A5_C3 - A5_C4),
+                                                A8_dif = abs(A8_C3 - A8_C4),
+                                                AA_dif = abs(AA_C3 - AA_C4),
+                                                B2_dif = abs(B2_C3 - B2_C4),
+                                                B5_dif = abs(B5_C3 - B5_C4),
+                                                B8_dif = abs(B8_C3 - B8_C4),
+                                                BB_dif = abs(BB_C3 - BB_C4),
+                                                C2_dif = abs(C2_C3 - C2_C4),
+                                                C5_dif = abs(C5_C3 - C5_C4),
+                                                C8_dif = abs(C8_C3 - C8_C4),
+                                                CC_dif = abs(CC_C3 - CC_C4)) %>% 
+  select(Plot_Name, 
+         A2_C3, A2_C4, A5_C3, A5_C4, A8_C3, A8_C4, AA_C3, AA_C4,
+         B2_C3, B2_C4, B5_C3, B5_C4, B8_C3, B8_C4, BB_C3, BB_C4,
+         C2_C3, C2_C4, C5_C3, C5_C4, C8_C3, C8_C4, CC_C3, CC_C4,
+         A2_dif, A5_dif, A8_dif, AA_dif, 
+         B2_dif, B5_dif, B8_dif, BB_dif,
+         C2_dif, C5_dif, C8_dif, CC_dif)
+
+
+quad_tramp_diff <- quad_tramp_wide3 %>% filter(A2_dif > 0 | A5_dif > 0 | A8_dif > 0 | AA_dif > 0 | 
+                                               B2_dif > 0 | B5_dif > 0 | B8_dif > 0 | BB_dif > 0 |
+                                               C2_dif > 0 | C5_dif > 0 | C8_dif > 0 | CC_dif > 0 )
+
+#quad_tramp_diff <- quad_tramp_wide3 %>% filter(colSums(A2_dif:CC_dif)>0) 
+
+QC_table <- rbind(QC_table, QC_check(quad_tramp_diff, "Quadrat", "Trampled in cycle 4 != cycle 3"))
+
+tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_Name) %>% 
+  select(Plot_Name, StartYear, cycle, A2, A5, A8, AA,
+         B2, B5, B8, BB,
+         C2, C5, C8, CC)
+
+quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats")
+
 # Check for PMs in quadrat data
 quad_data_pm <- PM_check(quad_data)
 
