@@ -627,8 +627,9 @@ seeds_99_check_final <- if(nrow(seeds_99_check) > 0){
 
   seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
   return(seeds_99_check_final)
-} else {seeds_99_check}
+} else {return(seeds_99_check)}
 
+#++++++++++++ FIX PROBLEM +++++++++++++
 
 QC_table <- rbind(QC_table, QC_check(seeds_99_check_final, "Microplot", "Seedling tallies > 99% percentile for a given park"))
 
@@ -694,6 +695,61 @@ quad_spp <- do.call(joinQuadSpecies, arglist) %>%
             name_plot() %>% 
             filter(Plot_Name %in% new_evs_list) %>% 
             filter(cycle %in% params$cycle_latest_num)
+
+#check for trampled quadrats
+quad_tramp <- get("COMN_QuadCharacter", envir = VIEWS_NETN) 
+
+quad_tramp2 <- quad_tramp %>% mutate(Plot_Name = 
+                                       paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
+                              filter(IsQAQC == 0) %>% 
+                              filter(Plot_Name %in% new_evs_list) %>% 
+                              select(Plot_Name, StartYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% 
+                              unique()
+
+quad_tramp3 <- left_join(quad_tramp2, plotevs %>% select(Plot_Name, StartYear, IsQAQC, cycle), 
+                         by = c("Plot_Name", "StartYear")) %>% 
+  filter(cycle %in% c(cycle_latest_num, cycle_prev_num)) %>% 
+  filter(IsQAQC == 0)
+
+head(quad_tramp3)
+
+quad_tramp_wide <- quad_tramp3 %>% select(Plot_Name, StartYear, cycle, QuadratCode, IsTrampled) %>% 
+  pivot_wider(names_from = c("QuadratCode"), values_from = "IsTrampled")
+                                                                                              
+quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(cycle %in% cycle_prev_num) %>% 
+                                select(-cycle, -StartYear),
+                              quad_tramp_wide %>% filter(cycle %in% cycle_latest_num) %>% 
+                                select(-cycle, -StartYear),
+                              by = c("Plot_Name"),
+                              suffix = c("_C3", "_C4"))
+
+
+quad_tramp_wide3 <- quad_tramp_wide2 %>% mutate(UC_dif = abs(UC_C3 - UC_C4),
+                                                UR_dif = abs(UR_C3 - UR_C4),
+                                                MR_dif = abs(MR_C3 - MR_C4),
+                                                BR_dif = abs(BR_C3 - BR_C4),
+                                                BC_dif = abs(BC_C3 - BC_C4),
+                                                BL_dif = abs(BL_C3 - BL_C4),
+                                                ML_dif = abs(ML_C3 - ML_C4),
+                                                UL_dif = abs(UL_C3 - UL_C4)) %>% 
+                                         select(Plot_Name, UC_C3, UC_C4, UR_C3, UR_C4,
+                                                MR_C3, MR_C4, BR_C3, BR_C4,
+                                                BC_C3, BC_C4, BL_C3, BL_C4,
+                                                ML_C3, ML_C4, UL_C3, UL_C4,
+                                                UC_dif, UR_dif, MR_dif, BR_dif,
+                                                BC_dif, BL_dif, ML_dif, UL_dif)
+
+quad_tramp_diff <- quad_tramp_wide3 %>% filter(UC_dif > 0 | UR_dif > 0 | MR_dif > 0 | BR_dif > 0 | 
+                                                 BC_dif > 0 | BL_dif > 0 | ML_dif > 0 | UL_dif > 0)
+
+#quad_tramp_diff <- quad_tramp_wide3 %>% filter(colSums(UC_dif:UL_dif)>0)
+
+QC_table <- rbind(QC_table, QC_check(quad_tramp_diff, "Quadrat", "Trampled in cycle 4 != cycle 3"))
+
+tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_Name) %>% 
+  select(Plot_Name, StartYear, cycle, UC, UR, MR, BR, BC, BL, ML, UL)
+
+quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats")
 
 # Check for PMs in quadrat data
 quad_data_pm <- PM_check(quad_data)

@@ -22,8 +22,6 @@ options(knitr.kable.NA = '')
 forestNETN::importData()
 # forestNETN::importCSV(path = "D:/NETN/Monitoring_Projects/Forest_Health/2021_data/weekly_databases",
 #                      zip_name = "NETN_Forest_20210625_THING1.zip")
-# forestNETN::importCSV(path = "D:/NETN/Monitoring_Projects/Forest_Health/2021_data/weekly_databases",
-#                       zip_name = "NETN_Forest_20210625_THING2.zip")
 
 ```
 
@@ -39,6 +37,7 @@ library(kableExtra)
 curr_year <- year(params$week_start)
 week_start <- as_date(params$week_start)
 cycle_latest <- paste0("cycle_", params$cycle_latest_num)
+cycle_latest_num <- params$cycle_latest_num
 cycle_prev <- paste0("cycle_", params$cycle_latest_num-1)
 cycle_prev_num <- params$cycle_latest_num - 1
 loc_type <- params$locType
@@ -185,6 +184,8 @@ check_null(quad_0cov_table)
 check_null(quad_sq_data_table)
 
 check_null(quad_sq_spp_table)
+
+check_null(quad_tramp_table)
 
 ```
 

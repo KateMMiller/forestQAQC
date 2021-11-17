@@ -279,6 +279,43 @@ regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1) %>%
   select(ScientificName, seed_den_C, seed_den_Q, sap_den_C, sap_den_Q,
          stock_C, stock_Q, everything())
 
+#----- Quadrat Character for trampled
+quad_tramp <- get("COMN_QuadCharacter", envir = VIEWS_MIDN)
+
+quad_tramp <- quad_tramp %>% mutate(Plot_Name  = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
+  filter_plot() %>% name_team() %>% select(Plot_Name, Team, StartYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% unique()
+
+quad_tramp_wide <- quad_tramp %>% select(-SQQuadCharCode) %>% pivot_wider(names_from = c("QuadratCode"), 
+                                                                          values_from = "IsTrampled")
+
+quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(Team == "Crew") %>% select(-Team), 
+                              quad_tramp_wide %>% filter(Team == "QAQC") %>% select(-Team),
+                              by = c("Plot_Name", "StartYear"),
+                              suffix = c("_C", "_Q")) %>% 
+  mutate(A2_dif = abs(A2_C - A2_Q),
+         A5_dif = abs(A5_C - A5_Q),
+         A8_dif = abs(A8_C - A8_Q),
+         AA_dif = abs(AA_C - AA_Q),
+         B2_dif = abs(B2_C - B2_Q),
+         B5_dif = abs(B5_C - B5_Q),
+         B8_dif = abs(B8_C - B8_Q),
+         BB_dif = abs(BB_C - BB_Q),
+         C2_dif = abs(C2_C - C2_Q),
+         C5_dif = abs(C5_C - C5_Q),
+         C8_dif = abs(C8_C - C8_Q),
+         CC_dif = abs(CC_C - CC_Q),
+         Character = "Trampled") %>% 
+  select(Character, 
+         A2_C, A2_Q, A5_C, A5_Q,
+         A8_C, A8_Q, AA_C, AA_Q,
+         B2_C, B2_Q, B5_C, B5_Q,
+         B8_C, B8_Q, BB_C, BB_Q,
+         C2_C, C2_Q, C5_C, C5_Q,
+         C8_C, C8_Q, CC_C, CC_Q,
+         A2_dif, A5_dif, A8_dif, AA_dif,
+         B2_dif, B5_dif, B8_dif, BB_dif,
+         C2_dif, C5_dif, C8_dif, CC_dif)
+
 #----- Quadrat Character
 quad_chr <- do.call(joinQuadData, c(arglist, list(valueType = 'classes'))) %>% filter_plot() %>% name_team() %>% 
             select(Team, CharacterLabel, starts_with("Txt")) 
@@ -337,6 +374,8 @@ quad_chr_comp <- full_join(quad_chr2 %>% filter(Team == "Crew") %>% select(-Team
                               C2_dif, C5_dif, C8_dif, CC_dif) %>% 
                        rename(Character = CharacterLabel)
 
+quad_chr_comb <- rbind(quad_tramp_wide2, quad_chr_comp)
+head(quad_chr_comb)
 
 #----- Quadrat species
 quad_spp1 <- do.call(joinQuadSpecies, arglist) %>% filter_plot() %>% name_team() 
