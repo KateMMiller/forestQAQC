@@ -6,7 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-10-01"
+  week_start: "2021-08-30"
+  cycle_latest_num: 4
   locType: 'all'
 
 ---
@@ -33,6 +34,10 @@ library(kableExtra)
 ```{r set_params, echo = FALSE, include = TRUE}
 curr_year <- year(params$week_start)
 week_start <- as_date(params$week_start)
+cycle_latest <- paste0("cycle_", params$cycle_latest_num)
+cycle_latest_num <- params$cycle_latest_num
+cycle_prev <- paste0("cycle_", params$cycle_latest_num-1)
+cycle_prev_num <- params$cycle_latest_num - 1
 loc_type <- params$locType
 ```
 
@@ -193,6 +198,8 @@ check_null(seed_ss_sq_table) # Updated for MIDN
 check_null(seed_0tally_table) # Updated for MIDN
 
 check_null(seeds_99_table) # Updated for MIDN
+
+check_null(quad_tramp_table)
 ```
 
 
