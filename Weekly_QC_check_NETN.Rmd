@@ -19,10 +19,8 @@ options(knitr.kable.NA = '')
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
-forestNETN::importData()
-# forestNETN::importCSV(path = "D:/NETN/Monitoring_Projects/Forest_Health/2021_data/weekly_databases",
-#                      zip_name = "NETN_Forest_20210625_THING1.zip")
-
+#forestNETN::importData()
+forestNETN::importCSV(path = "D:/NETN/R_Dev/data", zip_name = "NETN_Forest_20220316.zip") # Import from dev after refresh and PR merge
 ```
 
 ```{r deps, include = FALSE}

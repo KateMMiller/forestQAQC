@@ -19,8 +19,8 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
-forestMIDN::importData()
-
+#forestMIDN::importData()
+forestMIDN::importCSV(path = "D:/NETN/R_Dev/data", zip_name = "MIDN_Forest_20220316.zip") # Import from dev after refresh and PR merge
 ```
 
 ```{r deps, include = FALSE}
