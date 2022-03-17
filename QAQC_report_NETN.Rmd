@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2019
-  plot: "ACAD-047"
+  year: 2021
+  plot: "ACAD-160"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -19,23 +19,37 @@ options(knitr.kable.NA = '')
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
-forestNETN::importData()
-#path = "C:/Forest_Health/exports/NETN"
-#forestNETN::importCSV(path = "C:/Forest_Health/exports/NETN/", zip_name = "NETN_Forest_20210617.zip")
-#forestNETN::importCSV(path = path, zip_name = "NETN_Forest_20210507.zip") # migration check 5/7
-```
-
-```{r deps, include = FALSE}
 library(tidyverse)
 library(forestNETN)
 library(htmltools)
 library(knitr)
 library(kableExtra)
 
+#forestNETN::importData()
+#path = "C:/Forest_Health/exports/NETN"
+#forestNETN::importCSV(path = "C:/Forest_Health/exports/NETN/", zip_name = "NETN_Forest_20210617.zip")
+forestNETN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "NETN_Forest_20220316.zip") # migration check 5/7
+
+```
+
+```{r deps, include = FALSE}
 # Set up params (tends to work better)
 year = as.numeric(params$year)
 plot = params$plot
 loc_type = params$locType
+plot_year <- paste0(plot, "-", year)
+
+# Error check:
+qaqc <- forestNETN::joinLocEvent(QAQC = TRUE) %>%
+  filter(IsQAQC == TRUE, SampleYear == year) %>% 
+  mutate(plot_year = paste0(Plot_Name, "-", SampleYear)) %>% 
+  select(Plot_Name, SampleYear, plot_year) %>% 
+  arrange(SampleYear, Plot_Name)
+
+if(!(plot_year %in% qaqc$plot_year)){
+  stop("There is no QA/QC event for that plot x year combination. QA/QC visits in year specified are:",  
+        "\n", paste("\t", qaqc$Plot_Name, collapse = "\n"))
+  }
 
 source("QAQC_report_functions.R")
 ```
