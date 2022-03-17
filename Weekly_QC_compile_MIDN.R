@@ -569,6 +569,38 @@ QC_table <- rbind(QC_table,
 
 sap_data_pm_table <- make_kable(sap_data_pm2, "Saplings: Permanently Missing records in sapling data")
 
+# Check for duplicate sapling tags
+sap_data_prev <- joinMicroSaplings(from = 2007, to = curr_year-1) %>% 
+  select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
+  mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode)) 
+  
+sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year) %>% 
+  select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
+  mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode))
+
+tag_check1 <- full_join(sap_data_prev %>% select(TagCode, sap_key) %>% unique(), 
+                        sap_data_curr %>% select(TagCode, sap_key) %>% unique(), 
+                        by = "sap_key", 
+                        suffix = c("_prev", "_new")) #%>% 
+
+tag_check2 <- tag_check1 %>% select(sap_key, TagCode_prev, TagCode_new) %>% 
+  pivot_longer(-sap_key, names_to = "Visit", values_to = "Tag") 
+  
+tag_check3 <- tag_check2 %>% 
+              filter(!is.na(Tag)) %>% select(-Visit) %>% unique() %>% 
+              group_by(Tag) %>% 
+              summarize(num_tags = n()) %>% filter(num_tags > 1)
+
+dup_tags <- tag_check2 %>% filter(Tag %in% tag_check3$Tag)
+
+sap_tag_check <- rbind(sap_data_curr, sap_data_prev) %>% filter(TagCode %in% dup_tags$Tag) %>% 
+                 select(-sap_key)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(sap_tag_check, "Microplot", "Saplings: Duplicate sapling tag numbers."))
+
+sap_dup_tag_table <- make_kable(sap_tag_check, "Saplings: Duplicate sapling tag numbers")
+
 # Check for zombie saplings
 alive <- c("1","AB","AF","AL","AS")
 recr <- c("RB","RF","RL","RS") 

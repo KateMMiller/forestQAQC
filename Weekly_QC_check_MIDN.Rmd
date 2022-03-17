@@ -149,6 +149,8 @@ check_null(micro_ns_table)
 
 check_null(sap_pm_table)
 
+check_null(sap_dup_tag_table)
+
 check_null(sap_status_table)
 
 check_null(sap_data_pm_table) # New for MIDN
