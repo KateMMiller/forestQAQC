@@ -575,6 +575,7 @@ sap_data_prev <- joinMicroSaplings(from = 2007, to = curr_year-1) %>%
   mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode)) 
   
 sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year) %>% 
+  filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
   mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode))
 
