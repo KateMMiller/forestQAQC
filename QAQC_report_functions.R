@@ -1,7 +1,7 @@
 #---------------------------------
 #     QAQC Summary Functions 
 #---------------------------------
-filter_plot <- function(df){filter(df, Plot_Name %in% params$plot & StartYear %in% params$year)}
+filter_plot <- function(df){filter(df, Plot_Name %in% plot & SampleYear %in% year)}
 name_team <- function(df){mutate(df, Team = ifelse(IsQAQC == 0, "Crew", "QAQC"))}
 
 diff_ok <- "#F2F2A0" #yellow
