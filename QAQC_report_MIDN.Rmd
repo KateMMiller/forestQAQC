@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2021
-  plot: "PETE-139"
+  plot: "FRSP-213"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
