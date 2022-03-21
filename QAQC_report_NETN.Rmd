@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2021
-  plot: "ACAD-160"
+  plot: "ACAD-150"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -319,6 +319,7 @@ folcond_tab <- kable(folcond_wide %>% select(TagCode:Txt_Leaves_Aff_W_Q),
 ```
 
 ```{r micro_tables, include = FALSE}
+# saplings
 row_changes_saps <- sapply(1:nrow(saps), function(x){
   check = ifelse(saps$MicroplotCode[x] != saps$MicroplotCode[x + 1], x, NA)
   }) %>% data.frame() %>% na.omit(.) 
@@ -346,6 +347,7 @@ sap_sum_tab <- kable(sap_sum %>% select(-dbh_diff), format = 'html', align = 'c'
                column_spec(4:5, background = check_dbh(sap_sum, "dbh_diff")) %>% 
                column_spec(seq(1, 5, 2), border_right = TRUE) 
 
+# shrubs
 row_changes <- sapply(1:nrow(shrubs_full), function(x){
   check = ifelse(shrubs_full$Micro[x] != shrubs_full$Micro[x + 1], x, NA)
   }) %>% data.frame() %>% na.omit(.) 
@@ -359,7 +361,25 @@ shrub_tab <- kable(shrubs_full %>% select(-pct_class_C, -pct_class_Q), format = 
              row_spec(row_changes[,1], extra_css = "border-bottom: 1px solid #000000;") %>% 
              column_spec(1, border_left = TRUE) %>% 
              column_spec(c(1, 2, 3, 4), border_right = TRUE) 
-             
+
+#+++ NEW 20220321 +++
+shrub_tab_ta <- if(nrow(shrub_spp) > 0){ # this is prelim df to shrub_spp_wide
+                   kable(shrub_spp_wide %>% select(ScientificName, crew, qaqc),
+                         format = 'html', align = 'c', col.names = c("Species", "Crew", "QAQC")) %>% 
+                   kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed',
+                                 full_width = FALSE, position = 'left', font_size = 14) %>% 
+                   column_spec(1:3, border_right = TRUE, border_left = T, 
+                               background = case_when(shrub_spp_wide$missed_c == 1 ~ "#ACC1DE",
+                                                      shrub_spp_wide$missed_q == 1 ~ "#DEACAC",
+                                                      TRUE ~ "#ffffff")) %>% 
+                   row_spec(c(0, nrow(shrub_spp_wide)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
+                   row_spec(nrow(shrub_spp_wide), bold = T, extra_css = "border-bottom: 1px solid #000000;",
+                             background = ifelse(shrub_spp_wide[nrow(shrub_spp_wide), 3] < 0.9, diff_bad, "#ffffff"))
+                   } 
+shrub_tab_ta_print <- ifelse(nrow(shrub_spp) > 0, TRUE, FALSE)
+shrub_txt_ta_print <- ifelse(nrow(shrub_spp) == 0, TRUE, FALSE)
+
+# seedlings
 row_changes2 <- sapply(1:nrow(seeds_comp), function(x){
   check = ifelse(seeds_comp$MicroplotCode[x] != seeds_comp$MicroplotCode[x + 1], x, NA)
   }) %>% data.frame() %>% na.omit(.) 
@@ -667,12 +687,28 @@ cat("\n")
 color_leg
 ```
 
-#### Regen Summary {.tabset}
+#### Microplot Summary {.tabset}
 ```{r, regen_sum, echo = FALSE}
 regen_tab
 
+```
+<h2>Taxonomic Accuracy</h2>
+<details open><summary><h3>Shrubs</h3></summary>
+
+```{r shrub_ta, echo = FALSE, eval = shrub_tab_ta_print}
+shrub_tab_ta
 cat("\n")
-color_leg
+```
+
+
+```{r shrub_ta2, echo = FALSE, eval = shrub_txt_ta_print, results = 'asis'}
+cat("No shrub species >0.1% cover in either visit.", "\n")
+```
+
+</details>
+
+```{r, regen_leg}
+missed_leg
 ```
 
 

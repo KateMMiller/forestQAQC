@@ -8,6 +8,7 @@ library(forestNETN)
 library(htmltools)
 library(knitr)
 library(kableExtra)
+library(vegan) # for Jaccard similarity
 source("QAQC_report_functions.R")
 
 #importData() #local instance
@@ -221,10 +222,36 @@ shrubs_full[, c("Txt_Cov_C", "Txt_Cov_Q")][is.na(shrubs_full[, c("Txt_Cov_C", "T
 shrubs_full[, c("pct_class_C", "pct_class_Q")][is.na(shrubs_full[, c("pct_class_C", "pct_class_Q")])] <- 0
 shrubs_full$ScientificName[is.na(shrubs_full$ScientificName)] <- "None present"
 
+# Shrub taxonomic accuracy +++ NEW 20220321 +++
+shrub_spp <- rbind(shrubs_full %>% filter(pct_class_C > 1) %>% #drop <1%
+                                   mutate(team = "crew",
+                                          shrub_pres = ifelse(pct_class_C > 0, 1, 0)) %>% 
+                                   select(team, ScientificName, shrub_pres) %>% unique(),
+                   shrubs_full %>% filter(pct_class_Q > 1) %>% #drop <1% 
+                                   mutate(team = 'qaqc',
+                                          shrub_pres = ifelse(pct_class_Q > 0, 1, 0)) %>% 
+                                   select(team, ScientificName, shrub_pres) %>% unique())
+
+if(nrow(shrub_spp)>0){
+
+shrub_spp$shrub_pres[is.na(shrub_spp$shrub_pres)] <- 0
+
+shrub_taxa_acc <- betadiver(shrub_spp[,-1], method = 'sor', order = F)
+
+shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_pres, values_fill = 0)
+
+shrub_spp_wide <- shrub_spp_wide %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
+                                            missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
+shrub_spp_wide
+shrub_spp_wide <- rbind(shrub_spp_wide,
+                        c("Sorensen Similarity", NA, shrub_taxa_acc, NA, NA))
+}
+
 #----- Microplot seedlings
 seeds <- do.call(joinMicroSeedlings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>% 
          filter_plot() %>% name_team() %>% 
          select(Team, MicroplotCode, ScientificName, Seedlings_15_30cm:Seedlings_Above_150cm, tot_seeds)
+sds <- joinMicroSeedlings()
 
 seeds_comp1 <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
                         seeds %>% filter(Team == "QAQC") %>% select(-Team),
