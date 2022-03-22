@@ -692,7 +692,8 @@ color_leg
 regen_tab
 
 ```
-<h2>Taxonomic Accuracy</h2>
+
+#### Taxonomic Accuracy {.tabset}
 <details open><summary><h3>Shrubs</h3></summary>
 
 ```{r shrub_ta, echo = FALSE, eval = shrub_tab_ta_print}

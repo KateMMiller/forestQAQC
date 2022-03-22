@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2021
-  plot: "FRSP-213"
+  year: 2019
+  plot: "COLO-337"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -700,7 +700,7 @@ cat("\n")
 color_leg
 ```
 
-<h2>Taxonomic Accuracy</h2>
+#### Taxonomic Accuracy {.tabset}
 <details open><summary><h3>Shrubs</h3></summary>
 
 ```{r shrub_ta, echo = FALSE, eval = shrub_tab_ta_print}
