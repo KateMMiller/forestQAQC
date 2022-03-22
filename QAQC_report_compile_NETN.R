@@ -232,6 +232,8 @@ shrub_spp <- rbind(shrubs_full %>% filter(pct_class_C > 1) %>% #drop <1%
                                           shrub_pres = ifelse(pct_class_Q > 0, 1, 0)) %>% 
                                    select(team, ScientificName, shrub_pres) %>% unique())
 
+  # Make report table and deal with empty dfs
+
 if(nrow(shrub_spp)>0){
 
 shrub_spp$shrub_pres[is.na(shrub_spp$shrub_pres)] <- 0
