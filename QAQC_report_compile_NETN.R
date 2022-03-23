@@ -312,7 +312,7 @@ seeds_spp <- rbind(seeds_comp %>% group_by(ScientificName) %>%
                                sds_30 = sum(Seedlings_30_100cm_Q + Seedlings_100_150cm_Q + 
                                               Seedlings_Above_150cm_Q)) %>% 
                      select(team, ScientificName, sds_15, sds_30)) %>% 
-             filter(!ScientificName %in% "None present")
+             filter(!ScientificName %in% "None present") 
 
 # Make report table and deal with empty dfs
 

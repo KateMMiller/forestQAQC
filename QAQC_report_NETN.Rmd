@@ -430,15 +430,7 @@ regen_tab <- if(nrow(regen_comp) == 0){
              column_spec(seq(2, 6, 2), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
              column_spec(1, border_left = TRUE)}
 
-
-
 #+++ NEW 20220321 +++
-
-sim_cols <- c("#ffffff", "#ffffff", ifelse(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 3]) &
-                                             seeds_spp_wide2[nrow(seeds_spp_wide2), 3] < 0.9, diff_bad, "#ffffff"),
-              "#ffffff", ifelse(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 5]) &
-                                  seeds_spp_wide2[nrow(seeds_spp_wide2), 5] < 0.9, diff_bad, "#ffffff"))
-
 seeds_tab_ta <- if(nrow(seeds_spp) > 0){ # this is prelim df to seeds_spp_wide
                    kable(seeds_spp_wide2 %>% select(ScientificName, sds_15_crew, sds_15_qaqc,
                                                     sds_30_crew, sds_30_qaqc),
@@ -457,17 +449,16 @@ seeds_tab_ta <- if(nrow(seeds_spp) > 0){ # this is prelim df to seeds_spp_wide
                                                       seeds_spp_wide2$missed_q_30 == 1 ~ "#DEACAC",
                                                       TRUE ~ "#ffffff")) %>% 
                    row_spec(c(0, nrow(seeds_spp_wide2)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
-                   row_spec(nrow(seeds_spp_wide2), extra_css = "border-bottom: 1px solid #000000;") %>% 
+                   row_spec(nrow(seeds_spp_wide2), bold = T, extra_css = "border-bottom: 1px solid #000000;") %>% 
                    column_spec(2:3, background = ifelse(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 3]) &
                                                       seeds_spp_wide2[nrow(seeds_spp_wide2), 3] < 0.9, diff_bad, "#ffffff"),
-                               bold = T, extra_css = "border-bottom: 1px solid #000000;") %>%
+                               extra_css = "border-bottom: 1px solid #000000;") %>%
                    column_spec(4:5, background = ifelse(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 5]) &
                                                       seeds_spp_wide2[nrow(seeds_spp_wide2), 5] < 0.9, diff_bad, "#ffffff"),
-                               bold = T, extra_css = "border-bottom: 1px solid #000000;")
+                               extra_css = "border-bottom: 1px solid #000000;")
                    
 } 
 
-seeds_tab_ta
 seeds_tab_ta_print <- ifelse(nrow(seeds_spp) > 0, TRUE, FALSE)
 seeds_txt_ta_print <- ifelse(nrow(seeds_spp) == 0, TRUE, FALSE)
 
@@ -727,7 +718,7 @@ cat("\n")
 color_leg
 ```
 
-#### Microplot Summary {.tabset}
+#### Regen Summary {.tabset}
 ```{r, regen_sum, echo = FALSE}
 regen_tab
 
@@ -747,6 +738,7 @@ cat("No shrub species >0.1% cover in either visit.", "\n")
 ```
 
 </details>
+<br>
 
 <details open><summary><h3>Seedlings</h3></summary>
 
@@ -755,13 +747,12 @@ seeds_tab_ta
 cat("\n")
 ```
 
-
 ```{r seeds_ta2, echo = FALSE, eval = seeds_txt_ta_print, results = 'asis'}
-cat("No seedling species in either visit.", "\n")
+cat("No seedlings present in either visit.", "\n")
 ```
 
 </details>
-
+<br>
 ```{r, regen_leg}
 missed_leg
 ```

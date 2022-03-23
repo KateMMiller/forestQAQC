@@ -24,6 +24,7 @@ library(forestMIDN)
 library(htmltools)
 library(knitr)
 library(kableExtra)
+library(xml2) #for modifying HTML under kable hood
 
 #forestMIDN::importData()
 forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220316.zip") # zip after new views validated
@@ -378,20 +379,24 @@ shrub_tab <- kable(shrubs_full %>% select(-pct_class_C, -pct_class_Q), format = 
 
 #+++ NEW 20220321 +++
 shrub_tab_ta <- if(nrow(shrub_spp) > 0){ # this is prelim df to shrub_spp_wide
-                   kable(shrub_spp_wide %>% select(ScientificName, crew, qaqc),
+                   kable(shrub_spp_wide2 %>% select(ScientificName, crew, qaqc),
                          format = 'html', align = 'c', col.names = c("Species", "Crew", "QAQC")) %>% 
                    kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed',
                                  full_width = FALSE, position = 'left', font_size = 14) %>% 
                    column_spec(1:3, border_right = TRUE, border_left = T, 
-                               background = case_when(shrub_spp_wide$missed_c == 1 ~ "#ACC1DE",
-                                                      shrub_spp_wide$missed_q == 1 ~ "#DEACAC",
+                               background = case_when(shrub_spp_wide2$missed_c == 1 ~ "#ACC1DE",
+                                                      shrub_spp_wide2$missed_q == 1 ~ "#DEACAC",
                                                       TRUE ~ "#ffffff")) %>% 
-                   row_spec(c(0, nrow(shrub_spp_wide)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
-                   row_spec(nrow(shrub_spp_wide), bold = T, extra_css = "border-bottom: 1px solid #000000;",
-                             background = ifelse(shrub_spp_wide[nrow(shrub_spp_wide), 3] < 0.9, diff_bad, "#ffffff"))
+                   row_spec(c(0, nrow(shrub_spp_wide2)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
+                   row_spec(nrow(shrub_spp_wide2), bold = T, extra_css = "border-bottom: 1px solid #000000;",
+                             background = ifelse(shrub_spp_wide2[nrow(shrub_spp_wide2), 3] < 0.9, diff_bad, "#ffffff"))
                    } 
+
+
+shrub_tab_ta
 shrub_tab_ta_print <- ifelse(nrow(shrub_spp) > 0, TRUE, FALSE)
 shrub_txt_ta_print <- ifelse(nrow(shrub_spp) == 0, TRUE, FALSE)
+
 # seedlings
 regen_tab <- kable(regen_comp %>% select(-seed_pct_diff, -sap_pct_diff, -stock_pct_diff), 
                    format = 'html', align = 'c',
@@ -409,6 +414,37 @@ regen_tab <- kable(regen_comp %>% select(-seed_pct_diff, -sap_pct_diff, -stock_p
              column_spec(seq(2, 6, 2), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;") %>% 
              column_spec(1, border_left = TRUE)
 
+#+++ NEW 20220321 +++
+seeds_tab_ta <- if(nrow(seeds_spp) > 0){ # this is prelim df to seeds_spp_wide
+                   kable(seeds_spp_wide2 %>% select(ScientificName, sds_15_crew, sds_15_qaqc,
+                                                    sds_30_crew, sds_30_qaqc),
+                         format = 'html', align = 'c', 
+                         col.names = c("Species", "Crew 15-30cm", "QAQC 15-30cm", 
+                                       "Crew >= 30cm", "QAQC >= 30cm")) %>% 
+                   kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed',
+                                 full_width = FALSE, position = 'left', font_size = 14) %>% 
+                   column_spec(1:5, border_right = TRUE, border_left = T) %>% 
+                   column_spec(1, border_right = TRUE, border_left = T, 
+                               background = case_when(seeds_spp_wide2$missed_c_15 == 1 ~ "#ACC1DE",
+                                                      seeds_spp_wide2$missed_q_15 == 1 ~ "#DEACAC",
+                                                      TRUE ~ "#ffffff")) %>% 
+                   column_spec(4:5, border_right = TRUE, border_left = T, 
+                               background = case_when(seeds_spp_wide2$missed_c_30 == 1 ~ "#ACC1DE",
+                                                      seeds_spp_wide2$missed_q_30 == 1 ~ "#DEACAC",
+                                                      TRUE ~ "#ffffff")) %>% 
+                   row_spec(c(0, nrow(seeds_spp_wide2)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
+                   row_spec(nrow(seeds_spp_wide2), bold = T, extra_css = "border-bottom: 1px solid #000000;") %>% 
+                   column_spec(2:3, background = ifelse(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 3]) &
+                                                      seeds_spp_wide2[nrow(seeds_spp_wide2), 3] < 0.9, diff_bad, "#ffffff"),
+                               extra_css = "border-bottom: 1px solid #000000;") %>%
+                   column_spec(4:5, background = ifelse(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 5]) &
+                                                      seeds_spp_wide2[nrow(seeds_spp_wide2), 5] < 0.9, diff_bad, "#ffffff"),
+                               extra_css = "border-bottom: 1px solid #000000;")
+                   
+} 
+
+seeds_tab_ta_print <- ifelse(nrow(seeds_spp) > 0, TRUE, FALSE)
+seeds_txt_ta_print <- ifelse(nrow(seeds_spp) == 0, TRUE, FALSE)
 
 ```
 
@@ -692,7 +728,7 @@ color_leg
 ```
 
 
-#### Microplot and Seedling Summary {.tabset}
+#### Regen Summary {.tabset}
 ```{r, regen_sum, echo = FALSE}
 regen_tab
 
@@ -714,7 +750,21 @@ cat("No shrub species >0.1% cover in either visit.", "\n")
 ```
 
 </details>
+<br>
 
+<details open><summary><h3>Seedlings</h3></summary>
+
+```{r seeds_ta, echo = FALSE, eval = seeds_tab_ta_print}
+seeds_tab_ta
+cat("\n")
+```
+
+```{r seeds_ta2, echo = FALSE, eval = seeds_txt_ta_print, results = 'asis'}
+cat("No seedlings present in either visit.", "\n")
+```
+
+</details>
+<br>
 ```{r, regen_leg}
 missed_leg
 ```
