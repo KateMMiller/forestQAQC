@@ -234,18 +234,28 @@ shrub_spp <- rbind(shrubs_full %>% filter(pct_class_C > 1) %>% #drop <1%
 
   # Make report table and deal with empty dfs
 
+# shrub_spp <- rbind(shrub_spp, c('crew', "Vaccinium angustifolium", 1),
+#                                c('crew', 'Vaccinium myrtilloides', 1),
+#                                c('qaqc', "Vaccinium myrtilloides", 1))
+# 
+# shrub_spp$shrub_pres <- as.numeric(shrub_spp$shrub_pres)
+# head(shrub_spp)
+
 if(nrow(shrub_spp)>0){
+
+shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = ScientificName, values_from = shrub_pres, values_fill = 0)
+
+head(shrub_spp_wide)
 
 shrub_spp$shrub_pres[is.na(shrub_spp$shrub_pres)] <- 0
 
-shrub_taxa_acc <- betadiver(shrub_spp[,-1], method = 'sor', order = F)
+shrub_taxa_acc <- betadiver(shrub_spp_wide[,-1], method = 'sor', order = F)
 
-shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_pres, values_fill = 0)
-
-shrub_spp_wide <- shrub_spp_wide %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
-                                            missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
-shrub_spp_wide
-shrub_spp_wide <- rbind(shrub_spp_wide,
+shrub_spp_wide2 <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_pres, values_fill = 0)
+shrub_spp_wide2 <- shrub_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
+                                              missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
+shrub_spp_wide2
+shrub_spp_wide2 <- rbind(shrub_spp_wide2,
                         c("Sorensen Similarity", NA, shrub_taxa_acc, NA, NA))
 }
 
@@ -253,7 +263,6 @@ shrub_spp_wide <- rbind(shrub_spp_wide,
 seeds <- do.call(joinMicroSeedlings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>% 
          filter_plot() %>% name_team() %>% 
          select(Team, MicroplotCode, ScientificName, Seedlings_15_30cm:Seedlings_Above_150cm, tot_seeds)
-sds <- joinMicroSeedlings()
 
 seeds_comp1 <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
                         seeds %>% filter(Team == "QAQC") %>% select(-Team),
@@ -287,6 +296,53 @@ regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1) %>%
                                      stock_pct_diff = pct_diff(stock_C, stock_Q)) %>% 
               select(ScientificName, seed_den_C, seed_den_Q, sap_den_C, sap_den_Q,
                      stock_C, stock_Q, everything())
+
+
+# Seedling taxonomic accuracy +++ NEW 20220321 +++
+# 100% of species ≥ 30cm tall are in agreement. 90% of species < 30 cm tall are in agreement. as measured by  Sorensen
+seeds_spp <- rbind(seeds_comp %>% group_by(ScientificName) %>% 
+                     summarize(team = "crew",
+                               sds_15 = sum(Seedlings_15_30cm_C), na.rm = T,
+                               sds_30 = sum(Seedlings_30_100cm_C + Seedlings_100_150cm_C + 
+                                              Seedlings_Above_150cm_C)) %>% 
+                     select(team, ScientificName, sds_15, sds_30),
+                   seeds_comp %>% group_by(ScientificName) %>% 
+                     summarize(team = "qaqc",
+                               sds_15 = sum(Seedlings_15_30cm_Q), na.rm = T,
+                               sds_30 = sum(Seedlings_30_100cm_Q + Seedlings_100_150cm_Q + 
+                                              Seedlings_Above_150cm_Q)) %>% 
+                     select(team, ScientificName, sds_15, sds_30)) %>% 
+             filter(!ScientificName %in% "None present")
+
+# Make report table and deal with empty dfs
+
+if(nrow(seeds_spp)>0){
+
+  seeds_spp[, c("sds_15", "sds_30")][is.na(seeds_spp[, c("sds_15", "sds_30")])] <- 0
+
+  seeds_spp_wide <- seeds_spp %>% pivot_wider(names_from = ScientificName, values_from = c(sds_15, sds_30))
+  
+  seeds_wide_15 <- seeds_spp_wide %>% select(team, starts_with('sds_15'))
+  seeds_taxa_acc_15 <- betadiver(seeds_wide_15[,-1], method = 'sor', order = F)
+  seeds_taxa_acc_15 <- ifelse(is.nan(seeds_taxa_acc_15), NA, seeds_taxa_acc_15)
+  
+  seeds_wide_30 <- seeds_spp_wide %>% select(team, starts_with('sds_30'))
+  seeds_taxa_acc_30 <- betadiver(seeds_wide_30[,-1], method = 'sor', order = F)
+  seeds_taxa_acc_30 <- ifelse(is.nan(seeds_taxa_acc_30), NA, seeds_taxa_acc_30)
+  
+  seeds_spp_wide2 <- seeds_spp %>% pivot_wider(names_from = team, values_from = c(sds_15, sds_30), values_fill = 0)
+
+  
+  seeds_spp_wide2 <- seeds_spp_wide2 %>% mutate(missed_c_15 = ifelse(sds_15_crew == 0 & sds_15_qaqc == 1, 1, 0),
+                                                missed_q_15 = ifelse(sds_15_crew == 1 & sds_15_qaqc == 0, 1, 0),
+                                                missed_c_30 = ifelse(sds_30_crew == 0 & sds_30_qaqc == 1, 1, 0),
+                                                missed_q_30 = ifelse(sds_30_crew == 1 & sds_30_qaqc == 0, 1, 0),
+                                                )
+  seeds_spp_wide2 <- rbind(seeds_spp_wide2,
+                          c("Sorensen Similarity", NA, seeds_taxa_acc_15, NA, seeds_taxa_acc_30, NA, NA, NA, NA))
+
+  }
+
 
 #----- Quadrat Character for trampled
 quad_tramp <- get("QuadNotes_NETN", envir = VIEWS_NETN) 
