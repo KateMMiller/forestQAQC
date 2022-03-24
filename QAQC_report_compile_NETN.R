@@ -223,36 +223,35 @@ shrubs_full[, c("pct_class_C", "pct_class_Q")][is.na(shrubs_full[, c("pct_class_
 shrubs_full$ScientificName[is.na(shrubs_full$ScientificName)] <- "None present"
 
 # Shrub taxonomic accuracy +++ NEW 20220321 +++
-shrub_spp <- rbind(shrubs_full %>% filter(pct_class_C > 1) %>% #drop <1%
-                                   mutate(team = "crew",
-                                          shrub_pres = ifelse(pct_class_C > 0, 1, 0)) %>% 
-                                   select(team, ScientificName, shrub_pres) %>% unique(),
-                   shrubs_full %>% filter(pct_class_Q > 1) %>% #drop <1% 
-                                   mutate(team = 'qaqc',
-                                          shrub_pres = ifelse(pct_class_Q > 0, 1, 0)) %>% 
-                                   select(team, ScientificName, shrub_pres) %>% unique())
+shrub_ta <- full_join(shrubs %>% filter(Team == "Crew") %>% select(ScientificName, shrub_avg_cov),
+                      shrubs %>% filter(Team == "QAQC") %>% select(ScientificName, shrub_avg_cov),
+                      by = c("ScientificName"), suffix = c("_C", "_Q"))
 
-  # Make report table and deal with empty dfs
+shrub_spp <- rbind(shrub_ta %>% filter(shrub_avg_cov_C > 1) %>% #drop <1%
+                                mutate(team = "crew", 
+                                       shrub_avg_cov = round(shrub_avg_cov_C, 1)) %>% 
+                                select(team, ScientificName, shrub_avg_cov) %>% unique(),
+                   shrub_ta %>% filter(shrub_avg_cov_Q > 1) %>% #drop <1% 
+                                mutate(team = 'qaqc',
+                                       shrub_avg_cov = round(shrub_avg_cov_Q, 1)) %>% 
+                                select(team, ScientificName, shrub_avg_cov) %>% unique())
 
-# shrub_spp <- rbind(shrub_spp, c('crew', "Vaccinium angustifolium", 1),
-#                                c('crew', 'Vaccinium myrtilloides', 1),
-#                                c('qaqc', "Vaccinium myrtilloides", 1))
-# 
-# shrub_spp$shrub_pres <- as.numeric(shrub_spp$shrub_pres)
-# head(shrub_spp)
-
+# Make report table and deal with empty dfs
 if(nrow(shrub_spp)>0){
 
-shrub_spp$shrub_pres[is.na(shrub_spp$shrub_pres)] <- 0
+# Will use shrub_ta for end to show avg. cover
+#shrub_ta[,2:3][is.na(shrub_ta[,2:3])] <- 0
 
-shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = ScientificName, values_from = shrub_pres, values_fill = 0)
+shrub_spp$shrub_avg_cov[is.na(shrub_spp$shrub_avg_cov)] <- 0
 
-shrub_taxa_acc <- betadiver(shrub_spp_wide[,-1], method = 'sor', order = F)
+shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = ScientificName, values_from = shrub_avg_cov, values_fill = 0)
 
-shrub_spp_wide2 <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_pres, values_fill = 0)
-shrub_spp_wide2 <- shrub_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
-                                              missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
-shrub_spp_wide2
+shrub_taxa_acc <- round(betadiver(shrub_spp_wide[,-1], method = 'sor', order = F), 2)
+
+shrub_spp_wide2 <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_avg_cov, values_fill = 0)
+shrub_spp_wide2 <- shrub_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
+                                              missed_q = ifelse(crew > 0 & qaqc == 1, 1, 0))
+
 shrub_spp_wide2 <- rbind(shrub_spp_wide2,
                         c("Sorensen Similarity", NA, shrub_taxa_acc, NA, NA))
 }
@@ -297,7 +296,8 @@ regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1) %>%
 
 
 # Seedling taxonomic accuracy +++ NEW 20220321 +++
-# 100% of species ≥ 30cm tall are in agreement. 90% of species < 30 cm tall are in agreement. as measured by  Sorensen
+# 100% of species ≥ 30cm tall are in agreement. 90% of species < 30 cm tall and >=3 stems are in agreement. as measured by  Sorensen
+
 seeds_spp <- rbind(seeds_comp %>% group_by(ScientificName) %>% 
                      summarize(team = "crew",
                                sds_15 = sum(Seedlings_15_30cm_C), na.rm = T,
@@ -312,20 +312,31 @@ seeds_spp <- rbind(seeds_comp %>% group_by(ScientificName) %>%
                      select(team, ScientificName, sds_15, sds_30)) %>% 
              filter(!ScientificName %in% "None present") 
 
+sd_spp_to_include_15 <- seeds_spp %>% filter(sds_15 >= 3) %>% select(ScientificName) %>% unique()
+sd_spp_to_include_30 <- seeds_spp %>% filter(sds_30 > 0) %>% select(ScientificName) %>% unique()
+
 # Make report table and deal with empty dfs
 
-if(nrow(seeds_spp)>0){
-
+if(nrow(sd_spp_to_include_15) + nrow(sd_spp_to_include_30)>0){
+ 
   seeds_spp[, c("sds_15", "sds_30")][is.na(seeds_spp[, c("sds_15", "sds_30")])] <- 0
 
-  seeds_spp_wide <- seeds_spp %>% pivot_wider(names_from = ScientificName, values_from = c(sds_15, sds_30))
+  seeds_wide_15 <- seeds_spp %>% filter(ScientificName %in% sd_spp_to_include_15$ScientificName) %>% 
+                   select(team, ScientificName, sds_15) %>% 
+                   pivot_wider(names_from = ScientificName, values_from = sds_15)
   
-  seeds_wide_15 <- seeds_spp_wide %>% select(team, starts_with('sds_15'))
-  seeds_taxa_acc_15 <- betadiver(seeds_wide_15[,-1], method = 'sor', order = F)
+  seeds_taxa_acc_15 <- ifelse(nrow(seeds_wide_15) > 0, 
+                              round(betadiver(seeds_wide_15[,-1], method = 'sor', order = F), 2), 
+                              NA_real_)
   seeds_taxa_acc_15 <- ifelse(is.nan(seeds_taxa_acc_15), NA, seeds_taxa_acc_15)
   
-  seeds_wide_30 <- seeds_spp_wide %>% select(team, starts_with('sds_30'))
-  seeds_taxa_acc_30 <- betadiver(seeds_wide_30[,-1], method = 'sor', order = F)
+  seeds_wide_30 <- seeds_spp %>% filter(ScientificName %in% sd_spp_to_include_30$ScientificName) %>% 
+    select(team, ScientificName, sds_30) %>% 
+    pivot_wider(names_from = ScientificName, values_from = sds_30)
+  
+  seeds_taxa_acc_30 <- ifelse(nrow(seeds_wide_30) > 0, 
+                              round(betadiver(seeds_wide_30[,-1], method = 'sor', order = F), 2), 
+                              NA_real_)
   seeds_taxa_acc_30 <- ifelse(is.nan(seeds_taxa_acc_30), NA, seeds_taxa_acc_30)
   
   seeds_spp_wide2 <- seeds_spp %>% pivot_wider(names_from = team, values_from = c(sds_15, sds_30), values_fill = 0)
@@ -336,9 +347,9 @@ if(nrow(seeds_spp)>0){
                                                 missed_c_30 = ifelse(sds_30_crew == 0 & sds_30_qaqc == 1, 1, 0),
                                                 missed_q_30 = ifelse(sds_30_crew == 1 & sds_30_qaqc == 0, 1, 0),
                                                 )
+  
   seeds_spp_wide2 <- rbind(seeds_spp_wide2,
                           c("Sorensen Similarity", NA, seeds_taxa_acc_15, NA, seeds_taxa_acc_30, NA, NA, NA, NA))
-
   }
 
 
@@ -527,26 +538,26 @@ spp_to_include <- quad_sum_comp2 %>% mutate(cov1pct = ifelse(quad_avg_cov_C >= 1
 
 
 quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
-                     mutate(team = "crew",
-                            quad_pres = ifelse(quad_avg_cov_C > 0, 1, 0)) %>% 
-                     select(team, ScientificName, quad_pres) %>% unique(),
+                     mutate(team = "crew") %>% 
+                     rename(quad_avg_cov = quad_avg_cov_C) %>% 
+                     select(team, ScientificName, quad_avg_cov) %>% unique(),
                   
                   quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
-                     mutate(team = 'qaqc',
-                            quad_pres = ifelse(quad_avg_cov_Q > 0, 1, 0)) %>% 
-                     select(team, ScientificName, quad_pres) %>% unique())
+                     mutate(team = 'qaqc') %>% 
+                     rename(quad_avg_cov = quad_avg_cov_Q) %>% 
+                     select(team, ScientificName, quad_avg_cov) %>% unique())
 
 if(nrow(quad_spp)>0){
   
-  quad_spp$quad_pres[is.na(quad_spp$quad_pres)] <- 0
+  quad_spp$quad_avg_cov[is.na(quad_spp$quad_avg_cov)] <- 0
   
-  quad_spp_wide <- quad_spp %>% pivot_wider(names_from = ScientificName, values_from = quad_pres, values_fill = 0)
+  quad_spp_wide <- quad_spp %>% pivot_wider(names_from = ScientificName, values_from = quad_avg_cov, values_fill = 0)
   
-  quad_taxa_acc <- betadiver(quad_spp_wide[,-1], method = 'sor', order = F)
+  quad_taxa_acc <- round(betadiver(quad_spp_wide[,-1], method = 'sor', order = F), 2)
   
-  quad_spp_wide2 <- quad_spp %>% pivot_wider(names_from = team, values_from = quad_pres, values_fill = 0)
-  quad_spp_wide2 <- quad_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
-                                                missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
+  quad_spp_wide2 <- quad_spp %>% pivot_wider(names_from = team, values_from = quad_avg_cov, values_fill = 0)
+  quad_spp_wide2 <- quad_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
+                                              missed_q = ifelse(crew > 0 & qaqc == 0, 1, 0))
 
   quad_spp_wide2 <- rbind(quad_spp_wide2,
                            c("Sorensen Similarity", NA, quad_taxa_acc, NA, NA))
@@ -576,36 +587,33 @@ spp_list_comp2[,2:9][spp_list_comp2[,2:9] > 1] <- 1
 spp_list_comp2$missed_C <- ifelse(rowSums(spp_list_comp2[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) == 0, 1, 0)
 spp_list_comp2$missed_Q <- ifelse(rowSums(spp_list_comp2[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) == 0, 1, 0)
 
-# Additional Species taxonomic accuracy +++ NEW 20220321 +++
-head(spp_list_comp2)
-spp_to_include <- quad_sum_comp2 %>% mutate(cov1pct = ifelse(quad_avg_cov_C >= 1 | quad_avg_cov_Q >= 1, 1, 0)) %>% 
-  filter(cov1pct == 1) %>% select(ScientificName)
+# Plot Species taxonomic accuracy +++ NEW 20220321 +++
+spp_list_comp3 <- spp_list_comp2
+
+spp_list_comp3$crew <- ifelse(rowSums(spp_list_comp3[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) > 0, 1, 0)
+spp_list_comp3$qaqc <- ifelse(rowSums(spp_list_comp3[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) > 0, 1, 0)
 
 
-quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
-                    mutate(team = "crew",
-                           quad_pres = ifelse(quad_avg_cov_C > 0, 1, 0)) %>% 
-                    select(team, ScientificName, quad_pres) %>% unique(),
-                  
-                  quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
-                    mutate(team = 'qaqc',
-                           quad_pres = ifelse(quad_avg_cov_Q > 0, 1, 0)) %>% 
-                    select(team, ScientificName, quad_pres) %>% unique())
+plot_spp <- spp_list_comp3 %>% select(ScientificName, crew, qaqc) %>% 
+  pivot_longer(-ScientificName, names_to = "team", values_to = "present")
 
-if(nrow(quad_spp)>0){
+
+if(nrow(plot_spp)>0){
   
-  quad_spp$quad_pres[is.na(quad_spp$quad_pres)] <- 0
+  plot_spp$present[is.na(plot_spp$present)] <- 0
   
-  quad_spp_wide <- quad_spp %>% pivot_wider(names_from = ScientificName, values_from = quad_pres, values_fill = 0)
+  plot_spp_wide <- plot_spp %>% pivot_wider(names_from = ScientificName, 
+                                            values_from = present, values_fill = 0)
   
-  quad_taxa_acc <- betadiver(quad_spp_wide[,-1], method = 'sor', order = F)
+  plot_spp_taxa_acc <- round(betadiver(plot_spp_wide[,-1], method = 'sor', order = F), 2)
   
-  quad_spp_wide2 <- quad_spp %>% pivot_wider(names_from = team, values_from = quad_pres, values_fill = 0)
-  quad_spp_wide2 <- quad_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
+  plot_spp_wide2 <- plot_spp %>% pivot_wider(names_from = team, values_from = present, values_fill = 0)
+  
+  plot_spp_wide2 <- plot_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
                                               missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
   
-  quad_spp_wide2 <- rbind(quad_spp_wide2,
-                          c("Sorensen Similarity", NA, quad_taxa_acc, NA, NA))
+  plot_spp_wide2 <- rbind(plot_spp_wide2,
+                          c("Sorensen Similarity", NA, plot_spp_taxa_acc, NA, NA))
 }
 
 #----- CWD
