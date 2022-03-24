@@ -276,11 +276,9 @@ shrub_spp <- rbind(shrubs_full %>% filter(pct_class_C > 1) %>% #drop <1%
 
 if(nrow(shrub_spp)>0){
   
-  shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = ScientificName, values_from = shrub_pres, values_fill = 0)
-  
-  head(shrub_spp_wide)
-  
   shrub_spp$shrub_pres[is.na(shrub_spp$shrub_pres)] <- 0
+  
+  shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = ScientificName, values_from = shrub_pres, values_fill = 0)
   
   shrub_taxa_acc <- betadiver(shrub_spp_wide[,-1], method = 'sor', order = F)
   
@@ -504,6 +502,39 @@ quad_sum_comp2 <- quad_sum_comp %>%
                     select(ScientificName, quad_avg_cov_C, quad_avg_cov_Q, 
                            quad_pct_freq_C, quad_pct_freq_Q, pct_diff_cov, pct_diff_freq) %>% 
                     mutate_if(is.numeric, round, 2) %>% arrange(ScientificName)
+
+# Quadrat taxonomic accuracy +++ NEW 20220321 +++
+# Selecting the species that have >=1% cover in at least one of the visits for the comparison.
+spp_to_include <- quad_sum_comp2 %>% mutate(cov1pct = ifelse(quad_avg_cov_C >= 1 | quad_avg_cov_Q >= 1, 1, 0)) %>% 
+  filter(cov1pct == 1) %>% select(ScientificName)
+
+
+quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
+                    mutate(team = "crew",
+                           quad_pres = ifelse(quad_avg_cov_C > 0, 1, 0)) %>% 
+                    select(team, ScientificName, quad_pres) %>% unique(),
+                  
+                  quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
+                    mutate(team = 'qaqc',
+                           quad_pres = ifelse(quad_avg_cov_Q > 0, 1, 0)) %>% 
+                    select(team, ScientificName, quad_pres) %>% unique())
+
+if(nrow(quad_spp)>0){
+  
+  quad_spp$quad_pres[is.na(quad_spp$quad_pres)] <- 0
+  
+  quad_spp_wide <- quad_spp %>% pivot_wider(names_from = ScientificName, values_from = quad_pres, values_fill = 0)
+  
+  quad_taxa_acc <- betadiver(quad_spp_wide[,-1], method = 'sor', order = F)
+  
+  quad_spp_wide2 <- quad_spp %>% pivot_wider(names_from = team, values_from = quad_pres, values_fill = 0)
+  quad_spp_wide2 <- quad_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
+                                              missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
+  
+  quad_spp_wide2 <- rbind(quad_spp_wide2,
+                          c("Sorensen Similarity", NA, quad_taxa_acc, NA, NA))
+}
+
 
 #----- Quadrat seedlings
 seeds <- do.call(joinQuadSeedlings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>% 
