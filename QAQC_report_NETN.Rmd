@@ -1000,6 +1000,13 @@ cwd_count <- c("CWD", "Number of pieces", "Different counts among species", "Dif
 
 soil_samples <- c("Soil", "Horizon Depths", "Same horizons IDed, but differing depths recorded", "Different horizons IDed")
 
+shrub_TA <- c("Taxonomic Accuracy", "Shrub Similarity", "Not defined", "Sorensen similarity < 1 for species averaging at least 1% cover")
+seed_TA_sm <- c("Taxonomic Accuracy", "Small Seedling Similarity", "Sorensen similarity >= 0.9 and < 1", 
+                "Sorensen similarity < 0.9 for seedlings in the 15 -- 30 cm size class and having at least 3 stems present across the microplots")
+seed_TA_lg <- c("Taxonomic Accuracy", "Large Seedling Similarity", "Not defined", "Sorensen similarity < 1 all seedlings > 30 cm tall")
+quad_TA <- c("Taxonomic Accuracy", "Quadrat Species Similarity", "Sorensen similarity >= 0.9 and < 1", "Sorensen similarity < 0.9 for species averaging at least 1% cover")
+plot_TA <- c("Taxonomic Accuracy", "Plot Species Similarity", "Sorensen similarity >= 0.8 and < 1", "Sorensen similarity < 0.8 for all species detected on the plot")
+
 data_checks <- rbind(data_checks, crown_closure, water_on_plot, DBI, microtopography, earthworms, vasc_strata,
                      pct_forest_floor, stand_height, disturb_pres, disturb_thresh, disturb_cov,
                      
@@ -1013,7 +1020,9 @@ data_checks <- rbind(data_checks, crown_closure, water_on_plot, DBI, microtopogr
                      
                      cwd_decay, cwd_volume, cwd_count,
                      
-                     soil_samples
+                     soil_samples,
+                     
+                     shrub_TA, seed_TA_sm, seed_TA_lg, quad_TA, plot_TA
                      )
 
 RC_data_checks <- sapply(1:nrow(data_checks), function(x){
