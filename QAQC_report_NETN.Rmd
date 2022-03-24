@@ -946,8 +946,6 @@ cat("No species detected in either visit.", "\n")
 missed_leg
 ```
 
-### Taxonomic Resolution
-
 
 ### QAQC Tolerance Definitions
 ```{r check_table}
