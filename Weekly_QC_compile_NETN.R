@@ -15,7 +15,7 @@ arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = l
 
 plotevs <- do.call(joinLocEvent, arglist1) 
 
-old_evs <- plotevs %>% filter(StartDate < params$week_start)
+old_evs <- plotevs %>% filter(SampleDate < week_start)
 new_evs <- plotevs %>% filter_week() %>% name_plot()
 new_evs_list <- unique(new_evs$Plot_Name)
 
@@ -87,7 +87,7 @@ stand_old <- filter_old(stand)
 stand_new <- filter_week(stand)
 
 # Check for PMs in stand data
-stand_pm <- PM_check(stand_new)# %>% select_if(is.character) %>% select(-StartDate)
+stand_pm <- PM_check(stand_new)# %>% select_if(is.character) %>% select(-SampleDate)
 
 PM_stand_col <- sapply(names(stand_pm), function(x) any(stand_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
@@ -145,7 +145,7 @@ QC_table <- rbind(QC_table, QC_check(dbi1, "Stand Data", "DBI = 1 outside of exc
 DBI_1_table <- make_kable(dbi1, "DBI = 1 outside exclosure") 
 
 # Check for big DBI shift between cycles
-dbi_diff <- full_join(stand_old %>% filter(IsQAQC == 0 & cycle == params$cycle_latest_num - 1) %>% 
+dbi_diff <- full_join(stand_old %>% filter(IsQAQC == 0 & cycle == cycle_latest_num - 1) %>% 
                         select(Plot_Name, Deer_Browse_Index),
                       stand_new %>% filter(IsQAQC == 0) %>% 
                         select(Plot_Name, Deer_Browse_Index),
@@ -161,7 +161,7 @@ DBI_diff_table <- make_kable(dbi_diff, "DBI change > 1 point from previous cycle
 # Disturbances
 stand_dist <- do.call(joinStandDisturbance, c(arglist, list(from = curr_year))) %>% 
   filter_week() %>% filter(DisturbanceCode > 0) %>% 
-  select(Plot_Name, StartYear, IsQAQC, DisturbanceCode, DisturbanceSummary, ThresholdCode,
+  select(Plot_Name, SampleYear, IsQAQC, DisturbanceCode, DisturbanceSummary, ThresholdCode,
          ThresholdLabel, DisturbanceCoverClassLabel, DisturbanceNote) %>% 
   rename(Summary = DisturbanceSummary, 
          Label = ThresholdLabel,
@@ -173,14 +173,14 @@ QC_table <- rbind(QC_table, QC_check(stand_dist, "Stand Data", "Reported stand d
 stand_dist_table <- make_kable(stand_dist, "Recorded disturbances")
 
 # Check for potential stand height outliers
-stand_ht <- get("COMN_StandTreeHeights", env = VIEWS_NETN) %>% 
-            mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
-            select(Plot_Name, ParkUnit, StartYear, StartDate, IsQAQC, CrownClassLabel, Height) %>% 
+stand_ht <- get("StandTreeHeights_NETN", env = VIEWS_NETN) %>% 
+            #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
+            select(Plot_Name, ParkUnit, SampleYear, SampleDate, IsQAQC, CrownClassLabel, Height) %>% 
             filter(!is.na(CrownClassLabel)) %>% add_cycle()
 
 stand_ht_new <- stand_ht %>% filter_week() %>% filter(IsQAQC == 0)
 
-stand_ht_sum <- stand_ht %>% filter(StartYear < curr_year) %>% group_by(ParkUnit) %>% 
+stand_ht_sum <- stand_ht %>% filter(SampleYear < curr_year) %>% group_by(ParkUnit) %>% 
                 summarize(stand_ht_99 = quantile(Height, probs = 0.99))
 
 stand_ht_99_check <- left_join(stand_ht_new, stand_ht_sum, 
@@ -229,18 +229,18 @@ include_stand_tab <- tab_include(stand_check)
 tree_data <- do.call(joinTreeData, c(arglist, list(speciesType = 'all'))) %>% 
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
-  filter(cycle %in% c(params$cycle_latest_num, params$cycle_latest_num-1))
+  filter(cycle %in% c(cycle_latest_num, cycle_latest_num-1))
 
 tree_data_live <- do.call(joinTreeData, c(arglist, list(speciesType = 'all', status = "live"))) %>% 
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
-  filter(cycle %in% c(params$cycle_latest_num, params$cycle_latest_num-1))
+  filter(cycle %in% c(cycle_latest_num, cycle_latest_num-1))
 
-tree_data_old <- tree_data %>% filter(StartYear < curr_year)
-tree_data_new <- tree_data %>% filter(StartDate >= week_start)
+tree_data_old <- tree_data %>% filter(SampleYear < curr_year)
+tree_data_new <- tree_data %>% filter(SampleDate >= week_start)
 
 # Check for PMs in tree data
-tree_data_pm <- PM_check(tree_data_new)# %>% select_if(is.character) %>% select(-StartDate)
+tree_data_pm <- PM_check(tree_data_new)# %>% select_if(is.character) %>% select(-SampleDate)
 
 PM_tree_data_col <- sapply(names(tree_data_pm), function(x) any(tree_data_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
@@ -289,17 +289,17 @@ QC_table <- rbind(QC_table,
 status_table <- make_kable(status_check, "Zombie and excluded trees")
 
 # Check for potential elevated mortality events
-live_stems_prev <- tree_data_live %>% filter(StartYear < curr_year & IsQAQC == 0) %>% 
-  group_by(Plot_Name, StartYear) %>% 
+live_stems_prev <- tree_data_live %>% filter(SampleYear < curr_year & IsQAQC == 0) %>% 
+  group_by(Plot_Name, SampleYear) %>% 
   summarize(num_live = sum(num_stems), .groups = 'drop')
 
-live_stems_new <- tree_data_live %>% filter(StartYear == curr_year & IsQAQC == 0) %>% 
-  group_by(Plot_Name, StartYear) %>% 
+live_stems_new <- tree_data_live %>% filter(SampleYear == curr_year & IsQAQC == 0) %>% 
+  group_by(Plot_Name, SampleYear) %>% 
   summarize(num_live = sum(num_stems), .groups = 'drop')
 
 elev_mort <- full_join(live_stems_new, live_stems_prev, 
                        by = "Plot_Name", suffix = c("_new", "_old")) %>% 
-  mutate(mort = 100*(num_live_new - num_live_old)/(num_live_old * (StartYear_new - StartYear_old))) %>% 
+  mutate(mort = 100*(num_live_new - num_live_old)/(num_live_old * (SampleYear_new - SampleYear_old))) %>% 
   filter(mort < -1.6)
 
 
@@ -350,8 +350,8 @@ tree_dbh <- tree_data_live %>% select(Plot_Name, TagCode, cycle, ScientificName,
                                            values_from = c(DBHcm, IsDBHVerified),
                                            names_prefix = "cycle_") 
 
-old_dbh <- paste0("DBHcm_cycle_", params$cycle_latest_num-1)
-new_dbh <- paste0("DBHcm_cycle_", params$cycle_latest_num)
+old_dbh <- paste0("DBHcm_cycle_", cycle_latest_num-1)
+new_dbh <- paste0("DBHcm_cycle_", cycle_latest_num)
 
 tree_dbh$DBH_diff <- if(old_dbh %in% names(tree_dbh)){
   tree_dbh[,new_dbh] - tree_dbh[,old_dbh]} else {NA}
@@ -366,13 +366,13 @@ zoinks_table <- make_kable(zoinks_tree, "Zoinks trees with > 3cm growth or < -0.
 
 # Identify zoinks trees missing DBH Verified check box
 tree_dbh$Missing_DBHVer = ifelse((tree_dbh$DBH_diff >= 3 | tree_dbh$DBH_diff < -0.1) & 
-                                 tree_dbh[, paste0("IsDBHVerified_cycle_", params$cycle_latest_num)] == 0, 1, 0)
+                                 tree_dbh[, paste0("IsDBHVerified_cycle_", cycle_latest_num)] == 0, 1, 0)
 
 tree_dbh_check <- tree_dbh %>% filter(Missing_DBHVer == 1) %>% data.frame()
 
 tree_dbh_check <- if(old_dbh %in% names(tree_dbh_check)){
    tree_dbh_check[, c("Plot_Name", "TagCode", "ScientificName", old_dbh, new_dbh, "DBH_diff", 
-                      paste0("IsDBHVerified_cycle_", params$cycle_latest_num))]
+                      paste0("IsDBHVerified_cycle_", cycle_latest_num))]
 } else {tree_dbh_check[-(1:nrow(tree_dbh_check)),]}
 
 QC_table <- rbind(QC_table, 
@@ -441,29 +441,29 @@ include_tree_tab <- tab_include(tree_check)
 
 #----- Microplot Saplings -----
 # Check sample qualifiers
-shrubs_sq <- get("COMN_MicroplotShrubs", env = VIEWS_NETN) %>% 
+shrubs_sq <- get("MicroplotShrubs_NETN", env = VIEWS_NETN) %>% 
              mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
              name_plot() %>% 
              filter(Plot_Name %in% new_evs_list) %>% 
-             filter(StartYear %in% curr_year) %>% 
+             filter(SampleYear %in% curr_year) %>% 
              select(Plot_Name, MicroplotCode, SQShrubCode, SQShrubNotes) %>% 
              rename(SQ = SQShrubCode, SQNotes = SQShrubNotes) %>% 
              mutate(type = "shrub")
 
-saps_sq <- get("NETN_MicroplotSaplings", env = VIEWS_NETN) %>% 
+saps_sq <- get("MicroplotSaplings_NETN", env = VIEWS_NETN) %>% 
            mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
            name_plot() %>% 
            filter(Plot_Name %in% new_evs_list) %>% 
-           filter(StartYear %in% curr_year) %>% 
+           filter(SampleYear %in% curr_year) %>% 
            select(Plot_Name, MicroplotCode, SQSaplingCode, SQSaplingNotes) %>% 
            rename(SQ = SQSaplingCode, SQNotes = SQSaplingNotes) %>% 
            mutate(type = "sapling")
 
-seeds_sq <- get("NETN_MicroplotSeedlings", env = VIEWS_NETN) %>% 
-            mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
+seeds_sq <- get("MicroplotSeedlings_NETN", env = VIEWS_NETN) %>% 
+#            mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
             name_plot() %>% 
             filter(Plot_Name %in% new_evs_list) %>% 
-            filter(StartYear %in% curr_year) %>% 
+            filter(SampleYear %in% curr_year) %>% 
             select(Plot_Name, MicroplotCode, SQSeedlingCode, SQSeedlingNotes) %>% 
             rename(SQ = SQSeedlingCode, SQNotes = SQSeedlingNotes) %>% 
             mutate(type = "seedling")
@@ -494,7 +494,7 @@ micro_ns_table <- make_kable(micro_ns, "Microplots with NS sample qualifier")
 saps <- do.call(joinMicroSaplings, arglist) %>% 
         name_plot() %>% 
         filter(Plot_Name %in% new_evs_list) %>% 
-        filter(cycle %in% params$cycle_latest_num)
+        filter(cycle %in% cycle_latest_num)
 
 sap_data_pm <- PM_check(saps)
 
@@ -513,9 +513,9 @@ sap_pm_table <- make_kable(sap_data_pm2, "Saplings: Permanently Missing records"
 shrubs <- do.call(joinMicroShrubData, arglist) %>% 
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
-  filter(cycle %in% params$cycle_latest_num)
+  filter(cycle %in% cycle_latest_num)
 
-shrub_data_pm <- PM_check(shrubs)# %>% select_if(is.character) %>% select(-StartDate)
+shrub_data_pm <- PM_check(shrubs)# %>% select_if(is.character) %>% select(-SampleDate)
 
 PM_shrub_col <- sapply(names(shrub_data_pm), function(x) any(shrub_data_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
@@ -529,11 +529,11 @@ QC_table <- rbind(QC_table,
 shrub_pm_table <- make_kable(shrub_data_pm2, "Shrubs: Permanently Missing records")
 
 # Check for plots with SS shrubsample qualifier and no species data
-shrub_ss_sq <- get("COMN_MicroplotShrubs", envir = VIEWS_NETN) %>% 
-               mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
+shrub_ss_sq <- get("MicroplotShrubs_NETN", envir = VIEWS_NETN) %>% 
+               #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
                name_plot() %>% 
                filter(Plot_Name %in% new_evs_list) %>% 
-               select(Plot_Name, StartYear, IsQAQC, SQShrubCode, MicroplotCode, ScientificName, CoverClassCode) %>%
+               select(Plot_Name, SampleYear, IsQAQC, SQShrubCode, MicroplotCode, ScientificName, CoverClassCode) %>%
                filter(SQShrubCode %in% "SS" & is.na(ScientificName))
 
 QC_table <- rbind(QC_table, 
@@ -557,9 +557,9 @@ shrub_0cov_table <- make_kable(shrubs_0cov, "Shrubs: species recorded with 0 or 
 seeds <- do.call(joinMicroSeedlings, arglist) %>% 
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
-  filter(cycle %in% params$cycle_latest_num)
+  filter(cycle %in% cycle_latest_num)
 
-seed_data_pm <- PM_check(seeds)# %>% select_if(is.character) %>% select(-StartDate)
+seed_data_pm <- PM_check(seeds)# %>% select_if(is.character) %>% select(-SampleDate)
 
 PM_seed_col <- sapply(names(seed_data_pm), function(x) any(seed_data_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
@@ -573,11 +573,11 @@ QC_table <- rbind(QC_table,
 seed_pm_table <- make_kable(seed_data_pm2, "Seedlings: Permanently Missing records")
 
 # Check for plots with SS sample qualifier and no species data
-seed_ss_sq <- get("NETN_MicroplotSeedlings", envir = VIEWS_NETN) %>% 
-              mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
+seed_ss_sq <- get("MicroplotSeedlings_NETN", envir = VIEWS_NETN) %>% 
+              #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
               name_plot() %>% 
               filter(Plot_Name %in% new_evs_list) %>% 
-              select(Plot_Name, StartYear, IsQAQC, SQSeedlingCode, MicroplotCode, ScientificName, SizeClassLabel) %>%
+              select(Plot_Name, SampleYear, IsQAQC, SQSeedlingCode, MicroplotCode, ScientificName) %>%
               filter(SQSeedlingCode %in% "SS" & is.na(ScientificName))
 
 QC_table <- rbind(QC_table, 
@@ -588,11 +588,11 @@ seed_ss_sq_table <- make_kable(seed_ss_sq, "Seedlings: SS sample qualifier witho
 # Check for plots with species recorded but 0 tallies
 seeds_0tally <- seeds %>% filter((!ScientificName %in% c("Not Sampled", "None present")) & 
                                     (tot_seeds == 0 | 
-                                    is.na(sd_15_30cm)|
-                                    is.na(sd_30_100cm)|
-                                    is.na(sd_100_150cm)|
-                                    is.na(sd_p150cm))) %>% 
-                select(Plot_Name, MicroplotCode, ScientificName, sd_15_30cm:tot_seeds)
+                                    is.na(Seedlings_15_30cm)|
+                                    is.na(Seedlings_30_100cm)|
+                                    is.na(Seedlings_100_150cm)|
+                                    is.na(Seedlings_Above_150cm))) %>% 
+                select(Plot_Name, MicroplotCode, ScientificName, Seedlings_15_30cm:tot_seeds)
 
 QC_table <- rbind(QC_table,
                   QC_check(seeds_0tally, "Microplot", "Seedlings: species recorded with 0 missing tally"))
@@ -602,34 +602,35 @@ seed_0tally_table <- make_kable(seeds_0tally, "Seedlings: species recorded with 
 # check for seedling tallies > 99 percentile of non-zero counts in a microplot
 seeds <- do.call(joinMicroSeedlings, arglist) %>% name_plot()
 seeds_new <- seeds %>% filter_week()
-seeds_old <- seeds %>% filter(StartYear < curr_year) %>% filter(!ScientificName %in% c("Not Sampled", "None present"))
-seeds_old[,21:24][seeds_old[,21:24]==0] <- NA_real_
+seeds_old <- seeds %>% filter(SampleYear < curr_year) %>% filter(!ScientificName %in% c("Not Sampled", "None present"))
+na_cols <- c("Seedlings_15_30cm", "Seedlings_30_100cm", "Seedlings_100_150cm",  
+             "Seedlings_Above_150cm", "tot_seeds")
 
-seeds_sum <- seeds_old %>% group_by(ParkUnit) %>% filter(StartYear > 2006) %>% 
-                           summarize(sd_15_30cm_99 = quantile(sd_15_30cm, probs = 0.99, na.rm = T),
-                           sd_30_100cm_99 = quantile(sd_30_100cm, probs = 0.99, na.rm = T),
-                           sd_100_150cm_99 = quantile(sd_100_150cm, probs = 0.99, na.rm = T),
-                           sd_p150cm_99 = quantile(sd_p150cm, probs = 0.99, na.rm = T))
+seeds_old[,na_cols][seeds_old[,na_cols]==0] <- NA_real_
+
+seeds_sum <- seeds_old %>% group_by(ParkUnit) %>% filter(SampleYear > 2006) %>% 
+                           summarize(Seedlings_15_30cm_99 = quantile(Seedlings_15_30cm, probs = 0.99, na.rm = T),
+                           Seedlings_30_100cm_99 = quantile(Seedlings_30_100cm, probs = 0.99, na.rm = T),
+                           Seedlings_100_150cm_99 = quantile(Seedlings_100_150cm, probs = 0.99, na.rm = T),
+                           Seedlings_Above_150cm_99 = quantile(Seedlings_Above_150cm, probs = 0.99, na.rm = T))
 
 
-seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, sd_15_30cm:sd_p150cm), 
+seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, Seedlings_15_30cm:Seedlings_Above_150cm), 
                             seeds_sum, by = "ParkUnit") %>% 
-                  filter(sd_15_30cm > sd_15_30cm_99 |
-                         sd_30_100cm > sd_30_100cm_99 |
-                         sd_100_150cm > sd_100_150cm_99 |
-                         sd_p150cm > sd_p150cm_99) 
+                  filter(Seedlings_15_30cm > Seedlings_15_30cm_99 |
+                         Seedlings_30_100cm > Seedlings_30_100cm_99 |
+                         Seedlings_100_150cm > Seedlings_100_150cm_99 |
+                         Seedlings_Above_150cm > Seedlings_Above_150cm_99) 
                   
 seeds_99_check_final <- if(nrow(seeds_99_check) > 0){
-  seed_cols <- c(ifelse(seeds_99_check$sd_15_30cm > seeds_99_check$sd_15_30cm_99, "sd_15_30cm", "ParkUnit"),
-                 ifelse(seeds_99_check$sd_30_100cm > seeds_99_check$sd_30_100cm_99 , "sd_30_100cm", "ParkUnit"),
-                 ifelse(seeds_99_check$sd_100_150cm > seeds_99_check$sd_100_150cm_99, "sd_100_150cm", "ParkUnit"),
-                 ifelse(seeds_99_check$sd_p150cm > seeds_99_check$sd_p150cm_99, "sd_p150cm", "ParkUnit"))#) 
+  seed_cols <- c(ifelse(seeds_99_check$Seedlings_15_30cm > seeds_99_check$Seedlings_15_30cm_99, "Seedlings_15_30cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_30_100cm > seeds_99_check$Seedlings_30_100cm_99 , "Seedlings_30_100cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_100_150cm > seeds_99_check$Seedlings_100_150cm_99, "Seedlings_100_150cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_Above_150cm > seeds_99_check$Seedlings_Above_150cm_99, "Seedlings_Above_150cm", "ParkUnit"))#) 
 
   seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
-  return(seeds_99_check_final)
-} else {return(seeds_99_check)}
-
-#++++++++++++ FIX PROBLEM +++++++++++++
+  seeds_99_check_final
+} else {seeds_99_check}
 
 QC_table <- rbind(QC_table, QC_check(seeds_99_check_final, "Microplot", "Seedling tallies > 99% percentile for a given park"))
 
@@ -640,11 +641,11 @@ saps <- do.call(joinMicroSaplings, arglist) %>% name_plot()
 saps_new <- saps %>% filter_week() %>% group_by(Plot_Name, ParkUnit) %>% 
             summarize(sap_count = sum(Count, na.rm = T), .groups = 'drop')
   
-saps_old <- saps %>% filter(StartYear < curr_year & IsQAQC == 0) %>% 
+saps_old <- saps %>% filter(SampleYear < curr_year & IsQAQC == 0) %>% 
                      filter(!ScientificName %in% c("Not Sampled", "None present"))
                        
-saps_sum <- saps_old %>% filter(IsQAQC == 0) %>% filter(StartYear > 2006) %>% 
-            group_by(Plot_Name, ParkUnit, StartYear)  %>% 
+saps_sum <- saps_old %>% filter(IsQAQC == 0) %>% filter(SampleYear > 2006) %>% 
+            group_by(Plot_Name, ParkUnit, SampleYear)  %>% 
             summarize(sap_count = sum(Count), .groups = 'drop') %>% 
             filter(sap_count > 0) %>% 
             group_by(ParkUnit) %>% 
@@ -667,7 +668,7 @@ include_micro_tab <- tab_include(micro_check)
 quad_notes <- do.call(joinQuadNotes, arglist) %>% 
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
-  filter(cycle %in% params$cycle_latest_num)
+  filter(cycle %in% cycle_latest_num)
 
 #check for NS SQs
 quad_ns <- quad_notes %>% filter(Sample_Info == "NS") %>% select(Plot_Name, Note_Type, Sample_Info, Note_Info, Notes)
@@ -689,37 +690,38 @@ quad_ns_missing_notes_table <- make_kable(quad_ns_missing_notes, "Quadrats with 
 quad_data <- do.call(joinQuadData, arglist) %>% 
              name_plot() %>% 
              filter(Plot_Name %in% new_evs_list) %>% 
-             filter(cycle %in% params$cycle_latest_num)
+             filter(cycle %in% cycle_latest_num)
 
 quad_spp <- do.call(joinQuadSpecies, arglist) %>% 
             name_plot() %>% 
             filter(Plot_Name %in% new_evs_list) %>% 
-            filter(cycle %in% params$cycle_latest_num)
+            filter(cycle %in% cycle_latest_num)
 
 #check for trampled quadrats
-quad_tramp <- get("COMN_QuadCharacter", envir = VIEWS_NETN) 
+quad_tramp <- get("QuadNotes_NETN", envir = VIEWS_NETN) 
+head(quad_tramp)
 
-quad_tramp2 <- quad_tramp %>% mutate(Plot_Name = 
-                                       paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
+quad_tramp2 <- quad_tramp %>% #mutate(Plot_Name = 
+                              #         paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
                               filter(IsQAQC == 0) %>% 
                               filter(Plot_Name %in% new_evs_list) %>% 
-                              select(Plot_Name, StartYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% 
+                              select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% 
                               unique()
 
-quad_tramp3 <- left_join(quad_tramp2, plotevs %>% select(Plot_Name, StartYear, IsQAQC, cycle), 
-                         by = c("Plot_Name", "StartYear")) %>% 
+quad_tramp3 <- left_join(quad_tramp2, plotevs %>% select(Plot_Name, SampleYear, IsQAQC, cycle), 
+                         by = c("Plot_Name", "SampleYear")) %>% 
   filter(cycle %in% c(cycle_latest_num, cycle_prev_num)) %>% 
   filter(IsQAQC == 0)
 
 head(quad_tramp3)
 
-quad_tramp_wide <- quad_tramp3 %>% select(Plot_Name, StartYear, cycle, QuadratCode, IsTrampled) %>% 
+quad_tramp_wide <- quad_tramp3 %>% select(Plot_Name, SampleYear, cycle, QuadratCode, IsTrampled) %>% 
   pivot_wider(names_from = c("QuadratCode"), values_from = "IsTrampled")
                                                                                               
 quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(cycle %in% cycle_prev_num) %>% 
-                                select(-cycle, -StartYear),
+                                select(-cycle, -SampleYear),
                               quad_tramp_wide %>% filter(cycle %in% cycle_latest_num) %>% 
-                                select(-cycle, -StartYear),
+                                select(-cycle, -SampleYear),
                               by = c("Plot_Name"),
                               suffix = c("_C3", "_C4"))
 
@@ -747,7 +749,7 @@ quad_tramp_diff <- quad_tramp_wide3 %>% filter(UC_dif > 0 | UR_dif > 0 | MR_dif 
 QC_table <- rbind(QC_table, QC_check(quad_tramp_diff, "Quadrat", "Trampled in cycle 4 != cycle 3"))
 
 tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_Name) %>% 
-  select(Plot_Name, StartYear, cycle, UC, UR, MR, BR, BC, BL, ML, UL)
+  select(Plot_Name, SampleYear, cycle, UC, UR, MR, BR, BC, BL, ML, UL)
 
 quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats")
 
@@ -790,12 +792,13 @@ QC_table <- rbind(QC_table,
 quad_0cov_table <- make_kable(quad_0cov, "Quadrat Species: species recorded with 0 or missing cover")
 
 # Check for quadrats with SS sample qualifier, but no quad character data (eg potentially lost)
-quad_sq_data <- get("COMN_QuadCharacter", envir = VIEWS_NETN) %>% 
-                mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
-                name_plot() %>% 
-                filter(Plot_Name %in% new_evs_list) %>% 
-                select(Plot_Name, StartYear, IsQAQC, SQQuadCharCode, CoverClassCode) %>%
-                filter(SQQuadCharCode %in% "SS" & is.na(CoverClassCode))
+quad_sq_data1 <- get("QuadCharacter_NETN", envir = VIEWS_NETN) %>% 
+                 name_plot() %>% filter(Plot_Name %in% new_evs_list)
+
+quad_sq_data1$num_missing <- rowSums(is.na(quad_sq_data1[, c("UC_txt", "UR_txt", "MR_txt", "BR_txt", 
+                                                             "BC_txt", "BL_txt", "ML_txt", "UL_txt")]))
+
+quad_sq_data <- quad_sq_data1 %>% filter(num_missing > 0)
 
 QC_table <- rbind(QC_table, 
                   QC_check(quad_sq_data, "Quadrat", "Quadrat Data: SS sample qualifier without % cover data"))
@@ -804,12 +807,13 @@ quad_sq_data_table <- make_kable(quad_sq_data, "Quadrat Data: SS sample qualifie
 
 
 # Check for quadrats with SS sample qualifier, but no quad species data (eg potentially lost)
-quad_sq_spp <- get("NETN_QuadSpecies", envir = VIEWS_NETN) %>% 
-  mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
-  name_plot() %>% 
-  filter(Plot_Name %in% new_evs_list) %>% 
-  select(Plot_Name, StartYear, IsQAQC, SQQuadSppCode, CoverClassCode) %>%
-  filter(SQQuadSppCode %in% "SS" & is.na(CoverClassCode))
+quad_sq_spp1 <- get("QuadSpecies_NETN", envir = VIEWS_NETN) %>% 
+  name_plot() %>% filter(Plot_Name %in% new_evs_list)# %>% 
+
+quad_sq_spp1$num_missing <- rowSums(is.na(quad_sq_spp1[, c("UC_txt", "UR_txt", "MR_txt", "BR_txt", 
+                                                           "BC_txt", "BL_txt", "ML_txt", "UL_txt")]))
+
+quad_sq_spp <- quad_sq_spp1 %>% filter(num_missing > 0)
 
 QC_table <- rbind(QC_table, 
                   QC_check(quad_sq_spp, "Quadrat", "Quadrat Species: SS sample qualifier without % cover data"))
@@ -826,7 +830,7 @@ include_quad_tab <- tab_include(quad_check)
 addspp <- do.call(joinAdditionalSpecies, arglist) %>% 
           name_plot() %>% 
           filter(Plot_Name %in% new_evs_list) %>% 
-          filter(cycle %in% params$cycle_latest_num)
+          filter(cycle %in% cycle_latest_num)
 
 # check for NS
 addspp_ns <- NS_check(addspp) %>% select(Plot_Name, SQAddSppCode, SQAddSppNotes)
@@ -858,11 +862,11 @@ include_addspp_tab <- tab_include(addspp_check)
 
 #----- CWD -----
 # Check for NS SQ
-cwd_vw <- get("COMN_CWD", env = VIEWS_NETN) %>% 
-          mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
+cwd_vw <- get("CWD_NETN", env = VIEWS_NETN) %>% 
+          #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
           name_plot() %>% 
           filter(Plot_Name %in% new_evs_list) %>% 
-          filter(StartYear %in% curr_year) 
+          filter(SampleYear %in% curr_year) 
 
 cwd_sq <- cwd_vw %>% select(Plot_Name, TransectCode, SQTransectCode, SQTransectNotes) %>% 
                      rename(SQ = SQTransectCode, SQNotes = SQTransectNotes) 
@@ -913,12 +917,13 @@ QC_table <- rbind(QC_table,
 cwd_check3_table <- make_kable(cwd_check3, "Plots missing at least one transect sample qualifier")
 
 # Check for plots with >99% CWD volume 
-cwd <- do.call(joinCWDData, arglist) %>% name_plot() 
+cwd <- do.call(joinCWDData, list(park = park_ev_list, to = curr_year, 
+                                 QAQC = TRUE, locType = loc_type)) %>% name_plot() 
 
 cwd_new <- cwd %>% filter(Plot_Name %in% new_evs_list) %>% 
-                   filter(cycle %in% params$cycle_latest_num)
+                   filter(cycle %in% cycle_latest_num)
 
-cwd_old <- cwd %>% filter(StartYear < curr_year)
+cwd_old <- cwd %>% filter(SampleYear < curr_year)
 
 cwd_sum <- cwd_old %>% group_by(ParkUnit) %>% 
   summarize(CWD_Vol_99 = quantile(CWD_Vol, probs = 0.99))
@@ -934,12 +939,12 @@ cwd_99_table <- make_kable(cwd_99_check, "CWD Volume > 99% percentile for a give
 
 cwdvw_new <- cwd_vw %>% filter(Plot_Name %in% new_evs_list) %>% 
                         filter_week() %>% name_plot() %>% 
-                        select(Plot_Name, ParkUnit, StartYear, StartDate, IsQAQC, TransectCode, ScientificName,
+                        select(Plot_Name, ParkUnit, SampleYear, SampleDate, IsQAQC, TransectCode, ScientificName,
                                Distance, Diameter, Length, DecayClassCode)
                         
-cwdvw_old <- cwd_vw %>% filter(StartYear < curr_year) %>% 
+cwdvw_old <- cwd_vw %>% filter(SampleYear < curr_year) %>% 
                         name_plot() %>% 
-                        select(Plot_Name, ParkUnit, StartYear, StartDate, IsQAQC, TransectCode, ScientificName,
+                        select(Plot_Name, ParkUnit, SampleYear, SampleDate, IsQAQC, TransectCode, ScientificName,
                                Distance, Diameter, Length, DecayClassCode)
 
 cwdvw_sum <- cwdvw_old %>% group_by(ParkUnit) %>% 
@@ -962,11 +967,11 @@ include_cwd_tab <- tab_include(cwd_check)
 
 #----- Soil-----
 # Check for NS SQ
-soil_vw <- get("COMN_SoilSample", env = VIEWS_NETN) %>% 
-  mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
+soil_vw <- get("SoilSample_NETN", env = VIEWS_NETN) %>% 
+  #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
-  filter(StartYear %in% curr_year) 
+  filter(SampleYear %in% curr_year) 
 
 
 soil_sq <- soil_vw %>% select(Plot_Name, SQSoilCode, SampleSequenceCode, SoilLayerLabel, Depth_cm, Note) %>% 
@@ -1018,10 +1023,12 @@ QC_table <- rbind(QC_table,
 soil_check3_table <- make_kable(soil_check3, "Plots missing at least one soil sample qualifier")
 
 # Check for soil layers > 99 percentile for a given park
-soil_samp <- do.call(joinSoilSampleData, c(arglist, list(last_lab_year = 2019))) %>% name_plot()
+soil_samp <- do.call(joinSoilSampleData, list(park = park_ev_list, to = curr_year, 
+                                              QAQC = TRUE, locType = loc_type,
+                                              last_lab_year = 2019)) %>% name_plot()
 
 soil_new <- soil_samp %>% filter_week()
-soil_old <- soil_samp %>% filter(StartYear < curr_year)
+soil_old <- soil_samp %>% filter(SampleYear < curr_year)
 
 soil_sum <- soil_old %>% group_by(ParkUnit) %>% 
             summarize(litter_99 = quantile(Litter_cm, probs = 0.99),
@@ -1034,7 +1041,7 @@ soil_99_check <- left_join(soil_new, soil_sum, by = "ParkUnit") %>%
                         O_Horizon_cm > O_hor_99|
                         A_Horizon_cm > A_hor_99|
                         Total_Depth_cm > Depth_99) %>% 
-                 select(Plot_Name, StartYear, num_samps, Litter_cm:A_Horizon_cm, 
+                 select(Plot_Name, SampleYear, num_samps, Litter_cm:A_Horizon_cm, 
                         litter_99:Depth_99)
 
 QC_table <- rbind(QC_table, QC_check(soil_99_check, "Soil", "Soil Depth > 99% percentile for at least one horizon in a given park"))
@@ -1045,7 +1052,6 @@ soil_99_table <- make_kable(soil_99_check, "Soil Depth > 99% percentile for at l
 soil_check <- QC_table %>% filter(Data %in% "Soil" & Num_Records > 0) 
 include_soil_tab <- tab_include(soil_check)
 
-
 #----- Plant ID checks-----
 unknowns <- c(-9999999901:-9999999944, -9999999950:-9999999960)
 
@@ -1053,13 +1059,13 @@ spplist <- do.call(sumSpeciesList, arglist) %>%
            filter(IsQAQC == 0) %>% 
            name_plot() %>% 
            filter(!TSN %in% unknowns) %>% 
-           select(Plot_Name, ParkUnit, StartYear, cycle, TSN, ScientificName, BA_cm2:addspp_present)
+           select(Plot_Name, ParkUnit, SampleYear, cycle, TSN, ScientificName, BA_cm2:addspp_present)
 
 # check species new to a plot
-spplist_new <- spplist %>% filter(cycle %in% params$cycle_latest_num) %>% 
+spplist_new <- spplist %>% filter(cycle %in% cycle_latest_num) %>% 
                            filter(Plot_Name %in% new_evs_list) %>% mutate(pres = 1)
 
-spplist_old <- spplist %>% filter(cycle < params$cycle_latest_num) %>%  
+spplist_old <- spplist %>% filter(cycle < cycle_latest_num) %>%  
                            filter(Plot_Name %in% new_evs_list) %>% mutate(pres = 1) %>% 
                            select(Plot_Name, TSN, ScientificName,
                                   pres)
@@ -1068,10 +1074,13 @@ spp_plotcheck <- full_join(spplist_new, spplist_old,
                            by = c("Plot_Name", "TSN", "ScientificName"),
                            suffix = c("_new", "_old")) 
 
-spp_plotcheck[, 7:19][is.na(spp_plotcheck[, 7:19])] <- 0
+nacols <- c("BA_cm2", "DBH_mean", "tree_stems", "seed_den", "sap_den", "stock", 
+            "shrub_avg_cov", "shrub_pct_freq", "quad_avg_cov", "quad_pct_freq", 
+            "addspp_present", "pres_new", "pres_old")
+spp_plotcheck[, nacols][is.na(spp_plotcheck[, nacols])] <- 0
 
 spp_newplot <- spp_plotcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
-               select(-StartYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
+               select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
                       -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, ScientificName)
 
 QC_table <- rbind(QC_table, 
@@ -1080,7 +1089,7 @@ QC_table <- rbind(QC_table,
 spp_newplot_table <- make_kable(spp_newplot, "Species new to a plot")
 
 # check species new to a park
-park_spplist <- spplist %>% filter(cycle < params$cycle_latest_num) %>% 
+park_spplist <- spplist %>% filter(cycle < cycle_latest_num) %>% 
                             select(ParkUnit, TSN, ScientificName) %>% unique() %>% 
                             arrange(ParkUnit, ScientificName) %>% 
                             mutate(pres = 1)
@@ -1092,7 +1101,7 @@ spp_parkcheck <- full_join(spplist_new, park_spplist,
 spp_parkcheck[, 7:19][is.na(spp_parkcheck[, 7:19])] <- 0
 
 spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
-                                 select(-StartYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
+                                 select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
                                  -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, ScientificName)
 
 QC_table <- rbind(QC_table, 
@@ -1146,7 +1155,7 @@ ised_taxon <- left_join(ised_taxon2, taxa %>% select(TaxonID, TSN, ScientificNam
 
 ised_join <- left_join(spplist_new, ised_taxon, by = c("TSN", "ScientificName")) %>% 
              filter(IsEarlyDetection == 1) %>% 
-             select(-StartYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
+             select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
              -quad_pct_freq, -IsEarlyDetection) %>% 
              arrange(Plot_Name, ScientificName)
 

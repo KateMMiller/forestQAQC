@@ -8,11 +8,14 @@ library(forestMIDN)
 library(htmltools)
 library(knitr)
 library(kableExtra)
+library(vegan) # for betadiver()
 source("QAQC_report_functions.R")
 #importData() #local instance
+forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
 
 #----- Compile data
-arglist = list(park = substr(params$plot, 1, 4), from = year, to = year, QAQC = TRUE, locType = loc_type, eventType = 'complete')
+arglist = list(park = substr(plot, 1, 4), from = year, to = year, QAQC = TRUE, 
+               locType = loc_type, eventType = 'complete')
 
 plotevs <- do.call(joinLocEvent, arglist) %>% filter_plot() %>% name_team()
 
@@ -42,15 +45,14 @@ stand2 <- do.call(cbind, c(stand,
                            lapply(seq_along(code_cols), function(x){
                              add_covcode(stand, code_cols[x], stand_cov)}))) 
 
-tree_hts <- get("COMN_StandTreeHeights", envir = VIEWS_MIDN) %>%
-  select(ParkUnit, PlotCode, StartYear, IsQAQC, CrownClassLabel, TagCode, Height) %>%
-  mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
+tree_hts <- get("StandTreeHeights_MIDN", envir = VIEWS_MIDN) %>%
+  select(Plot_Name, ParkUnit, PlotCode, SampleYear, IsQAQC, CrownClassLabel, TagCode, Height) %>%
   filter_plot() %>% name_team() %>% select(-IsQAQC) %>% arrange(CrownClassLabel, TagCode, Team)
 
 tree_hts_wide <- tree_hts %>% pivot_wider(names_from = Team,
                                           values_from = Height,
                                           values_fill = NA_real_)
-tree_cols = c("ParkUnit", "PlotCode", "StartYear", "CrownClassLabel", "TagCode", "Plot_Name", "Crew", "QAQC")
+tree_cols = c("ParkUnit", "PlotCode", "SampleYear", "CrownClassLabel", "TagCode", "Plot_Name", "Crew", "QAQC")
 missing_teams <- setdiff(tree_cols, names(tree_hts_wide))
 tree_hts_wide[missing_teams] <- NA_real_
 tree_hts_wide$ht_diff <- abs(tree_hts_wide$Crew - tree_hts_wide$QAQC)
@@ -60,10 +62,9 @@ check_20pct_diff(tree_hts_wide, "ht_pct_diff")
 #----- Tree Data
 live <- c("AB", "AF", "AL", "AS", "AM", "RB", "RF", "RL", "RS")
 
-tree_data <- do.call(joinTreeData, c(arglist, list(speciesType = 'all', status = 'all', canopyPosition = 'all', 
-                                                   ouput = 'verbose'))) %>% 
+tree_data <- do.call(joinTreeData, c(arglist, list(speciesType = 'all', status = 'all', canopyPosition = 'all'))) %>% 
                      filter_plot() %>% name_team() %>% 
-                     select(Plot_Name, StartYear, Team, ScientificName, TagCode,
+                     select(Plot_Name, SampleYear, Team, ScientificName, TagCode,
                             Fork, DBHcm, IsDBHVerified, TreeStatusCode,
                             CrownClassCode, DecayClassCode, Pct_Tot_Foliage_Cond,
                            HWACode, BBDCode, TreeEventNote) %>% 
@@ -84,7 +85,7 @@ tree_crew <- tree_data %>% filter(Team == "Crew")
 tree_qaqc <- tree_data %>% filter(Team == "QAQC")
 
 tree_wide <- full_join(tree_crew, tree_qaqc, 
-                       by = c("Plot_Name", "StartYear", "ScientificName", "TagCode", "Fork"),
+                       by = c("Plot_Name", "SampleYear", "ScientificName", "TagCode", "Fork"),
                        suffix = c("_C", "_Q")) %>% 
              mutate(DBH_diff = DBHcm_C - DBHcm_Q, 
                     fol_diff = abs(TotFol_code_C - TotFol_code_Q),
@@ -132,18 +133,20 @@ dead <- c("2", "DB", "DL", "DM", "DS")
 trcond_wide <- full_join(trcond_c, trcond_q, 
                          by = c("Plot_Name", "TagCode", "sppcode", "TreeStatusCode"),
                          suffix = c("_C", "_Q")) %>% 
-               mutate(cond_diff = abs(num_cond_C - num_cond_Q),
-                      Status = ifelse(TreeStatusCode %in% live, "live", "dead")) %>% 
-               select(TagCode, Status, cond_diff, num_cond_C, num_cond_Q, H_C, H_Q, NO_C, NO_Q,
-                      AD_C, AD_Q, BBD_C, BBD_Q, BC_C, BC_Q, BWA_C, BWA_Q, CAVL_C, CAVL_Q, CAVS_C, CAVS_Q,
-                      CW_C, CW_Q, DBT_C, DBT_Q, DOG_C, DOG_Q, EAB_C, EAB_Q, EB_C, EB_Q, 
-                      EHS_C, EHS_Q, G_C, G_Q, GM_C, GM_Q, HWA_C, HWA_Q, ID_C, ID_Q, 
-                      OTH_C, OTH_Q, RPS_C, RPS_Q, SB_C, SB_Q, VIN_B_C, VIN_B_Q, VIN_C_C, VIN_C_Q)
+  mutate(cond_diff = abs(num_cond_C - num_cond_Q),
+         Status = ifelse(TreeStatusCode %in% live, "live", "dead")) %>% 
+  select(TagCode, Status, cond_diff, num_cond_C, num_cond_Q, H_C, H_Q, NO_C, NO_Q,
+         AD_C, AD_Q, BBD_C, BBD_Q, BC_C, BC_Q, BLD_C, BLD_Q, BWA_C, BWA_Q, 
+         CAVL_C, CAVL_Q, CAVS_C, CAVS_Q, CW_C, CW_Q, DBT_C, DBT_Q, DOG_C, DOG_Q, 
+         EAB_C, EAB_Q, EB_C, EB_Q, EHS_C, EHS_Q, G_C, G_Q, GM_C, GM_Q, HWA_C, HWA_Q, 
+         ID_C, ID_Q, OTH_C, OTH_Q, RPS_C, RPS_Q, SB_C, SB_Q, SLF_C, SLF_Q,
+         VIN_B_C, VIN_B_Q, VIN_C_C, VIN_C_Q)
 
-trcond_wide[,c(3:51)][is.na(trcond_wide[,c(3:51)])] <- 0
+trcond_wide[,c(3:55)][is.na(trcond_wide[,c(3:55)])] <- 0
 trcond_wide[,c(8:9)][trcond_wide$Status == 'live',] <- NA
-trcond_wide[,c(6:7, 10:17, 22:51)][trcond_wide$Status == 'dead',] <- NA
+trcond_wide[,c(6:7, 10:19, 24:55)][trcond_wide$Status == 'dead',] <- NA
 trcond_wide[,c(3:4)][is.na(trcond_wide[,c(3:4)])] <- 0
+
 
 #----- Tree Foliage Conditions
 fol_cond <- do.call(joinTreeFoliageCond,
@@ -181,16 +184,16 @@ folcond_wide[, c("Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")]
 live <- c("AB", "AF", "AL", "AS", "AM", "RB", "RF", "RL", "RS")
 
 sap_data <- do.call(joinMicroSaplings, 
-                    c(arglist, list(speciesType = 'all', status = 'all', canopyPosition = 'all'))) %>% 
+                    c(arglist, list(speciesType = 'all', status = 'all'))) %>% 
   filter_plot() %>% name_team() %>% 
-  select(Plot_Name, StartYear, Team, ScientificName, MicroplotCode, TagCode,
+  select(Plot_Name, SampleYear, Team, ScientificName, MicroplotCode, TagCode,
          Fork, DBHcm, IsDBHVerified, SaplingStatusCode) 
 
 sap_crew <- sap_data %>% filter(Team == "Crew")
 sap_qaqc <- sap_data %>% filter(Team == "QAQC")
 
 sap_wide <- full_join(sap_crew, sap_qaqc, 
-                       by = c("Plot_Name", "StartYear", "ScientificName", "MicroplotCode", 
+                       by = c("Plot_Name", "SampleYear", "ScientificName", "MicroplotCode", 
                               "TagCode", "Fork"),
                        suffix = c("_C", "_Q")) %>% 
   mutate(DBH_diff = DBHcm_C - DBHcm_Q)
@@ -259,6 +262,39 @@ shrubs_full[, c("Txt_Cov_C", "Txt_Cov_Q")][is.na(shrubs_full[, c("Txt_Cov_C", "T
 shrubs_full[, c("pct_class_C", "pct_class_Q")][is.na(shrubs_full[, c("pct_class_C", "pct_class_Q")])] <- 0
 shrubs_full$ScientificName[is.na(shrubs_full$ScientificName)] <- "None present"
 
+# Shrub taxonomic accuracy +++ NEW 20220321 +++
+shrub_ta <- full_join(shrubs %>% filter(Team == "Crew") %>% select(ScientificName, shrub_avg_cov),
+                      shrubs %>% filter(Team == "QAQC") %>% select(ScientificName, shrub_avg_cov),
+                      by = c("ScientificName"), suffix = c("_C", "_Q"))
+
+shrub_spp <- rbind(shrub_ta %>% filter(shrub_avg_cov_C > 1) %>% #drop <1%
+                     mutate(team = "crew", 
+                            shrub_avg_cov = round(shrub_avg_cov_C, 1)) %>% 
+                     select(team, ScientificName, shrub_avg_cov) %>% unique(),
+                   shrub_ta %>% filter(shrub_avg_cov_Q > 1) %>% #drop <1% 
+                     mutate(team = 'qaqc',
+                            shrub_avg_cov = round(shrub_avg_cov_Q, 1)) %>% 
+                     select(team, ScientificName, shrub_avg_cov) %>% unique())
+
+# Make report table and deal with empty dfs
+if(nrow(shrub_spp)>0){
+  
+  # Will use shrub_ta for end to show avg. cover
+  #shrub_ta[,2:3][is.na(shrub_ta[,2:3])] <- 0
+  
+  shrub_spp$shrub_avg_cov[is.na(shrub_spp$shrub_avg_cov)] <- 0
+  
+  shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = ScientificName, values_from = shrub_avg_cov, values_fill = 0)
+  
+  shrub_taxa_acc <- round(betadiver(shrub_spp_wide[,-1], method = 'sor', order = F), 2)
+  
+  shrub_spp_wide2 <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_avg_cov, values_fill = 0)
+  shrub_spp_wide2 <- shrub_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
+                                                missed_q = ifelse(crew > 0 & qaqc == 1, 1, 0))
+  
+  shrub_spp_wide2 <- rbind(shrub_spp_wide2,
+                           c("Sorensen Similarity", NA, shrub_taxa_acc, NA, NA))
+}
 
 regen_sum <- do.call(joinRegenData, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>%
   filter_plot() %>% name_team() %>%
@@ -280,17 +316,17 @@ regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1) %>%
          stock_C, stock_Q, everything())
 
 #----- Quadrat Character for trampled
-quad_tramp <- get("COMN_QuadCharacter", envir = VIEWS_MIDN)
+quad_tramp <- get("QuadNotes_MIDN", envir = VIEWS_MIDN)
 
 quad_tramp <- quad_tramp %>% mutate(Plot_Name  = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
-  filter_plot() %>% name_team() %>% select(Plot_Name, Team, StartYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% unique()
+  filter_plot() %>% name_team() %>% select(Plot_Name, Team, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% unique()
 
 quad_tramp_wide <- quad_tramp %>% select(-SQQuadCharCode) %>% pivot_wider(names_from = c("QuadratCode"), 
                                                                           values_from = "IsTrampled")
 
 quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(Team == "Crew") %>% select(-Team), 
                               quad_tramp_wide %>% filter(Team == "QAQC") %>% select(-Team),
-                              by = c("Plot_Name", "StartYear"),
+                              by = c("Plot_Name", "SampleYear"),
                               suffix = c("_C", "_Q")) %>% 
   mutate(A2_dif = abs(A2_C - A2_Q),
          A5_dif = abs(A5_C - A5_Q),
@@ -385,7 +421,8 @@ quad_spp <- quad_spp1 %>%
 
 newname <- substr(names(quad_spp[,3:14]), 9, 10)
 quad_spp <- setNames(quad_spp, c(names(quad_spp[,1:2]), newname))
-
+names(quad_spp)
+# 1 less column name in beginning b/c no IsGerminant compared with NETN
 quad_spp_class <- quad_spp
 quad_spp_class[,3:14][quad_spp_class[,3:14] == "0%"] <- 0
 quad_spp_class[,3:14][quad_spp_class[,3:14] == "<1%"] <- 1
@@ -409,7 +446,7 @@ quad_spp_comp <- full_join(quad_spp2 %>% filter(Team == "Crew") %>% select(-Team
                            by = c("ScientificName"),
                            suffix = c("_C", "_Q"))  
 names(quad_spp_comp)
-head(quad_spp_comp)
+#head(quad_spp_comp)
 quad_spp_comp[, c(2:13, 26:37)][is.na(quad_spp_comp[, c(2:13, 26:37)])] <- "0%"
 quad_spp_comp[, c(14:25, 38:49)][is.na(quad_spp_comp[, c(14:25, 38:49)])] <- 0
 
@@ -472,10 +509,42 @@ quad_sum_comp2 <- quad_sum_comp %>%
                            quad_pct_freq_C, quad_pct_freq_Q, pct_diff_cov, pct_diff_freq) %>% 
                     mutate_if(is.numeric, round, 2) %>% arrange(ScientificName)
 
+# Quadrat taxonomic accuracy +++ NEW 20220321 +++
+# Selecting the species that have >=1% cover in at least one of the visits for the comparison.
+spp_to_include <- quad_sum_comp2 %>% mutate(cov1pct = ifelse(quad_avg_cov_C >= 1 | quad_avg_cov_Q >= 1, 1, 0)) %>% 
+  filter(cov1pct == 1) %>% select(ScientificName)
+
+
+quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
+                    mutate(team = "crew") %>% 
+                    rename(quad_avg_cov = quad_avg_cov_C) %>% 
+                    select(team, ScientificName, quad_avg_cov) %>% unique(),
+                  
+                  quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$ScientificName) %>% 
+                    mutate(team = 'qaqc') %>% 
+                    rename(quad_avg_cov = quad_avg_cov_Q) %>% 
+                    select(team, ScientificName, quad_avg_cov) %>% unique())
+
+if(nrow(quad_spp)>0){
+  
+  quad_spp$quad_avg_cov[is.na(quad_spp$quad_avg_cov)] <- 0
+  
+  quad_spp_wide <- quad_spp %>% pivot_wider(names_from = ScientificName, values_from = quad_avg_cov, values_fill = 0)
+  
+  quad_taxa_acc <- round(betadiver(quad_spp_wide[,-1], method = 'sor', order = F), 2)
+  
+  quad_spp_wide2 <- quad_spp %>% pivot_wider(names_from = team, values_from = quad_avg_cov, values_fill = 0)
+  quad_spp_wide2 <- quad_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
+                                              missed_q = ifelse(crew > 0 & qaqc == 0, 1, 0))
+  
+  quad_spp_wide2 <- rbind(quad_spp_wide2,
+                          c("Sorensen Similarity", NA, quad_taxa_acc, NA, NA))
+}
+
 #----- Quadrat seedlings
 seeds <- do.call(joinQuadSeedlings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>% 
   filter_plot() %>% name_team() %>% 
-  select(Team, QuadratCode, ScientificName, sd_15_30cm:sd_p150cm, tot_seeds, Pct_Cov, Txt_Cov, BrowsedCount)
+  select(Team, QuadratCode, ScientificName, Seedlings_15_30cm:Seedlings_Above_150cm, tot_seeds, Pct_Cov, Txt_Cov, BrowsedCount)
 
 seeds_comp1 <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
                          seeds %>% filter(Team == "QAQC") %>% select(-Team),
@@ -483,8 +552,8 @@ seeds_comp1 <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
                          suffix = c("_C", "_Q")) %>% 
   arrange(QuadratCode, ScientificName) %>% 
   select(QuadratCode, ScientificName, 
-         sd_15_30cm_C, sd_15_30cm_Q, sd_30_100cm_C, sd_30_100cm_Q,
-         sd_100_150cm_C, sd_100_150cm_Q, sd_p150cm_C, sd_p150cm_Q, 
+         Seedlings_15_30cm_C, Seedlings_15_30cm_Q, Seedlings_30_100cm_C, Seedlings_30_100cm_Q,
+         Seedlings_100_150cm_C, Seedlings_100_150cm_Q, Seedlings_Above_150cm_C, Seedlings_Above_150cm_Q, 
          tot_seeds_C, tot_seeds_Q, Pct_Cov_C, Pct_Cov_Q, Txt_Cov_C, Txt_Cov_Q, 
          BrowsedCount_C, BrowsedCount_Q) %>% 
   filter(!ScientificName %in% "None present")
@@ -517,13 +586,71 @@ seeds_comp$spp_miss_Q <- ifelse(rowSums(
   seeds_comp[, c("tot_seeds_Q", "Pct_Cov_Q")], 
   na.rm = T) == 0, 1, 0)
 
+# Seedling taxonomic accuracy +++ NEW 20220321 +++
+# 100% of species ≥ 30cm tall are in agreement. 90% of species < 30 cm tall and >=3 stems are in agreement. as measured by  Sorensen
+
+seeds_spp <- rbind(seeds_comp %>% group_by(ScientificName) %>% 
+                     summarize(team = "crew",
+                               sds_15 = sum(Seedlings_15_30cm_C), na.rm = T,
+                               sds_30 = sum(Seedlings_30_100cm_C + Seedlings_100_150cm_C + 
+                                              Seedlings_Above_150cm_C)) %>% 
+                     select(team, ScientificName, sds_15, sds_30),
+                   seeds_comp %>% group_by(ScientificName) %>% 
+                     summarize(team = "qaqc",
+                               sds_15 = sum(Seedlings_15_30cm_Q), na.rm = T,
+                               sds_30 = sum(Seedlings_30_100cm_Q + Seedlings_100_150cm_Q + 
+                                              Seedlings_Above_150cm_Q)) %>% 
+                     select(team, ScientificName, sds_15, sds_30)) %>% 
+  filter(!ScientificName %in% "None present") 
+
+sd_spp_to_include_15 <- seeds_spp %>% filter(sds_15 >= 3) %>% select(ScientificName) %>% unique()
+sd_spp_to_include_30 <- seeds_spp %>% filter(sds_30 > 0) %>% select(ScientificName) %>% unique()
+
+# Make report table and deal with empty dfs
+
+if(nrow(sd_spp_to_include_15) + nrow(sd_spp_to_include_30)>0){
+  
+  seeds_spp[, c("sds_15", "sds_30")][is.na(seeds_spp[, c("sds_15", "sds_30")])] <- 0
+  seeds_spp <- seeds_spp %>% mutate(cnts = sds_15 + sds_30) %>% filter(cnts > 0) %>% select(-cnts)
+  
+  seeds_wide_15 <- seeds_spp %>% filter(ScientificName %in% sd_spp_to_include_15$ScientificName) %>% 
+    select(team, ScientificName, sds_15) %>% 
+    pivot_wider(names_from = ScientificName, values_from = sds_15)
+  
+  seeds_taxa_acc_15 <- ifelse(nrow(seeds_wide_15) > 0, 
+                              round(betadiver(seeds_wide_15[,-1], method = 'sor', order = F), 2), 
+                              NA_real_)
+  seeds_taxa_acc_15 <- ifelse(is.nan(seeds_taxa_acc_15), NA, seeds_taxa_acc_15)
+  
+  seeds_wide_30 <- seeds_spp %>% filter(ScientificName %in% sd_spp_to_include_30$ScientificName) %>% 
+    select(team, ScientificName, sds_30) %>% 
+    pivot_wider(names_from = ScientificName, values_from = sds_30)
+  
+  seeds_taxa_acc_30 <- ifelse(nrow(seeds_wide_30) > 0, 
+                              round(betadiver(seeds_wide_30[,-1], method = 'sor', order = F), 2), 
+                              NA_real_)
+  seeds_taxa_acc_30 <- ifelse(is.nan(seeds_taxa_acc_30), NA, seeds_taxa_acc_30)
+  
+  seeds_spp_wide2 <- seeds_spp %>% pivot_wider(names_from = team, values_from = c(sds_15, sds_30), values_fill = 0)
+  
+  
+  seeds_spp_wide2 <- seeds_spp_wide2 %>% mutate(missed_c_15 = ifelse(sds_15_crew == 0 & sds_15_qaqc == 1, 1, 0),
+                                                missed_q_15 = ifelse(sds_15_crew == 1 & sds_15_qaqc == 0, 1, 0),
+                                                missed_c_30 = ifelse(sds_30_crew == 0 & sds_30_qaqc == 1, 1, 0),
+                                                missed_q_30 = ifelse(sds_30_crew == 1 & sds_30_qaqc == 0, 1, 0),
+  )
+  
+  seeds_spp_wide2 <- rbind(seeds_spp_wide2,
+                           c("Sorensen Similarity", NA, seeds_taxa_acc_15, NA, seeds_taxa_acc_30, NA, NA, NA, NA))
+}
+
 #------ Additional species
 spp_list <- do.call(sumSpeciesList, c(arglist, list(speciesType = 'all'))) %>% filter_plot() %>% name_team() 
 
 spp_list2 <- spp_list %>% mutate(Trees = ifelse(DBH_mean > 0, 1, 0),
                                  Micros = ifelse(sap_den + shrub_avg_cov > 0, 1, 0),
                                  Quads = ifelse(quad_avg_cov > 0, 1, 0),
-                                 AddSpp = ifelse(addspp_present > 0 , 1, 0)) %>% 
+                                 AddSpp = ifelse(addspp_present + seed_den > 0 , 1, 0)) %>% 
                           select(Team, ScientificName, Trees, Micros, Quads, AddSpp)
 
 spp_list_comp <- full_join(spp_list2 %>% filter(Team == "Crew") %>% select(-Team), 
@@ -541,11 +668,41 @@ spp_list_comp2[,2:9][spp_list_comp2[,2:9] > 1] <- 1
 spp_list_comp2$missed_C <- ifelse(rowSums(spp_list_comp2[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) == 0, 1, 0)
 spp_list_comp2$missed_Q <- ifelse(rowSums(spp_list_comp2[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) == 0, 1, 0)
 
+# Plot Species taxonomic accuracy +++ NEW 20220321 +++
+spp_list_comp3 <- spp_list_comp2
+
+spp_list_comp3$crew <- ifelse(rowSums(spp_list_comp3[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) > 0, 1, 0)
+spp_list_comp3$qaqc <- ifelse(rowSums(spp_list_comp3[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) > 0, 1, 0)
+
+
+plot_spp <- spp_list_comp3 %>% select(ScientificName, crew, qaqc) %>% 
+  pivot_longer(-ScientificName, names_to = "team", values_to = "present")
+
+
+if(nrow(plot_spp)>0){
+  
+  plot_spp$present[is.na(plot_spp$present)] <- 0
+  
+  plot_spp_wide <- plot_spp %>% pivot_wider(names_from = ScientificName, 
+                                            values_from = present, values_fill = 0)
+  
+  plot_spp_taxa_acc <- round(betadiver(plot_spp_wide[,-1], method = 'sor', order = F), 2)
+  
+  plot_spp_wide2 <- plot_spp %>% pivot_wider(names_from = team, values_from = present, values_fill = 0)
+  
+  plot_spp_wide2 <- plot_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc == 1, 1, 0),
+                                              missed_q = ifelse(crew == 1 & qaqc == 0, 1, 0))
+  
+  plot_spp_wide2 <- rbind(plot_spp_wide2,
+                          c("Sorensen Similarity", NA, plot_spp_taxa_acc, NA, NA))
+}
+
+
 #----- CWD
-cwd_raw <- VIEWS_MIDN$COMN_CWD %>% select(ParkUnit, PlotCode, StartYear, IsQAQC, SQTransectCode, TransectCode, 
+cwd_raw <- VIEWS_MIDN$CWD_MIDN %>% select(Plot_Name, ParkUnit, PlotCode, SampleYear, IsQAQC, SQTransectCode, TransectCode, 
                                           ScientificName, Distance, Diameter, Length, DecayClassCode,
                                           MultiCrossCode, IsHollow, CWDNote)
-cwd_raw$Plot_Name <- paste(cwd_raw$ParkUnit, sprintf("%03d", cwd_raw$PlotCode), sep = "-") 
+
 cwd_raw <- cwd_raw %>% filter_plot() %>% name_team() %>% 
   rename(Transect = TransectCode, SQ = SQTransectCode, Species = ScientificName, Decay = DecayClassCode, 
          MultiCross = MultiCrossCode, Hollow = IsHollow)
@@ -563,7 +720,7 @@ cwd_sum <- full_join(cwd_sum1 %>% filter(Team == "Crew") %>% select(-Team),
                      cwd_sum1 %>% filter(Team == "QAQC") %>% select(-Team),
                      by = "Species", suffix = c("_C", "_Q"))
 
-cwd_vol <- do.call(joinCWDData, arglist) %>% filter_plot() %>% name_team() %>% 
+cwd_vol <- do.call(joinCWDData, arglist[1:5]) %>% filter_plot() %>% name_team() %>% 
   select(Team, ScientificName, DecayClassCode, CWD_Vol) %>% 
   rename(Species = ScientificName, Decay = DecayClassCode)
 

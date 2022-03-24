@@ -19,8 +19,8 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
-forestMIDN::importData()
-
+#forestMIDN::importData()
+forestMIDN::importCSV(path = "D:/NETN/R_Dev/data", zip_name = "MIDN_Forest_20220316.zip") # Import from dev after refresh and PR merge
 ```
 
 ```{r deps, include = FALSE}
@@ -148,6 +148,8 @@ check_null(micro_check3_table)
 check_null(micro_ns_table)
 
 check_null(sap_pm_table)
+
+check_null(sap_dup_tag_table)
 
 check_null(sap_status_table)
 
