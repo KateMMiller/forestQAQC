@@ -182,7 +182,7 @@ folcond_wide[, c("Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")]
 saps <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>%  
   filter_plot() %>% name_team() %>% select(Team, SQSaplingCode, MicroplotCode, ScientificName, DBHcm) %>% 
   group_by(MicroplotCode, ScientificName, Team) %>% 
-  arrange(MicroplotCode, Team, ScientificName, DBHcm) 
+  arrange(MicroplotCode, Team, ScientificName, DBHcm) %>% ungroup()
 
 sap_sum <- saps %>% group_by(MicroplotCode, Team) %>% summarize(num_saps = sum(!is.na(DBHcm)),
                                                                 avg_dbh = round(mean(DBHcm, na.rm = T),1),
@@ -190,6 +190,44 @@ sap_sum <- saps %>% group_by(MicroplotCode, Team) %>% summarize(num_saps = sum(!
                     pivot_wider(names_from = Team,
                                 values_from = c(num_saps, avg_dbh)) %>% 
                     mutate(dbh_diff = abs(avg_dbh_Crew - avg_dbh_QAQC)) %>% data.frame()
+
+# Saplingtaxonomic accuracy +++ NEW 20220321 +++
+sap_sum_ta <- saps %>% group_by(Team, ScientificName) %>% 
+  summarize(num_saps = sum(!is.na(DBHcm)), .groups = 'drop') %>% ungroup()
+
+sap_ta <- full_join(sap_sum_ta %>% filter(Team == "Crew") %>% select(ScientificName, num_saps),
+                    sap_sum_ta %>% filter(Team == "QAQC") %>% select(ScientificName, num_saps),
+                    by = c("ScientificName"), suffix = c("_C", "_Q"))
+
+sap_spp <- rbind(sap_ta %>% mutate(team = "crew", 
+                                   num_saps = num_saps_C) %>% 
+                            select(team, ScientificName, num_saps),
+                 sap_ta %>% mutate(team = 'qaqc',
+                                   num_saps = num_saps_Q) %>% 
+           select(team, ScientificName, num_saps) %>% unique())
+
+# Make report table and deal with empty dfs
+if(nrow(sap_spp)>0){
+  
+  # Will use shrub_ta for end to show avg. cover
+  #shrub_ta[,2:3][is.na(shrub_ta[,2:3])] <- 0
+  
+  sap_spp$num_saps[is.na(sap_spp$num_saps)] <- 0
+  
+  sap_spp_wide <- sap_spp %>% pivot_wider(names_from = ScientificName, 
+                                          values_from = num_saps, 
+                                          values_fill = 0)
+  
+  sap_taxa_acc <- round(betadiver(sap_spp_wide[,-1], method = 'sor', order = F), 2)
+  
+  sap_spp_wide2 <- sap_spp %>% pivot_wider(names_from = team, values_from = num_saps, values_fill = 0)
+  sap_spp_wide2 <- sap_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
+                                            missed_q = ifelse(crew > 0 & qaqc == 0, 1, 0))
+  
+  sap_spp_wide2 <- rbind(sap_spp_wide2,
+                    c("Sorensen Similarity", NA, sap_taxa_acc, NA, NA))
+}
+
 
 #----- Microplot Shrubs
 shrubs <- do.call(joinMicroShrubData, c(arglist, list(speciesType = 'all', valueType = 'all'))) %>% 
@@ -250,7 +288,7 @@ shrub_taxa_acc <- round(betadiver(shrub_spp_wide[,-1], method = 'sor', order = F
 
 shrub_spp_wide2 <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_avg_cov, values_fill = 0)
 shrub_spp_wide2 <- shrub_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
-                                              missed_q = ifelse(crew > 0 & qaqc == 1, 1, 0))
+                                              missed_q = ifelse(crew > 0 & qaqc == 0, 1, 0))
 
 shrub_spp_wide2 <- rbind(shrub_spp_wide2,
                         c("Sorensen Similarity", NA, shrub_taxa_acc, NA, NA))
