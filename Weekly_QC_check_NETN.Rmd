@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-06-01"
+  week_start: "2022-05-22"
   cycle_latest_num: 4
   locType: 'all'
 
@@ -19,8 +19,7 @@ options(knitr.kable.NA = '')
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
-#forestNETN::importData()
-forestNETN::importCSV(path = "D:/NETN/R_Dev/data", zip_name = "NETN_Forest_20220316.zip") # Import from dev after refresh and PR merge
+forestNETN::importData()
 ```
 
 ```{r deps, include = FALSE}
@@ -42,7 +41,6 @@ loc_type <- params$locType
 ```
 
 ```{r compile}
-
 source("Weekly_QC_compile_NETN.R")
 ```
 
