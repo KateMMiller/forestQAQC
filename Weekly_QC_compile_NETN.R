@@ -11,14 +11,14 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2022-05-22"
-# cycle_latest_num = 4
-# curr_year <- year(week_start)
-# week_start <- as_date(week_start)
-# cycle_latest <- paste0("cycle_", cycle_latest_num)
-# cycle_prev <- paste0("cycle_", cycle_latest_num-1)
-# cycle_prev_num <- cycle_latest_num - 1
-# loc_type <- 'all'
+week_start = "2022-05-27"
+cycle_latest_num = 4
+curr_year <- year(week_start)
+week_start <- as_date(week_start)
+cycle_latest <- paste0("cycle_", cycle_latest_num)
+cycle_prev <- paste0("cycle_", cycle_latest_num-1)
+cycle_prev_num <- cycle_latest_num - 1
+loc_type <- 'all'
 
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
@@ -429,7 +429,8 @@ QC_table <- rbind(QC_table,
 trcond_spp_table <- make_kable(trcond_spp_check, "Trees with conditions applied to wrong species.")
 
 # Check for priority pest detections
-pest_list <- c("ALB", "BC", "BBD", "BWA", "DOG", "EAB", "EHS", "GM", "HWA", "RPS", "SB", "SOD", "SPB", "SW")
+pest_list <- c("ALB", "BC", "BBD", "BLD", "BWA", "DOG", "EAB", "EHS", "GM", 
+               "HWA", "RPS", "SB", "SLF", "SOD", "SPB", "SW")
 
 pest_check <- tree_cond %>% mutate(pest_det = rowSums(across(all_of(pest_list)), na.rm = T)) %>% 
                             filter(pest_det > 0) %>% select(Plot_Name, TagCode, all_of(pest_list)) %>% 
@@ -751,16 +752,21 @@ quad_tramp_wide3 <- quad_tramp_wide2 %>% mutate(UC_dif = abs(UC_C3 - UC_C4),
                                                 BC_dif, BL_dif, ML_dif, UL_dif)
 
 quad_tramp_diff <- quad_tramp_wide3 %>% filter(UC_dif > 0 | UR_dif > 0 | MR_dif > 0 | BR_dif > 0 | 
-                                                 BC_dif > 0 | BL_dif > 0 | ML_dif > 0 | UL_dif > 0)
+                                                 BC_dif > 0 | BL_dif > 0 | ML_dif > 0 | UL_dif > 0) %>% 
+                                        arrange(Plot_Name)
 
 #quad_tramp_diff <- quad_tramp_wide3 %>% filter(colSums(UC_dif:UL_dif)>0)
 
 QC_table <- rbind(QC_table, QC_check(quad_tramp_diff, "Quadrat", "Trampled in cycle 4 != cycle 3"))
 
 tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_Name) %>% 
-  select(Plot_Name, SampleYear, cycle, UC, UR, MR, BR, BC, BL, ML, UL)
+  select(Plot_Name, SampleYear, cycle, UC, UR, MR, BR, BC, BL, ML, UL) %>% 
+  arrange(Plot_Name, SampleYear)
 
-quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats")
+
+quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats") 
+quad_tramp_table
+names(tramp_plots2)
 
 # Check for PMs in quadrat data
 quad_data_pm <- PM_check(quad_data)
