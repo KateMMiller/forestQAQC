@@ -11,14 +11,14 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-week_start = "2022-05-27"
-cycle_latest_num = 4
-curr_year <- year(week_start)
-week_start <- as_date(week_start)
-cycle_latest <- paste0("cycle_", cycle_latest_num)
-cycle_prev <- paste0("cycle_", cycle_latest_num-1)
-cycle_prev_num <- cycle_latest_num - 1
-loc_type <- 'all'
+# week_start = "2022-05-27"
+# cycle_latest_num = 4
+# curr_year <- year(week_start)
+# week_start <- as_date(week_start)
+# cycle_latest <- paste0("cycle_", cycle_latest_num)
+# cycle_prev <- paste0("cycle_", cycle_latest_num-1)
+# cycle_prev_num <- cycle_latest_num - 1
+# loc_type <- 'all'
 
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
