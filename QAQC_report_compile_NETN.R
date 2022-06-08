@@ -11,8 +11,14 @@ library(kableExtra)
 library(vegan) # for Jaccard similarity
 source("QAQC_report_functions.R")
 
-#importData() #local instance
-forestNETN::importCSV(path = "D:/NETN/R_Dev/data", zip_name = "NETN_Forest_20220316.zip") # Import from dev after refresh
+importData() #local instance
+#importData(name = "NETN_Forest_MABI_training")
+
+# Params for troubleshooting inside script
+# year = as.numeric(2022)
+# plot = "MABI-999"
+# loc_type = "all"
+# plot_year <- paste0(plot, "-", year)
 
 #----- Compile data
 arglist = list(park = substr(plot, 1, 4), from = year, to = year, QAQC = TRUE, 
@@ -185,13 +191,13 @@ saps <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all', canopyFo
   arrange(MicroplotCode, Team, ScientificName, DBHcm) %>% ungroup()
 
 sap_sum <- saps %>% group_by(MicroplotCode, Team) %>% summarize(num_saps = sum(!is.na(DBHcm)),
-                                                                avg_dbh = round(mean(DBHcm, na.rm = T),1),
+                                                                avg_dbh = round(mean(DBHcm, na.rm = T),2),
                                                                 .groups = "drop") %>% 
                     pivot_wider(names_from = Team,
                                 values_from = c(num_saps, avg_dbh)) %>% 
                     mutate(dbh_diff = abs(avg_dbh_Crew - avg_dbh_QAQC)) %>% data.frame()
 
-# Saplingtaxonomic accuracy +++ NEW 20220321 +++
+# Sapling taxonomic accuracy +++ NEW 20220321 +++
 sap_sum_ta <- saps %>% group_by(Team, ScientificName) %>% 
   summarize(num_saps = sum(!is.na(DBHcm)), .groups = 'drop') %>% ungroup()
 
@@ -564,10 +570,12 @@ quad_sum_comp[,2:6][is.na(quad_sum_comp[,2:6])] <- 0
 
 quad_sum_comp2 <- quad_sum_comp %>%  
                     mutate(pct_diff_cov = pct_diff(quad_avg_cov_C, quad_avg_cov_Q),
-                           pct_diff_freq = pct_diff(quad_pct_freq_C, quad_pct_freq_Q)) %>% 
+                           pct_diff_freq = pct_diff(quad_pct_freq_C, quad_pct_freq_Q),
+                           ScientificName = ifelse(IsGerminant == TRUE, paste0(ScientificName, " (g)"), ScientificName)) %>% 
                     select(ScientificName, IsGerminant, quad_avg_cov_C, quad_avg_cov_Q, 
                            quad_pct_freq_C, quad_pct_freq_Q, pct_diff_cov, pct_diff_freq) %>% 
-                    mutate_if(is.numeric, round, 2) %>% arrange(ScientificName, IsGerminant)
+                    mutate_if(is.numeric, round, 2) %>% 
+                    arrange(ScientificName, IsGerminant)
 
 # Quadrat taxonomic accuracy +++ NEW 20220321 +++
 # Selecting the species that have >=1% cover in at least one of the visits for the comparison.
@@ -586,13 +594,14 @@ quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$S
                      select(team, ScientificName, quad_avg_cov) %>% unique())
 
 if(nrow(quad_spp)>0){
-  
+
   quad_spp$quad_avg_cov[is.na(quad_spp$quad_avg_cov)] <- 0
-  
+  quad_spp <- data.frame(quad_spp)
+
   quad_spp_wide <- quad_spp %>% pivot_wider(names_from = ScientificName, values_from = quad_avg_cov, values_fill = 0)
-  
+
   quad_taxa_acc <- round(betadiver(quad_spp_wide[,-1], method = 'sor', order = F), 2)
-  
+
   quad_spp_wide2 <- quad_spp %>% pivot_wider(names_from = team, values_from = quad_avg_cov, values_fill = 0)
   quad_spp_wide2 <- quad_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
                                               missed_q = ifelse(crew > 0 & qaqc == 0, 1, 0))
@@ -702,7 +711,7 @@ cwd_tot <- data.frame(Species = "CWD Total",
                       num_pieces_Q = sum(cwd_join$num_pieces_Q, na.rm = T))
 
 cwd_comp2 <- rbind(cwd_join, cwd_tot) %>% 
-             mutate_if(is.numeric, ~round(., 1)) %>% 
+             mutate_if(is.numeric, ~round(., 2)) %>% 
              mutate(vol_dif = pct_diff(CWD_Vol_C, CWD_Vol_Q)) %>% 
              select(Species, Decay_C, Decay_Q, CWD_Vol_C, CWD_Vol_Q, num_pieces_C, num_pieces_Q, vol_dif)
 cwd_comp2
@@ -737,7 +746,7 @@ soil_comp <- full_join(soil_wide %>% filter(Team == "Crew") %>% select(-Team),
              arrange(Sample) %>% select(Sample, Litter_C, Litter_Q, 
                                         O_hor_C, O_hor_Q, A_hor_C, A_hor_Q,
                                         Total_Depth_C, Total_Depth_Q) %>% 
-             mutate_if(is.numeric, ~round(., 1))
+             mutate_if(is.numeric, ~round(., 2))
 
 soil_comp[,3:(ncol(soil_comp))][is.na(soil_comp[,3:(ncol(soil_comp))])] <- 0
 

@@ -15,7 +15,7 @@ QAQC Report for: <span style="font-weight:bold;">`r params$plot` `r params$year`
 --------------------------------------------------
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-options(knitr.kable.NA = '')
+options(knitr.kable.NA = '', scipen = 100)
 ```
 
 ```{r import, include = FALSE, cache = FALSE}

@@ -225,7 +225,7 @@ saps <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all', canopyFo
   arrange(MicroplotCode, Team, ScientificName, DBHcm)
 
 sap_sum <- saps %>% group_by(MicroplotCode, Team) %>% summarize(num_saps = sum(!is.na(DBHcm)),
-                                                                avg_dbh = round(mean(DBHcm, na.rm = T),1),
+                                                                avg_dbh = round(mean(DBHcm, na.rm = T),2),
                                                                 .groups = "drop") %>%
                     pivot_wider(names_from = Team,
                                 values_from = c(num_saps, avg_dbh)) %>%
@@ -269,11 +269,11 @@ shrub_ta <- full_join(shrubs %>% filter(Team == "Crew") %>% select(ScientificNam
 
 shrub_spp <- rbind(shrub_ta %>% filter(shrub_avg_cov_C > 1) %>% #drop <1%
                      mutate(team = "crew", 
-                            shrub_avg_cov = round(shrub_avg_cov_C, 1)) %>% 
+                            shrub_avg_cov = round(shrub_avg_cov_C, 2)) %>% 
                      select(team, ScientificName, shrub_avg_cov) %>% unique(),
                    shrub_ta %>% filter(shrub_avg_cov_Q > 1) %>% #drop <1% 
                      mutate(team = 'qaqc',
-                            shrub_avg_cov = round(shrub_avg_cov_Q, 1)) %>% 
+                            shrub_avg_cov = round(shrub_avg_cov_Q, 2)) %>% 
                      select(team, ScientificName, shrub_avg_cov) %>% unique())
 
 # Make report table and deal with empty dfs
@@ -308,7 +308,7 @@ regen_comp1 <- full_join(regen_sum %>% filter(Team == "Crew") %>% select(-Team),
 
 regen_comp1[,2:7][is.na(regen_comp1[,2:7])] <- 0
 
-regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 1) %>% 
+regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 2) %>% 
   mutate(seed_pct_diff = pct_diff(seed_den_C, seed_den_Q),
          sap_pct_diff = pct_diff(sap_den_C, sap_den_Q),
          stock_pct_diff = pct_diff(stock_C, stock_Q)) %>% 
@@ -745,7 +745,7 @@ cwd_tot <- data.frame(Species = "CWD Total",
                       num_pieces_Q = sum(cwd_join$num_pieces_Q, na.rm = T))
 
 cwd_comp2 <- rbind(cwd_join, cwd_tot) %>% 
-             mutate_if(is.numeric, ~round(., 1)) %>% 
+             mutate_if(is.numeric, ~round(., 2)) %>% 
              mutate(vol_dif = pct_diff(CWD_Vol_C, CWD_Vol_Q)) %>% 
              select(Species, Decay_C, Decay_Q, CWD_Vol_C, CWD_Vol_Q, num_pieces_C, num_pieces_Q, vol_dif)
 
