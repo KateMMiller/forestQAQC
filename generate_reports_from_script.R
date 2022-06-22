@@ -14,5 +14,5 @@ rmarkdown::render('Weekly_QC_check_NETN.Rmd',
                   output_file = paste0(path, "Weekly_QC_check_NETN_Week4_WEFA_MIMA.html"),
                   params = list(week_start = '2022-06-12',
                                cycle_latest_num = 4,
-                               locType = 'all'))
+                               locType = 'all')) 
 
