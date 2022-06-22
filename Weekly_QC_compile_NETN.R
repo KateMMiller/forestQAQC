@@ -1168,7 +1168,7 @@ ised_taxon2 <- inner_join(ised_taxon1, tlu_park2, by = "ParkID") %>% select(-Par
 ised_taxon <- left_join(ised_taxon2, taxa %>% select(TaxonID, TSN, ScientificName), 
                         by = "TaxonID")
 
-ised_join <- left_join(spplist_new, ised_taxon, by = c("TSN", "ScientificName")) %>% 
+ised_join <- left_join(spplist_new, ised_taxon, by = c("TSN", "ScientificName", "ParkUnit" = "Unit")) %>% 
              filter(IsEarlyDetection == 1) %>% 
              select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
              -quad_pct_freq, -IsEarlyDetection) %>% 
