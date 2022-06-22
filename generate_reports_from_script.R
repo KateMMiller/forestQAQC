@@ -15,3 +15,4 @@ rmarkdown::render('Weekly_QC_check_NETN.Rmd',
                   params = list(week_start = '2022-06-12',
                                cycle_latest_num = 4,
                                locType = 'all'))
+
