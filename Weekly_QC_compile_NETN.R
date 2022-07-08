@@ -823,7 +823,8 @@ quad_sq_data_table <- make_kable(quad_sq_data, "Quadrat Data: SS sample qualifie
 
 # Check for quadrats with SS sample qualifier, but no quad species data (eg potentially lost)
 quad_sq_spp1 <- get("QuadSpecies_NETN", envir = VIEWS_NETN) %>% 
-  name_plot() %>% filter(Plot_Name %in% new_evs_list)# %>% 
+  name_plot() %>% filter(Plot_Name %in% new_evs_list) %>%
+  filter(SampleYear == curr_year)
 
 quad_sq_spp1$num_missing <- rowSums(is.na(quad_sq_spp1[, c("UC_txt", "UR_txt", "MR_txt", "BR_txt", 
                                                            "BC_txt", "BL_txt", "ML_txt", "UL_txt")]))
