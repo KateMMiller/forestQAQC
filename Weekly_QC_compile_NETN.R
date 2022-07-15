@@ -433,7 +433,8 @@ trcond_spp_table <- make_kable(trcond_spp_check, "Trees with conditions applied 
 pest_list <- c("ALB", "BC", "BBD", "BLD", "BWA", "DOG", "EAB", "EHS", "GM", 
                "HWA", "RPS", "SB", "SLF", "SOD", "SPB", "SW")
 
-pest_check <- tree_cond %>% mutate(pest_det = rowSums(across(all_of(pest_list)), na.rm = T)) %>% 
+pest_check <- tree_cond %>% filter(SampleYear == curr_year) %>% 
+                            mutate(pest_det = rowSums(across(all_of(pest_list)), na.rm = T)) %>% 
                             filter(pest_det > 0) %>% select(Plot_Name, TagCode, all_of(pest_list)) %>% 
                             pivot_longer(cols = all_of(pest_list), 
                                          names_to = "Pest",
