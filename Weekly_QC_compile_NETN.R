@@ -413,12 +413,13 @@ tree_cond <- joinTreeConditions(to = curr_year, QAQC = FALSE, locType = 'all') %
 
 # Check for conditions applied to wrong tree species
 trcond_spp_check <- tree_cond %>% filter((!str_detect(ScientificName, "Fraxinus") & EAB == 1)|
-                                        (!str_detect(ScientificName, "Picea") & SB == 1)|
+                                        (!str_detect(ScientificName, "Picea|Abies balsamea") & SB == 1)|
                                         (!str_detect(ScientificName, "Quercus") & SOD == 1)|
                                         (!(ScientificName %in% "Abies balsamea") & BWA == 1)|      
                                         (!(ScientificName %in% "Cornus florida") & DOG == 1)|   
                                         (!(ScientificName %in% "Juglans cinerea") & BC == 1)| 
                                         (!(ScientificName %in% "Fagus grandifolia") & BBD == 1)|
+                                        (!(ScientificName %in% "Fagus grandifolia") & BLD == 1)|  
                                         (!(ScientificName %in% "Pinus resinosa") & RPS == 1)|   
                                         (!(ScientificName %in% "Tsuga canadensis") & HWA == 1)|
                                         (!(ScientificName %in% "Tsuga canadensis") & EHS == 1))
