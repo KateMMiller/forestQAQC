@@ -11,12 +11,16 @@ library(kableExtra)
 library(vegan) # for betadiver()
 source("QAQC_report_functions.R")
 
-importData() #local instance
+#importData() #local instance
 #forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
 
 #----- Compile data
+# year = 2022
+# plot = "VAFO-999"
+# loc_type = 'all'
+
 arglist = list(park = substr(plot, 1, 4), from = year, to = year, QAQC = TRUE, 
-               locType = loc_type, eventType = 'complete')
+               locType = loc_type, eventType = 'all')
 
 plotevs <- do.call(joinLocEvent, arglist) %>% filter_plot() %>% name_team()
 
@@ -103,6 +107,7 @@ tree_wide2 <- tree_wide2 %>%
                      HWACode_C, HWACode_Q, HWA_diff, BBDCode_C, BBDCode_Q, BBD_diff)
 
 # plot tree DBH differences
+if(nrow(tree_wide2) > 1){
 dbh_diff <- tree_wide2 %>% select(TagCode, DBH_diff) %>% na.omit() 
 max_dbh <- max(abs(dbh_diff$DBH_diff))
 diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) + 
@@ -116,7 +121,7 @@ diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) +
                annotate(geom = "text", x = max_dbh, y = Inf, label = "QAQC tighter", 
                         color = 'black', size = 5, hjust = 1, vjust = 1) +
                xlim(c(max_dbh * -1, max_dbh))
-
+}
 #----- Tree Conditions
 tr_cond <- do.call(joinTreeConditions, 
                    c(arglist[1:4], list(speciesType = 'all', status = 'all', canopyPosition = 'all', 
@@ -199,26 +204,32 @@ sap_wide <- full_join(sap_crew, sap_qaqc,
                        suffix = c("_C", "_Q")) %>% 
   mutate(DBH_diff = DBHcm_C - DBHcm_Q)
 
+# For saplings not sampled, so doesn't fail
+sap_wide$DBH_diff[is.na(sap_wide$DBH_diff)] <- 0
+
 sap_wide2 <- make_sppcode(sap_wide) 
 
 sap_wide2 <- sap_wide2 %>% 
   select(TagCode, MicroplotCode, sppcode, DBHcm_C, DBHcm_Q, DBH_diff, IsDBHVerified_C, IsDBHVerified_Q,
          SaplingStatusCode_C, SaplingStatusCode_Q) %>% arrange(TagCode)
 
+sap_wide2
+
 # plot sapling DBH differences
 sap_dbh_diff <- sap_wide2 %>% select(TagCode, DBH_diff) %>% na.omit() 
-sap_max_dbh <- max(abs(sap_dbh_diff$DBH_diff))
+sap_max_dbh <- max(abs(sap_dbh_diff$DBH_diff), na.rm = T)
+
 sap_diff_plot <- ggplot(data = sap_dbh_diff, aes(x = DBH_diff)) + 
   geom_density(alpha = 0.5, fill = "#8CAF88", color = "#738C70") + 
   theme_FVM() + 
   geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", size = 1) + 
   labs(y = "Density", x = "DBH difference (cm)") + 
   theme(legend.position = 'none', panel.border = element_blank(), panel.background = element_blank()) +
-  annotate(geom = "text", x = -max_dbh, y = Inf, label = "Crew tighter", 
+  annotate(geom = "text", x = -sap_max_dbh, y = Inf, label = "Crew tighter", 
            color = 'black', size = 5, hjust = 0, vjust = 1) + 
-  annotate(geom = "text", x = max_dbh, y = Inf, label = "QAQC tighter", 
+  annotate(geom = "text", x = sap_max_dbh, y = Inf, label = "QAQC tighter", 
            color = 'black', size = 5, hjust = 1, vjust = 1) +
-  xlim(c(max_dbh * -1, max_dbh))
+  xlim(c(sap_max_dbh * -1, sap_max_dbh))
 
 saps <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>%
   filter_plot() %>% name_team() %>% select(Team, SQSaplingCode, MicroplotCode, ScientificName, DBHcm) %>%
@@ -319,7 +330,8 @@ regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 2) %>%
 #----- Quadrat Character for trampled
 quad_tramp <- get("QuadNotes_MIDN", envir = VIEWS_MIDN)
 
-quad_tramp <- quad_tramp %>% mutate(Plot_Name  = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
+quad_tramp <- quad_tramp %>% 
+  #mutate(Plot_Name  = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
   filter_plot() %>% name_team() %>% select(Plot_Name, Team, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% unique()
 
 quad_tramp_wide <- quad_tramp %>% select(-SQQuadCharCode) %>% pivot_wider(names_from = c("QuadratCode"), 
@@ -664,7 +676,9 @@ spp_list_comp <- full_join(spp_list2 %>% filter(Team == "Crew") %>% select(-Team
 spp_list_comp[,2:9][is.na(spp_list_comp[,2:9])] <- 0
 
 spp_list_comp2 <- spp_list_comp %>% group_by(ScientificName) %>% summarize_if(is.numeric, sum)
-spp_list_comp2[,2:9][spp_list_comp2[,2:9] > 1] <- 1
+
+if(ncol(spp_list_comp2) > 1){
+spp_list_comp2[,2:ncol(spp_list_comp2)][spp_list_comp2[,2:ncol(spp_list_comp2)] > 1] <- 1
 
 spp_list_comp2$missed_C <- ifelse(rowSums(spp_list_comp2[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) == 0, 1, 0)
 spp_list_comp2$missed_Q <- ifelse(rowSums(spp_list_comp2[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) == 0, 1, 0)
@@ -675,10 +689,8 @@ spp_list_comp3 <- spp_list_comp2
 spp_list_comp3$crew <- ifelse(rowSums(spp_list_comp3[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) > 0, 1, 0)
 spp_list_comp3$qaqc <- ifelse(rowSums(spp_list_comp3[,c("Trees_Q", "Micros_Q", "Quads_Q", "AddSpp_Q")], na.rm = T) > 0, 1, 0)
 
-
 plot_spp <- spp_list_comp3 %>% select(ScientificName, crew, qaqc) %>% 
   pivot_longer(-ScientificName, names_to = "team", values_to = "present")
-
 
 if(nrow(plot_spp)>0){
   
@@ -697,7 +709,7 @@ if(nrow(plot_spp)>0){
   plot_spp_wide2 <- rbind(plot_spp_wide2,
                           c("Sorensen Similarity", NA, plot_spp_taxa_acc, NA, NA))
 }
-
+}
 
 #----- CWD
 cwd_raw <- VIEWS_MIDN$CWD_MIDN %>% select(Plot_Name, ParkUnit, PlotCode, SampleYear, IsQAQC, SQTransectCode, TransectCode, 
@@ -713,9 +725,12 @@ cwd_raw2 <- cwd_raw %>% select(Team, SQ, Transect, Distance, Species, Diameter,
                         arrange(Transect, Distance, Team, Diameter) %>% 
                         mutate(Species = ifelse(SQ == "NP", "None present", Species))
 
-cwd_sum1 <- cwd_raw2 %>% group_by(Team, Species) %>% 
-                        summarize(num_pieces = length(!is.na(Diameter)), .groups = 'drop') %>% 
-                        filter(Species != "None present")
+cwd_sum1 <- cwd_raw2 %>% 
+  group_by(Team, Species) %>% 
+  summarize(num_pieces = length(!is.na(Diameter)), .groups = 'drop') %>% 
+  filter(Species != "None present") %>% 
+  mutate(Species = as.character(Species),
+         Team = as.character(Team))
 
 cwd_sum <- full_join(cwd_sum1 %>% filter(Team == "Crew") %>% select(-Team),
                      cwd_sum1 %>% filter(Team == "QAQC") %>% select(-Team),
@@ -730,7 +745,6 @@ cwd_comp <- full_join(cwd_vol %>% filter(Team == "Crew") %>% select(-Team),
                       by = c("Species"),#, "Decay"),
                       suffix = c("_C", "_Q")) %>% filter(Species != "None present") %>% 
             arrange(Species)#, Decay)
-
 
 cwd_join <- full_join(cwd_comp, cwd_sum, by = "Species")
 
