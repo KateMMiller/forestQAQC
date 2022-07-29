@@ -12,6 +12,16 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
+# week_start = "2022-07-24"
+# cycle_latest_num = 4
+# curr_year <- year(week_start)
+# week_start <- as_date(week_start)
+# cycle_latest <- paste0("cycle_", cycle_latest_num)
+# cycle_prev <- paste0("cycle_", cycle_latest_num-1)
+# cycle_prev_num <- cycle_latest_num - 1
+# loc_type <- 'all'
+
+#----- Compile data -----
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
 plotevs <- do.call(joinLocEvent, arglist1) 
@@ -88,7 +98,8 @@ visit_table <- kable(visit_notes, format = 'html', align = c('c', 'c', 'c', 'l')
 include_visit_notes <- tab_include(visit_notes) #
 
 #----- Stand Data -----
-stand <- do.call(joinStandData, arglist) %>% name_plot() %>% select(-c(Network, ParkSubUnit:PlotTypeCode)) %>% 
+stand <- do.call(joinStandData, arglist) %>% name_plot() %>% 
+  select(-c(Network, ParkSubUnit:PlotTypeCode)) %>% 
            filter(Plot_Name %in% new_evs_list) 
 stand_old <- filter_old(stand) 
 stand_new <- filter_week(stand)
@@ -96,7 +107,8 @@ stand_new <- filter_week(stand)
 # Check for PMs in stand data
 stand_pm <- PM_check(stand_new)# %>% select_if(is.character) %>% select(-SampleDate)
 
-PM_stand_col <- sapply(names(stand_pm), function(x) any(stand_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
+PM_stand_col <- sapply(names(stand_pm), 
+                       function(x) any(stand_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
 PM_stand_col[c(1,8)] <- TRUE # For Plot_Name
 
@@ -579,10 +591,14 @@ sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year) %>%
   select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
   mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode))
 
-tag_check1 <- full_join(sap_data_prev %>% select(TagCode, sap_key) %>% unique(), 
+(new_evs$Plot_Name)
+
+
+tag_check1 <- full_join(sap_data_prev %>% select(Plot_Name, TagCode, sap_key) %>% unique(), 
                         sap_data_curr %>% select(TagCode, sap_key) %>% unique(), 
                         by = "sap_key", 
-                        suffix = c("_prev", "_new")) #%>% 
+                        suffix = c("_prev", "_new")) %>% filter(Plot_Name %in% new_evs$Plot_Name) %>% 
+              select(-Plot_Name)
 
 tag_check2 <- tag_check1 %>% select(sap_key, TagCode_prev, TagCode_new) %>% 
   pivot_longer(-sap_key, names_to = "Visit", values_to = "Tag") 
@@ -1299,8 +1315,9 @@ sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks) %>%
 QC_table <- rbind(QC_table, 
                   QC_check(sppID_check, "Plant ID", "Potentially incorrect species entries"))
 
-sppID_table <- make_kable(sppID_check, "Potentially incorrect species entries") %>% 
-  scroll_box(height = "600px")
+sppID_table <- if(nrow(sppID_check) > 0){
+  make_kable(sppID_check, "Potentially incorrect species entries") %>% 
+  scroll_box(height = "600px")}
 
 #----- + Summarize Plant ID checks + -----
 plantID_check <- QC_table %>% filter(Data %in% "Plant ID" & Num_Records > 0) 
