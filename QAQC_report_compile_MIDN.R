@@ -10,8 +10,9 @@ library(knitr)
 library(kableExtra)
 library(vegan) # for betadiver()
 source("QAQC_report_functions.R")
-#importData() #local instance
-forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
+
+importData() #local instance
+#forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
 
 #----- Compile data
 arglist = list(park = substr(plot, 1, 4), from = year, to = year, QAQC = TRUE, 

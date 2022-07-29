@@ -26,8 +26,8 @@ library(knitr)
 library(kableExtra)
 library(xml2) #for modifying HTML under kable hood
 
-#forestMIDN::importData()
-forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220316.zip") # zip after new views validated
+forestMIDN::importData()
+#forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220316.zip") # zip after new views validated
 ```
 
 ```{r deps, include = FALSE}
