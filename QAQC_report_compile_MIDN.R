@@ -16,7 +16,8 @@ source("QAQC_report_functions.R")
 
 #----- Compile data
 # year = 2022
-# plot = "VAFO-157"
+# plot = "FRSP-275"
+# #plot = "COLO-347"
 # loc_type = 'all'
 
 arglist = list(park = substr(plot, 1, 4), from = year, to = year, QAQC = TRUE, 
@@ -279,11 +280,11 @@ shrub_ta <- full_join(shrubs %>% filter(Team == "Crew") %>% select(ScientificNam
                       shrubs %>% filter(Team == "QAQC") %>% select(ScientificName, shrub_avg_cov),
                       by = c("ScientificName"), suffix = c("_C", "_Q"))
 
-shrub_spp <- rbind(shrub_ta %>% filter(shrub_avg_cov_C > 1) %>% #drop <1%
+shrub_spp <- rbind(shrub_ta %>% filter(shrub_avg_cov_C >= 1) %>% #drop <1%
                      mutate(team = "crew", 
                             shrub_avg_cov = round(shrub_avg_cov_C, 2)) %>% 
                      select(team, ScientificName, shrub_avg_cov) %>% unique(),
-                   shrub_ta %>% filter(shrub_avg_cov_Q > 1) %>% #drop <1% 
+                   shrub_ta %>% filter(shrub_avg_cov_Q >= 1) %>% #drop <1% 
                      mutate(team = 'qaqc',
                             shrub_avg_cov = round(shrub_avg_cov_Q, 2)) %>% 
                      select(team, ScientificName, shrub_avg_cov) %>% unique())
@@ -298,12 +299,21 @@ if(nrow(shrub_spp)>0){
   
   shrub_spp_wide <- shrub_spp %>% pivot_wider(names_from = ScientificName, values_from = shrub_avg_cov, values_fill = 0)
   
-  shrub_taxa_acc <- round(betadiver(shrub_spp_wide[,-1], method = 'sor', order = F), 2)
+  shrub_taxa_acc <- if(nrow(shrub_spp) > 1){
+    round(betadiver(shrub_spp_wide[,-1], method = 'sor', order = F), 2)
+    } else {0}
   
   shrub_spp_wide2 <- shrub_spp %>% pivot_wider(names_from = team, values_from = shrub_avg_cov, values_fill = 0)
+  
+  req_cols <- c("ScientificName", "crew", "qaqc")
+  miss_cols <- setdiff(req_cols, names(shrub_spp_wide2))
+  shrub_spp_wide2[miss_cols] <- 0
+
+  shrub_spp_wide2 <- shrub_spp_wide2[req_cols]
+  
   shrub_spp_wide2 <- shrub_spp_wide2 %>% mutate(missed_c = ifelse(crew == 0 & qaqc > 0, 1, 0),
                                                 missed_q = ifelse(crew > 0 & qaqc == 1, 1, 0))
-  
+
   shrub_spp_wide2 <- rbind(shrub_spp_wide2,
                            c("Sorensen Similarity", NA, shrub_taxa_acc, NA, NA))
 }
