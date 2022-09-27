@@ -16,7 +16,7 @@ source("QAQC_report_functions.R")
 
 #----- Compile data
 # year = 2022
-# plot = "VAFO-999"
+# plot = "VAFO-157"
 # loc_type = 'all'
 
 arglist = list(park = substr(plot, 1, 4), from = year, to = year, QAQC = TRUE, 
@@ -107,7 +107,7 @@ tree_wide2 <- tree_wide2 %>%
                      HWACode_C, HWACode_Q, HWA_diff, BBDCode_C, BBDCode_Q, BBD_diff)
 
 # plot tree DBH differences
-if(nrow(tree_wide2) > 1){
+#if(nrow(tree_wide2) > 1){
 dbh_diff <- tree_wide2 %>% select(TagCode, DBH_diff) %>% na.omit() 
 max_dbh <- max(abs(dbh_diff$DBH_diff))
 diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) + 
@@ -121,7 +121,7 @@ diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) +
                annotate(geom = "text", x = max_dbh, y = Inf, label = "QAQC tighter", 
                         color = 'black', size = 5, hjust = 1, vjust = 1) +
                xlim(c(max_dbh * -1, max_dbh))
-}
+#}
 #----- Tree Conditions
 tr_cond <- do.call(joinTreeConditions, 
                    c(arglist[1:4], list(speciesType = 'all', status = 'all', canopyPosition = 'all', 
@@ -538,7 +538,7 @@ quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$S
                     rename(quad_avg_cov = quad_avg_cov_Q) %>% 
                     select(team, ScientificName, quad_avg_cov) %>% unique())
 
-if(nrow(quad_spp)>0){
+#if(nrow(quad_spp)>0){
   
   quad_spp$quad_avg_cov[is.na(quad_spp$quad_avg_cov)] <- 0
   
@@ -552,7 +552,7 @@ if(nrow(quad_spp)>0){
   
   quad_spp_wide2 <- rbind(quad_spp_wide2,
                           c("Sorensen Similarity", NA, quad_taxa_acc, NA, NA))
-}
+#}
 
 #----- Quadrat seedlings
 seeds <- do.call(joinQuadSeedlings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>% 
@@ -677,7 +677,7 @@ spp_list_comp[,2:9][is.na(spp_list_comp[,2:9])] <- 0
 
 spp_list_comp2 <- spp_list_comp %>% group_by(ScientificName) %>% summarize_if(is.numeric, sum)
 
-if(ncol(spp_list_comp2) > 1){
+#if(ncol(spp_list_comp2) > 1){
 spp_list_comp2[,2:ncol(spp_list_comp2)][spp_list_comp2[,2:ncol(spp_list_comp2)] > 1] <- 1
 
 spp_list_comp2$missed_C <- ifelse(rowSums(spp_list_comp2[,c("Trees_C", "Micros_C", "Quads_C", "AddSpp_C")], na.rm = T) == 0, 1, 0)
@@ -692,7 +692,7 @@ spp_list_comp3$qaqc <- ifelse(rowSums(spp_list_comp3[,c("Trees_Q", "Micros_Q", "
 plot_spp <- spp_list_comp3 %>% select(ScientificName, crew, qaqc) %>% 
   pivot_longer(-ScientificName, names_to = "team", values_to = "present")
 
-if(nrow(plot_spp)>0){
+#if(nrow(plot_spp)>0){
   
   plot_spp$present[is.na(plot_spp$present)] <- 0
   
@@ -708,8 +708,8 @@ if(nrow(plot_spp)>0){
   
   plot_spp_wide2 <- rbind(plot_spp_wide2,
                           c("Sorensen Similarity", NA, plot_spp_taxa_acc, NA, NA))
-}
-}
+#}
+#}
 
 #----- CWD
 cwd_raw <- VIEWS_MIDN$CWD_MIDN %>% select(Plot_Name, ParkUnit, PlotCode, SampleYear, IsQAQC, SQTransectCode, TransectCode, 
