@@ -12,14 +12,14 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2022-07-24"
-# cycle_latest_num = 4
+# week_start = "2022-09-18"
+# cycle_latest_num = 1
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # cycle_latest <- paste0("cycle_", cycle_latest_num)
 # cycle_prev <- paste0("cycle_", cycle_latest_num-1)
 # cycle_prev_num <- cycle_latest_num - 1
-# loc_type <- 'all'
+# loc_type <- 'VS'
 
 #----- Compile data -----
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
@@ -591,9 +591,6 @@ sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year) %>%
   select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
   mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode))
 
-(new_evs$Plot_Name)
-
-
 tag_check1 <- full_join(sap_data_prev %>% select(Plot_Name, TagCode, sap_key) %>% unique(), 
                         sap_data_curr %>% select(TagCode, sap_key) %>% unique(), 
                         by = "sap_key", 
@@ -619,10 +616,10 @@ QC_table <- rbind(QC_table,
 sap_dup_tag_table <- make_kable(sap_tag_check, "Saplings: Duplicate sapling tag numbers")
 
 # Check for zombie saplings
-alive <- c("1","AB","AF","AL","AS")
+alive <- c("AB","AF","AL","AS")
 recr <- c("RB","RF","RL","RS") 
 dead <- c("2","DB","DC","DL","DS")
-exc <- c("0","ES","EX","XO","XP")
+exc <- c("ES","EX","XO","XP")
 missed <- c("AM", "DM")
 
 sap_status_check1 <- sap_data %>% filter(IsQAQC == 0) %>% filter(!ParkUnit %in% "ASIS") %>% 
@@ -1075,7 +1072,8 @@ seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, Seedlings_
            Seedlings_100_150cm > Seedlings_100_150cm_99 |
            Seedlings_Above_150cm > Seedlings_Above_150cm_99) 
 
-seeds_99_check_final <- if(nrow(seeds_99_check) > 0){
+
+seeds_99_check_final <- if(nrow(seeds_99_check) > 0 & cycle_latest_num > 1){
   seed_cols <- c(ifelse(seeds_99_check$Seedlings_15_30cm > seeds_99_check$Seedlings_15_30cm_99, "Seedlings_15_30cm", "ParkUnit"),
                  ifelse(seeds_99_check$Seedlings_30_100cm > seeds_99_check$Seedlings_30_100cm_99 , "Seedlings_30_100cm", "ParkUnit"),
                  ifelse(seeds_99_check$Seedlings_100_150cm > seeds_99_check$Seedlings_100_150cm_99, "Seedlings_100_150cm", "ParkUnit"),
