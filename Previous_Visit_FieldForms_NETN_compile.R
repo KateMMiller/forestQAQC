@@ -25,10 +25,10 @@ plotevs <- do.call(joinLocEvent, arglist)
 ev_list <- plotevs |> select(EventID) 
 
 #----- Visit notes -----
-visit_notes <- do.call(joinVisitNotes, arglist) |> 
+visit_notes <- do.call(joinVisitNotes, c(arglist, noteType = 'all')) |> 
   filter(!Note_Type %in% ("Quad_Species")) |> 
   arrange(Plot_Name, Note_Type) |> 
-  select(Plot_Name, SampleYear, cycle, Note_Type, Notes)
+  select(Plot_Name, SampleYear, Note_Type, Sample_Info, Notes)
 
 head(visit_notes)
 
