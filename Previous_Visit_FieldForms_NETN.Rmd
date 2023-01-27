@@ -1,0 +1,73 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_weeklyQC.css
+    toc: false
+    numbered_sections: false
+    number_section: false
+params:
+  year: "2018"
+  park: "MABI"
+  plot: "MABI-001"
+  
+
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(pagedown)
+#params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
+```
+
+Previous Visit Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
+--------------------------------------------------
+
+```{r import, include = FALSE, cache = FALSE}
+#forestNETN::importData()
+source("Previous_Visit_FieldForms_NETN_compile.R")
+```
+
+### Stand and Visit Data {-}
+
+---
+
+#### Visit Notes {-}
+```{r visit_notes, child = "PrevVisit_1A_Visit_Notes.Rmd"}
+```
+
+#### Stand Data {-}
+```{r stand, child = "PrevVisit_1B_Stand_Data.Rmd"}
+```
+
+
+### Tree Measurements {-} {.page-break-before}
+#### Tree Map {-}
+
+#### Tree Data {-}
+
+#### Tree Conditions {-}
+
+#### Tree Foliage {-}
+
+### Microplot Data {-} {.page-break-before}
+#### Saplings {-}
+
+#### Seedlings {-}
+
+#### Shrubs {-}
+
+
+### Quadrats {-} {.page-break-before}
+#### Quadrat Data {-}
+
+#### Quadrat Species {-}
+
+#### Additional Species {-}
+
+
+### Coarse Woody Debris {-} {.page-break-before}
+
+
+### Soils {-} {.page-break-before}
+
+### Photopoints {-} {.page-break-before}
+

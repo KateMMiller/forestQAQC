@@ -1,0 +1,30 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_weeklyQC.css
+    toc: false
+    numbered_sections: false
+---
+
+```{r source, include = FALSE}
+#params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
+#source("Previous_Visit_FieldForms_NETN_compile.R")
+```
+
+
+```{r visitnotes, include = FALSE}
+visit_notes_p <- visit_notes |> filter(Plot_Name %in% params$plot) |> select(-Plot_Name, -SampleYear)
+
+visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
+                                         col.names = c("Note Type", "Sample_Info", "Note")) %>% 
+               kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = TRUE,
+                 position = 'left', font_size = 11) %>% 
+               collapse_rows(1, valign = 'top') %>% 
+               row_spec(c(0, nrow(visit_notes_p)), extra_css = 'border-bottom: 1px solid #000000')
+
+```
+
+```{r visittab, echo = F}
+cat(params$plot, " ", params$year)
+visit_table
+```
