@@ -20,24 +20,19 @@ stand_plot <- left_join(plotevs, stand,
 names(stand_plot)
 
 stand_tab1 <- kable(stand_plot |> select(Orientation, Aspect, PhysiographyCode, 
-                                         IsStuntedWoodland, Directions, PlotNotes),
-                    col.names = c("Orientation", "Aspect", "PhysioClass", "Stunted", "Directions", 
-                                  "Plot Notes"),
-                    format = 'html', align = c(rep('c', 4), rep('l', 2))) %>%
-              kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = TRUE,
-                             position = 'left', font_size = 11) |> 
-              column_spec(1:5, extra_css = "border-right:2px solid lightgrey;")  %>%
+                                         IsStuntedWoodland, xCoordinate, yCoordinate),
+                    col.names = c("Orientation", "Aspect", "PhysioClass", "Stunted", "X", "Y"),
+                    format = 'html', align = 'c') |> 
+              kable_styling(fixed_thead = TRUE, full_width = TRUE, position = 'left') |> 
               row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
             
 
 stand_tab2 <- kable(stand_plot |> select(Txt_Crown_Closure, Stand_Structure, Deer_Browse_Index,
-                                         Water_on_Plot_Code, Microtopography, Earthworms, StandNotes), 
-                    format = "html", align = c(rep('c', 6), rep('l', 2)),
+                                         Water_on_Plot_Code, Microtopography, Earthworms), 
+                    format = "html", align = 'c',
                     col.names = c("Crown Closure", "Stand Structure", "Deer Browse Index", 
-                                  "Water on Plot", "Microtopo", "Earthworms", "Stand Notes")) |> 
-              kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = TRUE,
-                position = 'left', font_size = 11)|> 
-              column_spec(1:6, extra_css = "border-right:2px solid lightgrey;") |> 
+                                  "Water on Plot", "Microtopo", "Earthworms")) |> 
+              kable_styling(fixed_thead = TRUE, full_width = TRUE, position = 'left')|> 
               row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
 
 stand_tab3 <- kable(stand_plot |> select(Txt_Bare_Soil, Txt_Rock, Txt_Trampled, Txt_Water, 
@@ -47,21 +42,17 @@ stand_tab3 <- kable(stand_plot |> select(Txt_Bare_Soil, Txt_Rock, Txt_Trampled, 
                                   "% Non-Vascular", "% Lichen",
                                   "% Vasc. Low", "% Vasc. Mid", "% Vasc. High"),
                     align = 'c') |> 
-              kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = TRUE,
-                            position = 'left', font_size = 11)|> 
-              column_spec(1:8, extra_css = "border-right:2px solid lightgrey;") |> 
+              kable_styling(fixed_thead = TRUE, full_width = TRUE, position = 'left')|> 
               row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
 
 treeht_p <- treeht |> filter(Plot_Name %in% params$plot)
 
 treeht_tab <- kable(treeht_p |> select(CrownClassLabel, TagCode, Height), align = 'c', format = 'html',
                     col.names = c("Crown Class", "Tag", "Height")) |> 
-              kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = FALSE,
-                            position = 'left', font_size = 11) |> 
-              row_spec(nrow(treeht_p), extra_css = 'border-bottom: 1px solid #000000')|> 
-              column_spec(1:2, extra_css = "border-right:2px solid lightgrey;") |> 
-              row_spec(0, extra_css = 'border-bottom: 1px solid #000000') |> 
-              collapse_rows(1, valign = 'top') 
+              kable_styling(fixed_thead = TRUE, full_width = FALSE, position = 'left') |> 
+              collapse_rows(1, valign = 'top') |> 
+              row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
+
 
 ```
 

@@ -4,7 +4,7 @@ output:
     css: www/styles_prevvisit.css
     toc: false
     numbered_sections: false
-    number_section: false
+    number_sections: false
 params:
   year: "2018"
   park: "MABI"
@@ -18,29 +18,34 @@ library(pagedown)
 #params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
 ```
 
-Previous Visit Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
---------------------------------------------------
+### Previous Visit and Stand Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
 
-```{r import, include = FALSE, cache = FALSE}
+<hr>
+
+```{r import, include = FALSE}
 #forestNETN::importData()
 source("Previous_Visit_FieldForms_NETN_compile.R")
 ```
 
-### Stand and Visit Data {-}
+#### Plot and Visit Notes {-} 
+```{r visit_notes, child = "PrevVisit_1A_Visit_Notes.Rmd"}
+```
 
----
-```{r stand, child = "PrevVisit_1A_Stand_Data.Rmd"}
+```{r stand, child = "PrevVisit_1B_Stand_Data.Rmd"}
 ```
 
 
-#### Visit Notes {-} 
-```{r visit_notes, child = "PrevVisit_1B_Visit_Notes.Rmd"}
-```
+### Previous Tree Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
+<hr>
 
-### Tree Measurements {-} {.page-break-before}
+### Tree Measurements {-}
 
 #### Tree Map {-}
+```{r treemap, out.width = "80%"}
+plotTreeMap(park = params$park, from = as.numeric(params$year), 
+            to = as.numeric(params$year), plotName = params$plot)
+```
 
 #### Tree Data {-}
 
@@ -48,7 +53,13 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 
 #### Tree Foliage {-}
 
-### Microplot Data {-} {.page-break-before}
+
+### Previous Microplot Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+
+<hr>
+
+### Microplot Data {-} 
+
 #### Saplings {-}
 
 #### Seedlings {-}
@@ -56,7 +67,12 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 #### Shrubs {-}
 
 
-### Quadrats {-} {.page-break-before}
+### Previous Quadrat Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+
+<hr>
+
+### Quadrats {-} 
+
 #### Quadrat Data {-}
 
 #### Quadrat Species {-}
@@ -64,10 +80,17 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 #### Additional Species {-}
 
 
-### Coarse Woody Debris {-} {.page-break-before}
+### Previous CWD and Soils Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+
+<hr>
+
+### Coarse Woody Debris {-} 
+
+### Soils {-} 
 
 
-### Soils {-} {.page-break-before}
+### Previous Photopoints: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
-### Photopoints {-} {.page-break-before}
+<hr>
+
 
