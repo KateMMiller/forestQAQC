@@ -1,7 +1,7 @@
 ---
 output: 
   pagedown::html_paged:
-    css: www/styles_weeklyQC.css
+    css: www/styles_prevvisit.css
     toc: false
     numbered_sections: false
     number_section: false
@@ -29,17 +29,17 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ### Stand and Visit Data {-}
 
 ---
-
-#### Visit Notes {-}
-```{r visit_notes, child = "PrevVisit_1A_Visit_Notes.Rmd"}
+```{r stand, child = "PrevVisit_1A_Stand_Data.Rmd"}
 ```
 
-#### Stand Data {-}
-```{r stand, child = "PrevVisit_1B_Stand_Data.Rmd"}
+
+#### Visit Notes {-} 
+```{r visit_notes, child = "PrevVisit_1B_Visit_Notes.Rmd"}
 ```
 
 
 ### Tree Measurements {-} {.page-break-before}
+
 #### Tree Map {-}
 
 #### Tree Data {-}

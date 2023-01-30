@@ -1,0 +1,126 @@
+/* QAQC report stylesheet */
+
+/*.tabset{
+  color:black;
+  font-size: 16px;
+} */
+
+/* Body and headers */
+/*.main-container{
+  max-width:1200px;
+}*/
+
+body {
+  font-family: "Times New Roman", serif;
+  font-size: 12px;
+  color: black;
+  margin:0 auto;
+  /*width:1200px;*/
+  position:relative;  
+}
+
+
+p {
+  font-family: "Times New Roman", serif;
+  font-size: 14px;
+}
+
+.indent {
+  text-indent: 20px;
+}
+
+
+h1 {
+  font-family: "Arial", Arial,sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+  padding: 10px 0;
+  /*margin: 20px 0;*/
+}
+
+h2 {
+  font-family: "Arial",Arial,sans-serif;
+  font-size: 18px;
+  /*font-weight: bold;*/
+  color: black;
+  margin: 18px 0 18px 0;
+}
+
+
+h3 {
+  font-family: "Arial",Arial,sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: black;
+}
+
+/* Figs and legend title */
+h4 {
+  font-family: "Arial",Arial,sans-serif;
+  font-size:14px;
+  font-weight: bold;
+  color: black;
+  /*color: #555;*/
+}
+
+/* Header font */
+h5 {
+  font-family: "Arial",Arial,sans-serif;
+  font-size:12px;
+  padding:0;
+  margin:0;
+}
+
+
+table{
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+/*table thead {
+  border-bottom: 1px solid #00000;
+  font-size:14px;
+  font-weight: bold;
+  font-family: "Arial", Arial, sans-serif;
+  border-right: 1px solid #CACACA;
+  }
+
+table td{
+  border-bottom: 1px solid #00000;
+  font-size:14px;
+  font-family: "Arial", Arial, sans-serif;
+}*/
+
+table th {
+  border: 1px solid black;
+  font-weight: bold;
+  /*border-spacing: 2px 5px;*/
+  padding: 2px 10px 2px 10px;
+  font-family: "Arial", Arial, sans-serif;
+  font-size: 11px;
+}
+
+table tr td {
+  border-right: 1px solid black;
+  /*border-spacing: 2px 5px; */
+  font-family: "Arial", Arial, sans-serif;
+  font-size: 11px;
+}
+
+table tr td:last-of-type {
+  border: none;
+}
+
+table td{
+  /*border-spacing: 2px 5px;*/
+  padding: 4px 10px;
+  font-family: "Arial", Arial, sans-serif;
+  font-size: 11px;
+}
+
+tr:nth-child(even) {
+  background-color: #ECECEC;
+}
+
+
