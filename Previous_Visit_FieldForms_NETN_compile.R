@@ -17,6 +17,19 @@ year = as.numeric(2018)
 park = "MABI"
 loc_type = "all"
 
+# #----- Functions -----
+# make_kable <- function(df, cap){
+#   QC_table <- if(nrow(df) > 0){
+#     kable(df, format = 'html', align = 'c', caption = cap) |> 
+#       kable_styling(fixed_thead = TRUE, bootstrap_options = c('condensed'), 
+#                     full_width = TRUE, position = 'left', font_size = 12) |> 
+#       row_spec(0, extra_css = 
+#                  "border-top: 1px solid #000000; border-bottom: 1px solid #000000;") |> 
+#       collapse_rows(1, valign = 'top') |> 
+#       row_spec(nrow(df), extra_css = 'border-bottom: 1px solid #000000;') 
+#   } else NULL 
+# }
+
 #----- Compile data -----
 arglist = list(park = park, from = year, to = year, QAQC = FALSE, 
                locType = loc_type, eventType = 'complete')
@@ -60,7 +73,8 @@ head(dist)
 #---- Tree data -----
 tree <- do.call(joinTreeData, arglist) |> 
   select(Plot_Name, SampleYear, cycle, ScientificName, Tag = TagCode, Fork, Azimuth, Distance,
-         DBH = DBHcm, DBHVer = IsDBHVerified, Status = TreeStatusCode, CrownClass = CrownClassCode,
+         DBH = DBHcm, DBHVer = IsDBHVerified, Status = TreeStatusCode, 
+         CrownClass = CrownClassCode,
          Decay = DecayClassCode, HWACode, BBDCode, Note = TreeEventNote)
 
 head(tree)
