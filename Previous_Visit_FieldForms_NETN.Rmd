@@ -8,12 +8,14 @@ output:
 params:
   year: "2018"
   park: "MABI"
-  plot: "MABI-001"
+  plot: "MABI-004"
   
 
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+options(knitr.kable.NA = '')
+
 library(pagedown)
 #params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
 ```
@@ -27,7 +29,6 @@ library(pagedown)
 source("Previous_Visit_FieldForms_NETN_compile.R")
 ```
 
-#### Plot and Visit Notes {-} 
 ```{r visit_notes, child = "PrevVisit_1A_Visit_Notes.Rmd"}
 ```
 
@@ -35,23 +36,24 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```
 
 
+### Previous Tree Info: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+
+<hr>
+
+```{r tree2A, child = "PrevVisit_2A_Tree_Map.Rmd"}
+```
+
 ### Previous Tree Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
-### Tree Measurements {-}
-
-#### Tree Map {-}
-```{r treemap, out.width = "80%"}
-plotTreeMap(park = params$park, from = as.numeric(params$year), 
-            to = as.numeric(params$year), plotName = params$plot)
+```{r tree2B, child = "PrevVisit_2B_Tree_Measurements.Rmd"}
 ```
 
-#### Tree Data {-}
 
-#### Tree Conditions {-}
+#### Tree Conditions 
 
-#### Tree Foliage {-}
+#### Tree Foliage
 
 
 ### Previous Microplot Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
@@ -71,22 +73,22 @@ plotTreeMap(park = params$park, from = as.numeric(params$year),
 
 <hr>
 
-### Quadrats {-} 
+### Quadrats
 
-#### Quadrat Data {-}
+#### Quadrat Data
 
-#### Quadrat Species {-}
+#### Quadrat Species
 
-#### Additional Species {-}
+#### Additional Species
 
 
 ### Previous CWD and Soils Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
-### Coarse Woody Debris {-} 
+### Coarse Woody Debris
 
-### Soils {-} 
+### Soils 
 
 
 ### Previous Photopoints: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
