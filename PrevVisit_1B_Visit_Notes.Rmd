@@ -17,7 +17,7 @@ visit_notes_p <- visit_notes |> filter(Plot_Name %in% params$plot) |> select(-Pl
 
 visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
                                          col.names = c("Note Type", "Sample_Info", "Note")) %>% 
-               kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed', full_width = TRUE,
+               kable_styling(fixed_thead = TRUE, bootstrap_options = c('striped'), full_width = TRUE,
                  position = 'left', font_size = 11) %>% 
                collapse_rows(1, valign = 'top') %>% 
                row_spec(c(0, nrow(visit_notes_p)), extra_css = 'border-bottom: 1px solid #000000')
@@ -25,6 +25,5 @@ visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
 ```
 
 ```{r visittab, echo = F}
-cat(params$plot, " ", params$year)
 visit_table
 ```

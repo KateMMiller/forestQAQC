@@ -1,0 +1,90 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_weeklyQC.css
+    toc: false
+    numbered_sections: false
+---
+
+```{r source1, include = FALSE}
+#params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
+#source("Previous_Visit_FieldForms_NETN_compile.R")
+```
+
+
+```{r plot, include = FALSE}
+stand_plot <- left_join(plotevs, stand, 
+                        by = c("Plot_Name", "IsStuntedWoodland", "SampleYear", "cycle")) |> 
+  filter(Plot_Name %in% params$plot)
+
+names(stand_plot)
+
+stand_tab1 <- kable(stand_plot |> select(Orientation, Aspect, PhysiographyCode, 
+                                         IsStuntedWoodland, Directions, PlotNotes),
+                    col.names = c("Orientation", "Aspect", "PhysioClass", "Stunted", "Directions", 
+                                  "Plot Notes"),
+                    format = 'html', align = c(rep('c', 4), rep('l', 2))) |> 
+              kable_styling(fixed_thead = TRUE, #bootstrap_options = c('condensed'), 
+                            full_width = TRUE, position = 'left') |> 
+              #column_spec(1:5, extra_css = "border-right: 1px solid #CACACA") |> 
+              row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
+            
+
+stand_tab2 <- kable(stand_plot |> select(Txt_Crown_Closure, Stand_Structure, Deer_Browse_Index,
+                                         Water_on_Plot_Code, Microtopography, Earthworms, StandNotes), 
+                    format = "html", align = c(rep('c', 6), rep('l', 2)),
+                    col.names = c("Crown Closure", "Stand Structure", "Deer Browse Index", 
+                                  "Water on Plot", "Microtopo", "Earthworms", "Stand Notes")) |> 
+               kable_styling(fixed_thead = TRUE, #bootstrap_options = c('condensed'), 
+                             full_width = TRUE, position = 'left')|> 
+              #column_spec(1:6, extra_css = "border-right: 1px solid #CACACA") |> 
+              row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
+
+stand_tab3 <- kable(stand_plot |> select(Txt_Bare_Soil, Txt_Rock, Txt_Trampled, Txt_Water, 
+                                         Txt_Bryophyte, Txt_Lichen, 
+                                         Txt_Understory_Low, Txt_Understory_Mid, Txt_Understory_High),
+                    col.names = c("% Bare Soil", "% Rock", "% Trampled", "% Surface Water", 
+                                  "% Non-Vascular", "% Lichen",
+                                  "% Vasc. Low", "% Vasc. Mid", "% Vasc. High"),
+                    align = 'c') |> 
+              kable_styling(fixed_thead = TRUE, #bootstrap_options = c('condensed'),
+                            full_width = TRUE, position = 'left')|> 
+              #column_spec(1:8, extra_css = "border-right: 1px solid #CACACA") |> 
+              row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
+
+treeht_p <- treeht |> filter(Plot_Name %in% params$plot)
+
+treeht_tab <- kable(treeht_p |> select(CrownClassLabel, TagCode, Height), align = 'c', format = 'html',
+                    col.names = c("Crown Class", "Tag", "Height")) |> 
+              kable_styling(fixed_thead = TRUE, bootstrap_options = c('striped'),
+                            full_width = FALSE, position = 'left') |> 
+              collapse_rows(1, valign = 'top') |> 
+              #row_spec(nrow(treeht_p), extra_css = 'border-bottom: 1px solid #000000')|> 
+              #column_spec(1:2, extra_css = "border-right: 1px solid #CACACA") |> 
+              row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
+
+
+```
+
+#### Plot Data {-}
+```{r standtab1, echo = F}
+stand_tab1
+```
+
+
+#### Stand Data {-}
+```{r standtab2, echo = F}
+stand_tab2
+```
+
+
+#### Site Cover {-}
+```{r standtab3, echo = F}
+stand_tab3
+```
+
+
+#### Tree Height {-}
+```{r standtab4, echo = F}
+treeht_tab
+```
