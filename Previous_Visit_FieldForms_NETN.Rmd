@@ -6,26 +6,32 @@ output:
     numbered_sections: false
     number_sections: false
 params:
-  year: "2018"
-  park: "MABI"
-  plot: "MABI-004"
-  
-
+  year: "2019"
+  plot: "ROVA-012"
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 options(knitr.kable.NA = '')
 
 library(pagedown)
-#params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
 ```
 
-### Previous Visit and Stand Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
+### Previous Visit, Stand and CWD Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
 
 <hr>
 
-```{r import, include = FALSE}
-#forestNETN::importData()
+```{r import, include = FALSE, cache = TRUE}
+forestNETN::importData()
+```
+```{r params, include = FALSE}
+#params <- data.frame(year = 2018, park = "SAGA", plot = "SAGA-003")
+
+year <- as.numeric(params$year)
+park <- substr(params$plot, 1, 4)
+plot <- params$plot
+```
+
+```{r source, include = FALSE}
 source("Previous_Visit_FieldForms_NETN_compile.R")
 ```
 
@@ -35,26 +41,25 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```{r stand, child = "PrevVisit_1B_Stand_Data.Rmd"}
 ```
 
-
-### Previous Tree Info: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-<hr>
-
-```{r tree2A, child = "PrevVisit_2A_Tree_Map.Rmd"}
+```{r cwd, child = "PrevVisit_1C_CWD_Data.Rmd"}
 ```
+
 
 ### Previous Tree Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
-```{r tree2B, child = "PrevVisit_2B_Tree_Measurements.Rmd"}
+```{r tree2A, child = "PrevVisit_2A_Tree_Measurements.Rmd"}
 ```
 
+<br>
 
-#### Tree Conditions 
+```{r tree2B, child = "PrevVisit_2B_Tree_Map.Rmd"}
+```
 
-#### Tree Foliage
+### Previous Tree Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
+### Previous Tree Foliage Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 ### Previous Microplot Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 

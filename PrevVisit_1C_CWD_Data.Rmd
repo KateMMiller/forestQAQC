@@ -1,0 +1,33 @@
+---
+output: 
+  pagedown::html_paged:
+    toc: false
+    numbered_sections: false
+---
+
+<br style = "clear:both">
+
+#### Coarse Woody Debris
+
+```{r cwddata, include = F}
+
+cwd_p <- cwd |> filter(Plot_Name %in% params$plot) |> arrange(TransectCode, Distance, ScientificName) |> 
+  mutate(Multi = ifelse(MultiCrossCode == "NA", NA_character_, MultiCrossCode),
+         Species = ifelse(is.na(ScientificName), "No species present", ScientificName))
+
+
+cwd_tab <- kable(cwd_p |> select(TransectCode, Distance, Species, Diameter, 
+                                 Multi, Length, IsHollow, Decay),
+                  col.names = c("Transect", "Distance", "Species", "Diameter", 
+                                "MultiCross", "Length", "Hollow", "Decay"),
+                  format = 'html', align = 'c') |> 
+            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                          font_size = 11) 
+                
+
+```
+
+```{r cwd_tab}
+cwd_tab
+```
+</span>

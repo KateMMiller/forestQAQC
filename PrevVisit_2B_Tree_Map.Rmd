@@ -1,0 +1,17 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_weeklyQC.css
+    toc: false
+    numbered_sections: false
+---
+
+#### Tree Map 
+
+```{r treemap, fig.width = 6.5, fig.height = 5.75}
+plotTreeMap(park = params$park, from = as.numeric(params$year), 
+            to = as.numeric(params$year), plotName = params$plot)
+
+
+```
+

@@ -9,13 +9,13 @@ library(htmltools)
 library(knitr)
 library(kableExtra)
 
-importData() #local instance
+#importData() #local instance
 #importData(name = "NETN_Forest_MABI_training")
 
 # Params for troubleshooting inside script
-year = as.numeric(2018)
-park = "MABI"
-loc_type = "all"
+# year = as.numeric(2018)
+# park = "MABI"
+# loc_type = "all"
 
 # #----- Functions -----
 # make_kable <- function(df, cap){
@@ -31,8 +31,7 @@ loc_type = "all"
 # }
 
 #----- Compile data -----
-arglist = list(park = park, from = year, to = year, QAQC = FALSE, 
-               locType = loc_type, eventType = 'complete')
+arglist = list(park = park, from = year, to = year, QAQC = FALSE)
 
 plotevs <- do.call(joinLocEvent, arglist)
 ev_list <- plotevs |> select(EventID) 
@@ -84,7 +83,7 @@ head(tree)
 # Color code statuses in table so dead are grey, live are white, and NL or EX are bold (or something like that)
 
 #----- Tree conditions -----
-treecond <- do.call(joinTreeConditions, arglist[1:5]) |> 
+treecond <- do.call(joinTreeConditions, arglist) |> 
   select(Plot_Name, SampleYear, ScientificName, Tag = TagCode, Status = TreeStatusCode,
          num_cond, AD:VIN_C) 
 

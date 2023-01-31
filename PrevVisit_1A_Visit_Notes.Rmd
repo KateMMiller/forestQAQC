@@ -6,12 +6,6 @@ output:
     numbered_sections: false
 ---
 
-```{r source, include = FALSE}
-#params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
-#source("Previous_Visit_FieldForms_NETN_compile.R")
-```
-
-
 ```{r visitnotes, include = FALSE}
 visit_notes_p <- visit_notes |> filter(Plot_Name %in% params$plot) |> select(-Plot_Name, -SampleYear)
 
@@ -24,7 +18,7 @@ visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
 
 ```
 
-#### Plot and Visit Notes {-} 
+#### Plot and Visit Notes
 ```{r visittab, echo = F}
 visit_table
 ```

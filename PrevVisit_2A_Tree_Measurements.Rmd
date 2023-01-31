@@ -5,11 +5,6 @@ output:
     numbered_sections: false
 ---
 
-```{r source2b, include = FALSE}
-#params <- data.frame(park = "MABI", year = 2018, plot = "MABI-001")
-#source("Previous_Visit_FieldForms_NETN_compile.R")
-```
-
 #### Tree Measurements
 
 ```{r treem, include = F}
