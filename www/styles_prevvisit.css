@@ -61,6 +61,8 @@ h4 {
   font-size:14px;
   font-weight: bold;
   color: black;
+  padding: 0;
+  margin: 12px 0 4px 0;
   /*color: #555;*/
 }
 
@@ -72,25 +74,39 @@ h5 {
   margin:0;
 }
 
+.column40{
+  width: 40%;
+  float: left;
+  padding: 0 0 12px 0;
+  margin: 0 0 12px 0;
+}
+
+.column60{
+  width: 60%;
+  float: right;
+  padding: 0 0 12px 0;
+  margin: 0 0 12px 0;
+}
+
+.column75{
+  float: right;
+  width: 75%;
+  padding: 12px 0 0 0;
+  margin: 12px 0 0 0;
+}
+
+.column25 {
+  float: left;
+  width: 25%;
+  padding: 12px 0 0 0;
+  margin: 12px 0 0 0;
+ }
 
 table{
   border: 1px solid black;
   border-collapse: collapse;
+  padding: 0;
 }
-
-/*table thead {
-  border-bottom: 1px solid #00000;
-  font-size:14px;
-  font-weight: bold;
-  font-family: "Arial", Arial, sans-serif;
-  border-right: 1px solid #CACACA;
-  }
-
-table td{
-  border-bottom: 1px solid #00000;
-  font-size:14px;
-  font-family: "Arial", Arial, sans-serif;
-}*/
 
 table th {
   border: 1px solid black;
@@ -116,13 +132,9 @@ table tr td {
   font-size: 11px;
 }
 
-/*table tr td:last-of-type {
-  border: none;
-}*/
-
 table td{
   /*border-spacing: 2px 5px;*/
-  padding: 4px 10px;
+  padding: 4px 6px;
   font-family: "Arial", Arial, sans-serif;
   font-size: 11px;
 }
