@@ -18,11 +18,12 @@ cwd_p <- cwd |> filter(Plot_Name %in% params$plot) |> arrange(TransectCode, Dist
 
 cwd_tab <- kable(cwd_p |> select(TransectCode, Distance, Species, Diameter, 
                                  Multi, Length, IsHollow, Decay),
-                  col.names = c("Transect", "Distance", "Species", "Diameter", 
-                                "MultiCross", "Length", "Hollow", "Decay"),
-                  format = 'html', align = 'c') |> 
-            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
-                          font_size = 11) 
+                 table.attr = "class='table-striped'",
+                 col.names = c("Transect", "Distance", "Species", "Diameter", 
+                               "MultiCross", "Length", "Hollow", "Decay"),
+                 format = 'html', align = 'c') |> 
+           kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                         font_size = 11) 
                 
 
 ```

@@ -1,0 +1,62 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_weeklyQC.css
+    toc: false
+    numbered_sections: false
+---
+
+```{r sapdat, include = FALSE}
+sap_p <- saps |> filter(Plot_Name %in% params$plot) |> arrange(Micro, ScientificName, DBHcm) |> 
+  mutate(Count = ifelse(Count > 1, Count, NA_real_))
+
+sap_tab <- kable(sap_p |> select(Micro, ScientificName, DBHcm, Count),
+                  col.names = c("Micro", "Species", "DBH", "Count"),
+                  format = 'html', align = 'c') |> 
+           kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                         font_size = 11) |>
+           collapse_rows(1:2, valign = 'top') 
+
+shrub_p <- shrubs |> filter(Plot_Name %in% params$plot) |> 
+  arrange(Micro, ScientificName) |> select(Micro, ScientificName, Pct_Cover)
+  
+shrub_tab <- kable(shrub_p, col.names = c("Micro", "Species", "% Cover"),
+                   format = "html", align = "c") |> 
+             kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
+             collapse_rows(1, valign = 'top')
+
+seed_p <- seeds |> filter(Plot_Name %in% params$plot) |> 
+  arrange(Micro, ScientificName) |> select(Micro, ScientificName:Seedlings_Above_150cm)
+
+seed_tab <- kable(seed_p, 
+                  col.names = c("Micro", "Species", "15-30cm", "30-100cm", "100-150cm", ">150cm"),
+                  format = 'html', align = 'c') |> 
+            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
+            collapse_rows(1, valign = 'top')
+
+```
+
+#### Saplings
+
+<div class = "box">
+<div>
+```{r saptab, echo = F}
+sap_tab
+```
+</div>
+
+#### Shrubs
+<div class = "box">
+```{r shrubtab, echo = F}
+shrub_tab
+```
+</div>
+</div>
+
+Play around with: https://stackoverflow.com/questions/41439325/flexbox-two-rows-two-columns
+
+#### Seedlings
+```{r seedtab, echo = F}
+seed_tab
+```
+

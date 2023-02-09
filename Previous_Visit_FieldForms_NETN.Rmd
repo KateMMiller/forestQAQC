@@ -6,8 +6,8 @@ output:
     numbered_sections: false
     number_sections: false
 params:
-  year: "2019"
-  plot: "ROVA-012"
+  year: "2022"
+  plot: "ACAD-001"
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -24,7 +24,7 @@ library(pagedown)
 forestNETN::importData()
 ```
 ```{r params, include = FALSE}
-#params <- data.frame(year = 2018, park = "SAGA", plot = "SAGA-003")
+#params <- data.frame(year = 2022, plot = "ACAD-001")
 
 year <- as.numeric(params$year)
 park <- substr(params$plot, 1, 4)
@@ -32,6 +32,15 @@ plot <- params$plot
 ```
 
 ```{r source, include = FALSE}
+library(tidyverse)
+library(forestNETN)
+library(htmltools)
+library(knitr)
+library(kableExtra)
+library(ggrepel)
+library(cowplot)
+#devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0") # for collapse_rows()
+library(kableExtra)
 source("Previous_Visit_FieldForms_NETN_compile.R")
 ```
 
@@ -44,34 +53,31 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```{r cwd, child = "PrevVisit_1C_CWD_Data.Rmd"}
 ```
 
-
-### Previous Tree Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-<hr>
-
-```{r tree2A, child = "PrevVisit_2A_Tree_Measurements.Rmd"}
-```
-
-<br>
-
-```{r tree2B, child = "PrevVisit_2B_Tree_Map.Rmd"}
-```
-
-### Previous Tree Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-### Previous Tree Foliage Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
 ### Previous Microplot Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
 ### Microplot Data {-} 
 
-#### Saplings {-}
+```{r micro2A, child = "PrevVisit_2A_Microplot_Data.Rmd"}
+```
 
-#### Seedlings {-}
 
-#### Shrubs {-}
+### Previous Tree Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+
+<hr>
+
+```{r tree3A, child = "PrevVisit_3A_Tree_Measurements.Rmd"}
+```
+
+<br>
+
+```{r tree3B, child = "PrevVisit_3B_Tree_Map.Rmd"}
+```
+
+### Previous Tree Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+
+### Previous Tree Foliage Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 
 ### Previous Quadrat Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 

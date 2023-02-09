@@ -132,6 +132,8 @@ shrubs <- do.call(joinMicroShrubData, arglist) |>
                names_to = "Micro") |> 
   mutate(Micro = substr(Micro, 9, nchar(Micro)))
 
+head(shrubs)
+
 #----- Quadrats -----
 quaddata <- do.call(joinQuadData, arglist) |> 
   select(Plot_Name, SampleYear, CharacterLabel, Txt_Cov_UC:Txt_Cov_UL)
