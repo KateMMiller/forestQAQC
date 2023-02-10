@@ -19,10 +19,17 @@ body {
   position:relative;  
 }
 
+/*
+img {
+  margin-top:0;
+  padding-top:0;
+  margin-left:0;
+  padding-left:0;
+}*/
 
 p {
   font-family: "Times New Roman", serif;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .indent {
@@ -74,48 +81,45 @@ h5 {
   margin:0;
 }
 
-.column40{
-  width: 40%;
-  float: left;
-  padding: 0 0 12px 0;
-  margin: 0 0 12px 0;
-}
-
-.column60{
-  width: 60%;
-  float: right;
-  padding: 0 0 12px 0;
-  margin: 0 0 12px 0;
-}
-
-.column75{
-  float: right;
-  width: 75%;
-  padding: 12px 0 0 0;
-  margin: 12px 0 0 0;
-}
-
-.column25 {
-  float: left;
-  width: 25%;
-  padding: 12px 0 0 0;
-  margin: 12px 0 0 0;
- }
-
 .flexbox{
-  display:flex;
+  display: flex;
   flex-direction: row;
-  column-gap: 40px;
+  column-gap: 1px;
   margin: 0;
   padding: 0;
 }
 
 .flexbox div{
-  width: 40%;
+  width: 45%;
 }
 
 .flexbox .title{
   height: 15px;
+}
+
+.flexbox .map{
+  padding: 0 0 0 -10px;
+  margin: 0 0 0 -10px;
+  height: 280px;
+  width: 260px;
+}
+
+.flexbox .one{
+  /*height: 186px;*/
+  box-sizing: border-box;
+  width: 45%;
+  float: left;
+  /*position: relative;*/
+  padding-right: 10px;
+}
+
+.flexbox .two{
+  /*height: 186px;*/
+  box-sizing: border-box;
+  width: 45%;
+  float: right;
+  /*position: relative;*/
+  padding-left: 15px;
 }
 
 .double-column {
@@ -144,6 +148,8 @@ table{
   border: 1px solid black;
   border-collapse: collapse;
   padding: 0;
+  margin: 0;
+  font-size:11px;
 }
 
 table th {
@@ -190,6 +196,5 @@ table td{
     content: counter(page) ' of ' counter(pages);
   }
 }
-
 
 
