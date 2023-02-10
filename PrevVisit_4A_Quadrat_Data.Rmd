@@ -1,0 +1,44 @@
+---
+output: 
+  pagedown::html_paged:
+    toc: false
+    numbered_sections: false
+---
+
+```{r quadd, include = F}
+quad_p <- quad_all |> filter(Plot_Name %in% params$plot) 
+
+quad_tab <- kable(quad_p |> select(Species, UC, UR, MR, BR, BC, BL, ML, UL, Note),
+                  #table.attr = "class='table-striped'", 
+                  #table.attr = "class='quads'",
+                  format = 'html', align = c('l', rep('c', 8))) |> 
+            kable_styling(fixed_thead = TRUE, bootstrap_options = c('striped'),
+                          position = 'left', full_width = TRUE, font_size = 9) |> 
+            row_spec(0, extra_css = 'border-bottom: 2px solid #000000;') |> 
+            row_spec(1, extra_css = 'border-bottom: 2px solid #000000;') |> 
+            row_spec(8, extra_css = 'border-bottom: 2px solid #000000;') |> 
+            column_spec(1, width = "120em") |> 
+            column_spec(2:9, width = "60em") |> 
+            column_spec(10, width = "70em")
+```
+
+<div class = 'quads'>
+```{r quad_tab}
+quad_tab
+```
+</div>
+<br>
+<br>
+
+#### Additional Species
+```{r addspp, include = F}
+addspp_p <- addspp |> filter(Plot_Name %in% params$plot) |> 
+  select(Species = ScientificName) |> arrange(Species) |> c()
+
+```
+
+```{r, results = 'asis'}
+cat(noquote(addspp_p$Species), sep = ", ")
+```
+
+<hr>

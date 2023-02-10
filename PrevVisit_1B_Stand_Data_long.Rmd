@@ -10,14 +10,18 @@ output:
 stand_plot1 <- left_join(plotevs, stand, 
                         by = c("Plot_Name", "IsStuntedWoodland", 
                                "SampleYear", "cycle")) |> 
-  filter(Plot_Name %in% params$plot)
+  filter(Plot_Name %in% params$plot) 
+
+names(stand_plot1)
 
 stand_plot2 <- stand_plot1 |> 
-  select(Plot_Name, Unit, Year = SampleYear, 
+  select(Plot_Name, Unit, 
          Orientation, Aspect, 
-         PhysioCode = PhysiographyCode, PhysioClass = PhysiographySummary, 
-         PhysioDetail = PhysiographyLabel, Stunted = IsStuntedWoodland, 
-         Plot_Slope = PlotSlope, Stand_Structure:Txt_Water) |> 
+         PhysioCode = PhysiographyCode, Stunted = IsStuntedWoodland, 
+         Plot_Slope = PlotSlope, Stand_Struct = Stand_Structure,
+         Txt_Crown = Txt_Crown_Closure, DBI = Deer_Browse_Index,
+         Microtopo = Microtopography, Earthworms:Txt_Bare_Soil,
+         Txt_Bryo = Txt_Bryophyte, Txt_Lichen:Txt_Water) |> 
   mutate_all(as.character) |> rename(Water_on_Plot = Water_on_Plot_Code) |> 
   pivot_longer(-Plot_Name, names_to = "Metric", values_to = "Value")
 
@@ -30,13 +34,16 @@ plot_data <- c("Unit", "Year", "Orientation", "Aspect",
 
 stand_plot <- stand_plot2 |> mutate(Type = ifelse(Metric %in% plot_data, "Plot Data", "Stand Data"))
 
-stand_tab <- kable(stand_plot |> select(Type, Metric, Value),
+sdist_p <- sdist |> filter(Plot_Name %in% params$plot)
+
+sdist_bind <- data.frame(Type = "Stand Data", Metric = "Disturb.", Value = sdist_p$Code)
+stand_all <- rbind(stand_plot |> select(Type, Metric, Value), sdist_bind)
+
+stand_tab <- kable(stand_all,
                    format = 'html', align = 'c', table.attr = "style='width:250px';") |> 
              kable_styling(fixed_thead = TRUE, full_width = TRUE, position = 'left') |> 
              row_spec(0, extra_css = 'border-bottom: 1px solid #000000') |> 
-             #column_spec(0, width = "10px") |> 
-             column_spec(1:2, width = "15px") |> 
-             #column_spec(2, width = "20px") |> 
+             #column_spec(1, width = "10px") |> 
              collapse_rows(1, valign = 'top') 
 
 treeht_p <- treeht |> filter(Plot_Name %in% params$plot)
@@ -127,10 +134,11 @@ stand_tab
 <div class='map'>
 <h4>Tree Map</h4>
 <div style="margin-left:-20px;margin-bottom:10px;margin-top:-12px;padding-top:0;height:280px;width:260px;">
-```{r treemap, out.width = "160%", fig.align = 'right'}
-plotTreeMap(park = params$park, from = as.numeric(params$year), 
+```{r treemap, out.width = "160%", fig.align = 'right', warning=FALSE, message=FALSE}
+suppressWarnings(
+  plotTreeMap(park = params$park, from = as.numeric(params$year), 
             to = as.numeric(params$year), plotName = params$plot)
-
+)
 ```
 </div>
 <div class = "one">

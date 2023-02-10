@@ -10,7 +10,8 @@ output:
 visit_notes_p <- visit_notes |> filter(Plot_Name %in% params$plot) |> select(-Plot_Name, -SampleYear)
 
 visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
-                                         col.names = c("Note Type", "Sample_Info", "Note")) %>% 
+                     col.names = c("Note Type", "Sample_Info", "Note"),
+                     table.attr = "style='width:624px';") %>% 
                kable_styling(fixed_thead = TRUE, bootstrap_options = c('striped'), full_width = TRUE,
                  position = 'left', font_size = 11) %>% 
                collapse_rows(1, valign = 'top') %>% 

@@ -15,7 +15,7 @@ sap_tab <- kable(sap_p |> select(Micro, ScientificName, DBHcm, Count),
                   format = 'html', align = 'c') |> 
            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
                          font_size = 11) |>
-           collapse_rows(1:2, valign = 'top') 
+           collapse_rows(1, valign = 'top') 
 
 shrub_p <- shrubs |> filter(Plot_Name %in% params$plot) |> 
   arrange(Micro, ScientificName) |> select(Micro, ScientificName, Pct_Cover)

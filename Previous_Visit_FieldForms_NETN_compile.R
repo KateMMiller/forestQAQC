@@ -62,6 +62,11 @@ stand <- do.call(joinStandData, arglist) |>
 
 head(stand)
 
+#---- Stand disturbances -----
+sdist <- do.call(joinStandDisturbance, arglist) |> 
+  select(Plot_Name, Code = DisturbanceCode)
+head(sdist)
+
 #----- Stand heights -----
 treeht <- get("StandTreeHeights_NETN", envir = VIEWS_NETN) |> 
   filter(EventID %in% ev_list$EventID) |> 
@@ -145,13 +150,16 @@ head(shrubs)
 
 #----- Quadrats -----
 quaddata <- do.call(joinQuadData, arglist) |> 
-  select(Plot_Name, SampleYear, CharacterLabel, Txt_Cov_UC:Txt_Cov_UL)
+  select(Plot_Name, SampleYear, Species = CharacterLabel, Txt_Cov_UC:Txt_Cov_UL) |> 
+  rename_with(stringr::str_replace, pattern = "Txt_Cov_", replacement = "") |> 
+  mutate(Note = NA_character_)
 
 quad_tramp <- get("QuadNotes_NETN", envir = VIEWS_NETN) 
 
 quad_tramp2 <- quad_tramp %>% 
   filter(EventID %in% ev_list$EventID) %>% 
-  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% 
+  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled, 
+         Note = SQQuadCharNotes) %>% 
   unique() |> 
   mutate(Trampled = ifelse(IsTrampled == TRUE, "X", NA_character_)) |> 
   select(-IsTrampled, -SQQuadCharCode)
@@ -160,11 +168,19 @@ head(quad_tramp2)
 
 quad_tramp_w <- quad_tramp2 |> pivot_wider(names_from = "QuadratCode", 
                                            values_from = "Trampled") |> 
-  arrange(Plot_Name)
+  arrange(Plot_Name) |> 
+  mutate(Species = "Trampled") |> 
+  select(Plot_Name, SampleYear, Note, Species, UC, UR, MR, BR, BC, BL, ML, UL)
 
 quadspp <- do.call(joinQuadSpecies, arglist) |> 
-  select(Plot_Name, SampleYear, ScientificName, Txt_Cov_UC:Txt_Cov_UL, Germ = IsGerminant) |> 
-  arrange(Plot_Name, ScientificName, desc(Germ))
+  filter(IsGerminant == FALSE) |> 
+  select(Plot_Name, SampleYear, Species = ScientificName, 
+         Txt_Cov_UC:Txt_Cov_UL, Note = QuadSppNote) |> 
+  arrange(Plot_Name, Species)|> 
+  rename_with(stringr::str_replace, pattern = "Txt_Cov_", replacement = "") 
+
+quad_all <- rbind(quad_tramp_w, quaddata, quadspp)
+names(quadspp)
 
 #----- Additional Species -----
 addspp <- do.call(joinAdditionalSpecies, arglist) |> 
