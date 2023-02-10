@@ -33,8 +33,14 @@ library(kableExtra)
 #----- Compile data -----
 arglist = list(park = park, from = year, to = year, QAQC = FALSE)
 
-plotevs <- do.call(joinLocEvent, arglist)
+plotevs <- do.call(joinLocEvent, arglist) |> 
+  mutate(Unit = ifelse(nchar(ParkSubUnit) > 4,                                                                           substr(ParkSubUnit, 6, nchar(ParkSubUnit)),
+                       paste0("None"))) 
+
+plotevs$Unit <- gsub("_", " ", plotevs$Unit)
+
 ev_list <- plotevs |> select(EventID) 
+head(plotevs)
 
 #----- Visit notes -----
 visit_notes <- do.call(joinVisitNotes, c(arglist, noteType = 'all')) |> 
@@ -52,7 +58,8 @@ stand <- do.call(joinStandData, arglist) |>
          Earthworms, Water_on_Plot_Code, 
          Txt_Understory_Low, Txt_Understory_Mid, Txt_Understory_High,
          Txt_Bare_Soil, Txt_Bryophyte, Txt_Lichen, Txt_Rock, Txt_Trampled, Txt_Water,
-         Avg_Height_Codom, Avg_Height_Inter, Note = StandNotes)
+         Avg_Height_Codom, Avg_Height_Inter, Note = StandNotes) 
+
 head(stand)
 
 #----- Stand heights -----
@@ -110,6 +117,8 @@ treefoll <- treefol |> pivot_longer(cols = Txt_Leaves_Aff_C:Txt_Leaf_Area_N,
          cond = substr(Condition, nchar(Condition), nchar(Condition))) |> 
   select(-Condition) |> 
   pivot_wider(names_from = type, values_from = Pct)
+
+head(treefoll)
 
 #----- Microplots -----
 saps <- do.call(joinMicroSaplings, arglist) |> 
@@ -183,3 +192,4 @@ soil <- get("SoilSample_NETN", env = VIEWS_NETN) |>
                                TRUE ~ 5)) |> 
   arrange(Plot_Name, Sample, hor_order)
 
+head(soil)

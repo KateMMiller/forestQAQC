@@ -7,31 +7,13 @@ output:
     number_sections: false
 params:
   year: "2022"
-  plot: "ACAD-029"
+  plot: "MABI-021"
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 options(knitr.kable.NA = '')
 
 library(pagedown)
-```
-
-### Previous Visit, Stand and CWD Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
-
-<hr>
-
-```{r import, include = FALSE, cache = TRUE}
-forestNETN::importData()
-```
-```{r params, include = FALSE}
-#params <- data.frame(year = 2022, plot = "ACAD-001")
-
-year <- as.numeric(params$year)
-park <- substr(params$plot, 1, 4)
-plot <- params$plot
-```
-
-```{r source, include = FALSE}
 library(tidyverse)
 library(forestNETN)
 library(htmltools)
@@ -41,19 +23,35 @@ library(ggrepel)
 library(cowplot)
 #devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0") # for collapse_rows()
 library(kableExtra)
+```
+
+### Previous Visit: Plot and Stand Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
+
+<hr>
+
+```{r import, include = FALSE, cache = TRUE}
+forestNETN::importData()
+```
+```{r params, include = FALSE}
+#params <- data.frame(year = 2022, plot = "MABI-021")
+
+year <- as.numeric(params$year)
+park <- substr(params$plot, 1, 4)
+plot <- params$plot
+```
+
+```{r source, include = FALSE}
 source("Previous_Visit_FieldForms_NETN_compile.R")
+```
+
+```{r stand, child = "PrevVisit_1B_Stand_Data_long.Rmd"}
 ```
 
 ```{r visit_notes, child = "PrevVisit_1A_Visit_Notes.Rmd"}
 ```
 
-```{r stand, child = "PrevVisit_1B_Stand_Data.Rmd"}
-```
 
-```{r cwd, child = "PrevVisit_1C_CWD_Data.Rmd"}
-```
-
-### Previous Microplot Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+### Previous Visit: Microplot, CWD & Soil Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
@@ -62,25 +60,35 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```{r micro2A, child = "PrevVisit_2A_Microplot_Data.Rmd"}
 ```
 
+```{r cwd, child = "PrevVisit_2B_CWD_Data.Rmd"}
+```
 
-### Previous Tree Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+```{r soil, child = "PrevVisit_2C_Soils_Data.Rmd"}
+```
+
+
+### Previous Visit: Tree Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
 ```{r tree3A, child = "PrevVisit_3A_Tree_Measurements.Rmd"}
 ```
 
-<br>
 
-```{r tree3B, child = "PrevVisit_3B_Tree_Map.Rmd"}
+### Previous Visit: Tree Conditions and Foliage for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+
+<hr>
+
+```{r tree3B, child = "PrevVisit_3B_Tree_Conditions.Rmd"}
 ```
 
-### Previous Tree Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+<br>
 
-### Previous Tree Foliage Conditions: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+```{r tree3C, child = "PrevVisit_3C_Tree_Foliage_Cond.Rmd"}
+```
 
 
-### Previous Quadrat Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+### Previous Visit: Quadrat Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
@@ -91,15 +99,6 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 #### Quadrat Species
 
 #### Additional Species
-
-
-### Previous CWD and Soils Data: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-<hr>
-
-### Coarse Woody Debris
-
-### Soils 
 
 
 ### Previous Photopoints: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
