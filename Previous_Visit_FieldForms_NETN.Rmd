@@ -7,7 +7,7 @@ output:
     number_sections: false
 params:
   year: "2022"
-  plot: "ACAD-001"
+  plot: "ACAD-029"
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)

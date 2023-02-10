@@ -1,0 +1,32 @@
+---
+output: 
+  pagedown::html_paged:
+    toc: false
+    numbered_sections: false
+---
+
+<br style = "clear:both">
+
+### Soil Samples
+
+```{r soildata, include = F}
+
+soil_p <- soil |> filter(Plot_Name %in% params$plot) 
+
+soil_tab <- kable(soil_p |> select(Sample, Horizon, Depth_cm),
+                  table.attr = "class='table-striped'",
+                  format = 'html', align = 'c') |> 
+            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                          font_size = 11) 
+printsoil <- ifelse(nrow(soil_p) > 0, TRUE, FALSE)
+```
+
+```{r soil_tab, eval = printsoil}
+soil_tab
+```
+
+```{r soil_cat, eval = !printsoil, results = 'asis'}
+cat("No soils sampled during visit")
+```
+
+</span>

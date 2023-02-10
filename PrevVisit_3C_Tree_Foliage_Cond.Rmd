@@ -1,0 +1,33 @@
+---
+output: 
+  pagedown::html_paged:
+    toc: false
+    numbered_sections: false
+---
+
+#### Tree Foliage Conditions
+
+```{r treefc, include = F}
+treef_p <- treefoll |> filter(Plot_Name %in% params$plot) 
+
+if(nrow(treef_p) > 0){
+treef_tab <- kable(treef_p |> select(Tag, ScientificName, cond, Pct_Leaves, Pct_Leaf_Area, Txt_Tot_Foliage_Cond),
+                  col.names = c("Tag", "Species", "Cond.", "% Leaves", "% Leaf Area", "% Total Foliage"),
+                  table.attr = "class='table-striped'",
+                  format = 'html', align = "c") |> 
+             kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                           font_size = 10) |>
+             collapse_rows(1, valign = 'top')
+}
+print_fc <- ifelse(nrow(treef_p) > 0, TRUE, FALSE)
+```
+
+```{r treefc_tab, eval = print_fc}
+treef_tab
+```
+
+```{r treefc_cat, eval = !print_fc, results = 'asis'}
+cat("No foliage conditions were reported during this visit.")
+
+```
+

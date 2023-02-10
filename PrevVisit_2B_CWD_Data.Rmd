@@ -7,7 +7,7 @@ output:
 
 <br style = "clear:both">
 
-#### Coarse Woody Debris
+### Coarse Woody Debris
 
 ```{r cwddata, include = F}
 
