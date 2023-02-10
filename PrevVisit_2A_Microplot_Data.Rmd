@@ -36,24 +36,21 @@ seed_tab <- kable(seed_p,
 
 ```
 
-#### Saplings
-
-<div class = "box">
+<div class = "flexbox">
 <div>
+<h4> Saplings </h4>
 ```{r saptab, echo = F}
 sap_tab
 ```
 </div>
 
-#### Shrubs
-<div class = "box">
+<div>
+<h4> Shrubs </h4>
 ```{r shrubtab, echo = F}
 shrub_tab
 ```
 </div>
 </div>
-
-Play around with: https://stackoverflow.com/questions/41439325/flexbox-two-rows-two-columns
 
 #### Seedlings
 ```{r seedtab, echo = F}
