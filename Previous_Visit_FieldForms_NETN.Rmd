@@ -6,8 +6,8 @@ output:
     numbered_sections: false
     number_sections: false
 params:
-  year: "2022"
-  plot: "MABI-021"
+  year: "2018"
+  plot: "MABI-012"
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -51,7 +51,7 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```
 
 
-### Previous Visit: Microplot, CWD & Soil Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+### Previous Visit: Microplot & CWD Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
 <hr>
 
@@ -61,9 +61,6 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```
 
 ```{r cwd, child = "PrevVisit_2B_CWD_Data.Rmd"}
-```
-
-```{r soil, child = "PrevVisit_2C_Soils_Data.Rmd"}
 ```
 
 
@@ -92,14 +89,8 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 
 <hr>
 
-### Quadrats
-
-#### Quadrat Data
-
-#### Quadrat Species
-
-#### Additional Species
-
+```{r tree3C, child = "PrevVisit_4A_Quadrat_Data.Rmd"}
+```
 
 ### Previous Photopoints: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
 
