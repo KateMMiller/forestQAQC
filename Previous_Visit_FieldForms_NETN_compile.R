@@ -34,7 +34,8 @@ library(kableExtra)
 arglist = list(park = park, from = year, to = year, QAQC = FALSE)
 
 plotevs <- do.call(joinLocEvent, arglist) |> 
-  mutate(Unit = ifelse(nchar(ParkSubUnit) > 4,                                                                           substr(ParkSubUnit, 6, nchar(ParkSubUnit)),
+  mutate(Unit = ifelse(nchar(ParkSubUnit) > 4,
+                       substr(ParkSubUnit, 6, nchar(ParkSubUnit)),
                        paste0("None"))) 
 
 plotevs$Unit <- gsub("_", " ", plotevs$Unit)
@@ -92,7 +93,8 @@ tree_sum <- tree |> group_by(Plot_Name, Status, ScientificName) |>
   summarize(num_stems = n()) |> ungroup()
 
 head(tree)
-# Color code statuses in table so dead are grey, live are white, and NL or EX are bold (or something like that)
+# Color code statuses in table so dead are grey, live are white, and NL or EX are 
+# bold (or something like that)
 
 #----- Tree conditions -----
 treecond <- do.call(joinTreeConditions, arglist) |> 
@@ -200,7 +202,8 @@ head(cwd)
 #----- Soils -----
 soil <- get("SoilSample_NETN", env = VIEWS_NETN) |> 
   filter(EventID %in% ev_list$EventID) |> 
-  select(Plot_Name, SampleYear, Sample = SampleSequenceCode, Horizon = SoilLayerCode, Depth_cm, Note) |> 
+  select(Plot_Name, SampleYear, Sample = SampleSequenceCode, 
+         Horizon = SoilLayerCode, Depth_cm, Note) |> 
   mutate(hor_order = case_when(Horizon == "L" ~ 1,
                                Horizon == "O" ~ 2,
                                Horizon == "A" ~ 3,

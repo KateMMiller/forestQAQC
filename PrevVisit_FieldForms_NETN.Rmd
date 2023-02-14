@@ -8,6 +8,7 @@ output:
 params:
   year: "2018"
   plot: "MABI-012"
+  print: FALSE
 ---
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -25,11 +26,7 @@ library(cowplot)
 library(kableExtra)
 ```
 
-### Previous Visit: Plot and Stand Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {-}
-
-<hr>
-
-```{r import, include = FALSE, cache = TRUE}
+```{r import, include = FALSE, cache = FALSE}
 forestNETN::importData()
 ```
 ```{r params, include = FALSE}
@@ -41,21 +38,14 @@ plot <- params$plot
 ```
 
 ```{r source, include = FALSE}
-source("Previous_Visit_FieldForms_NETN_compile.R")
+source("PrevVisit_FieldForms_NETN_compile.R")
 ```
 
-```{r stand, child = "PrevVisit_1B_Stand_Data_long.Rmd"}
+```{r stand, child = "PrevVisit_1A_Stand_Data_long.Rmd"}
 ```
 
-```{r visit_notes, child = "PrevVisit_1A_Visit_Notes.Rmd"}
+```{r visit_notes, child = "PrevVisit_1B_Visit_Notes.Rmd"}
 ```
-
-
-### Previous Visit: Microplot & CWD Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-<hr>
-
-### Microplot Data {-} 
 
 ```{r micro2A, child = "PrevVisit_2A_Microplot_Data.Rmd"}
 ```
@@ -63,18 +53,11 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```{r cwd, child = "PrevVisit_2B_CWD_Data.Rmd"}
 ```
 
-
-### Previous Visit: Tree Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-<hr>
+### Previous Visit: Tree Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
 
 ```{r tree3A, child = "PrevVisit_3A_Tree_Measurements.Rmd"}
 ```
 
-
-### Previous Visit: Tree Conditions and Foliage for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-<hr>
 
 ```{r tree3B, child = "PrevVisit_3B_Tree_Conditions.Rmd"}
 ```
@@ -84,16 +67,11 @@ source("Previous_Visit_FieldForms_NETN_compile.R")
 ```{r tree3C, child = "PrevVisit_3C_Tree_Foliage_Cond.Rmd"}
 ```
 
-
-### Previous Visit: Quadrat Data for <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
+### Previous Visit: Quadrat Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
 
 <hr>
 
 ```{r tree3C, child = "PrevVisit_4A_Quadrat_Data.Rmd"}
 ```
-
-### Previous Photopoints: <span style="font-weight:bold;">`r paste0(params$plot, '-', params$year)`</span> {.page-break-before} 
-
-<hr>
 
 

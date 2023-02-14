@@ -6,6 +6,10 @@ output:
     numbered_sections: false
 ---
 
+### Previous Visit: Microplot & CWD Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+
+<hr>
+
 ```{r sapdat, include = FALSE}
 sap_p <- saps |> filter(Plot_Name %in% params$plot) |> arrange(Micro, ScientificName, DBHcm) |> 
   mutate(Count = ifelse(Count > 1, Count, NA_real_))

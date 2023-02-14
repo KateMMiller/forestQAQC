@@ -6,6 +6,9 @@ output:
     numbered_sections: false
 ---
 
+### Previous Visit: Plot and Stand Data for `r paste0(params$plot, '-', params$year)`
+
+<hr>
 ```{r standdata, include = FALSE}
 stand_plot1 <- left_join(plotevs, stand, 
                         by = c("Plot_Name", "IsStuntedWoodland", 

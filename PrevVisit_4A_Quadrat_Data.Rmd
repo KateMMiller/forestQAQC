@@ -1,11 +1,35 @@
 ---
 output: 
   pagedown::html_paged:
+    css: www/styles_prevvisit.css
     toc: false
     numbered_sections: false
+    number_sections: false
+params:
+  year: "2018"
+  plot: "MABI-012"
+  print: TRUE
 ---
+```{r include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(knitr.kable.NA = '')
+```
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+
+cat("### Previous Visit: Quadrat Data for ")
+cat(paste0(params$plot, '-', params$year))
+
+```
+<hr>
+
 
 ```{r quadd, include = F}
+library(tidyverse)
+library(kableExtra)
+library(htmltools)
+library(knitr)
+
 quad_p <- quad_all |> filter(Plot_Name %in% params$plot) 
 
 quad_tab <- kable(quad_p |> select(Species, UC, UR, MR, BR, BC, BL, ML, UL, Note),

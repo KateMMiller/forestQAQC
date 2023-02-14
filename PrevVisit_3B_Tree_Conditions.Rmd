@@ -5,6 +5,11 @@ output:
     numbered_sections: false
 ---
 
+### Previous Visit: Tree Conditions and Foliage for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+
+<hr>
+
+
 #### Tree Conditions
 
 ```{r treec, include = F}

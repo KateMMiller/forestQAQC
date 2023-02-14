@@ -8,28 +8,12 @@ output:
 params:
   year: "2018"
   plot: "MABI-012"
-  print: TRUE
 ---
-```{r include = FALSE, echo = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-options(knitr.kable.NA = '')
-```
 
-```{r results = 'asis', echo = FALSE, eval = params$print}
-
-cat("### Previous Visit: Tree Data for ")
-cat(paste0(params$plot, '-', params$year))
-
-```
-<hr>
+#### Tree Measurements
 
 ```{r treem, include = F}
-library(tidyverse)
-library(kableExtra)
-library(htmltools)
-library(knitr)
-
-tree_p <- tree |> dplyr::filter(Plot_Name %in% params$plot) 
+tree_p <- tree |> filter(Plot_Name %in% params$plot) 
 
 tree_tab <- kable(tree_p |> select(Tag, ScientificName, Fork, Azimuth, Distance,
                                    Status, CrownClass, DBH, Decay, Note),
@@ -44,7 +28,13 @@ tree_tab <- kable(tree_p |> select(Tag, ScientificName, Fork, Azimuth, Distance,
 
 ```
 
-```{r tree_tab, echo = F}
+```{r tree_tab}
 tree_tab
 ```
 
+```{r treemap, fig.width = 6, fig.height = 5.8, warning=FALSE,  message=FALSE}
+suppressWarnings(
+  plotTreeMap(park = params$park, from = as.numeric(params$year), 
+            to = as.numeric(params$year), plotName = params$plot)
+)
+```
