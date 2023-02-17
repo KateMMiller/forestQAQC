@@ -46,26 +46,26 @@ plotTreeMap(park = parks, from = 2018, to = 2019,
 ##----- Render Functions to iterate on -----
 rmdtr <- "PrevVisit_3A_Tree_Measurements.Rmd"
 
-render_trees <- function(plot_name, pv_year){
-  park = substr(plot_name, 1, 4)
+render_trees <- function(plot, pv_year){
+  park = substr(plot, 1, 4)
   render(input = rmdtr,
-         params = list(plot = plot_name, 
+         params = list(plot_name = plot, 
                        year = as.numeric(pv_year), 
                        print = TRUE),
          output_file = paste0(path, "indiv\\", 
-                              plot_name, "_", pv_year, "_Trees.html"))
+                              plot, "_", pv_year, "_Trees.html"))
 }
 
 rmdqd <- "PrevVisit_4A_Quadrat_Data.Rmd"
 
-render_quads <- function(plot_name, pv_year){
-  park = substr(plot_name, 1, 4)
+render_quads <- function(plot, pv_year){
+  park = substr(plot, 1, 4)
   render(input = rmdqd,
-         params = list(plot = plot_name, 
+         params = list(plot_name = plot, 
                        year = as.numeric(pv_year), 
                        print = TRUE),
          output_file = paste0(path, "indiv\\",
-                              plot_name, "_", pv_year, "_Quads.html"))
+                              plot, "_", pv_year, "_Quads.html"))
 }
 
 # Since NHPs and ACAD are off by a year, you have to run for all NHPs, then reset
@@ -78,9 +78,7 @@ year <- 2018
 park <- c("MABI", "MIMA", "SAGA", "SARA")
 
 ##----- Source from compile script -----
-source_lines("PrevVisit_FieldForms_NETN_compile.R", 1, 44) # arglist & plotevs
-source_lines("PrevVisit_FieldForms_NETN_compile.R", 85, 97) # tree data
-source_lines("PrevVisit_FieldForms_NETN_compile.R", 153, 191) # quads & addspp
+source("PrevVisit_FieldForms_NETN_compile.R") 
 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
@@ -93,9 +91,7 @@ year <- 2019
 park <- "ACAD"
 
 ##----- Source from compile script -----
-source_lines("PrevVisit_FieldForms_NETN_compile.R", 1, 44) # arglist & plotevs
-source_lines("PrevVisit_FieldForms_NETN_compile.R", 85, 97) # tree data
-source_lines("PrevVisit_FieldForms_NETN_compile.R", 153, 191) # quads & addspp
+source("PrevVisit_FieldForms_NETN_compile.R") 
 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
@@ -144,18 +140,22 @@ all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |>
 
 plot_list <- all_plots$Plot_Name
 year_list <- all_plots$SampleYear
+plot_list
+year_list
 
-render_all <- function(plot_name, pv_year){
-  park = substr(plot_name, 1, 4)
+render_all <- function(plot, pv_year){
+  park = substr(plot, 1, 4)
   render(input = "PrevVisit_FieldForms_NETN.Rmd",
-         params = list(plot = plot_name, 
+         params = list(plot_name = plot, 
                        year = as.numeric(pv_year), 
                        print = FALSE),
          output_file = paste0(path, "indiv_all\\",
-                              plot_name, "_", pv_year, "_Visits.html"))
+                              plot, "_", pv_year, "_Visits.html"))
 }
+render_poss <- possibly(.f = render_all, otherwise = NULL)
 
-purrr::map2(plot_list, year_list, ~render_all(.x, .y))
+# running through a few at a time b/c bogs down laptop
+purrr::map2(plot_list[51:92], year_list[51:92], ~render_poss(.x, .y))
 
 ##----- Convert individual html to pdf (ignore warnings unless it doesn't work) -----
 html_list <- list.files(paste0(path, "indiv_all\\"), pattern = '.html', full.names = T)

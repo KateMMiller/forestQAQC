@@ -6,8 +6,8 @@ output:
     numbered_sections: false
     number_sections: false
 params:
-  year: "2018"
-  plot: "MABI-012"
+  year: "2019"
+  plot_name: "ACAD-040"
   print: FALSE
 ---
 ```{r setup, include = FALSE}
@@ -29,12 +29,13 @@ library(kableExtra)
 ```{r import, include = FALSE, cache = FALSE}
 forestNETN::importData()
 ```
+
 ```{r params, include = FALSE}
-#params <- data.frame(year = 2022, plot = "MABI-021")
+#params <- data.frame(year = 2019, plot_name = "ACAD-040")
 
 year <- as.numeric(params$year)
-park <- substr(params$plot, 1, 4)
-plot <- params$plot
+park <- substr(params$plot_name, 1, 4)
+plot_name <- params$plot_name
 ```
 
 ```{r source, include = FALSE}
@@ -71,7 +72,12 @@ source("PrevVisit_FieldForms_NETN_compile.R")
 
 <hr>
 
-```{r tree3C, child = "PrevVisit_4A_Quadrat_Data.Rmd"}
+```{r quad1a, child = "PrevVisit_4A_Quadrat_Data.Rmd"}
 ```
 
+### Previous Visit: Photopoints for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
 
+<hr>
+
+```{r photos, child = "PrevVisit_5A_Photopoints.Rmd"}
+```

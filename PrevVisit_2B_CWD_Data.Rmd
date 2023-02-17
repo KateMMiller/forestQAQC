@@ -11,7 +11,7 @@ output:
 
 ```{r cwddata, include = F}
 
-cwd_p <- cwd |> filter(Plot_Name %in% params$plot) |> arrange(TransectCode, Distance, ScientificName) |> 
+cwd_p <- cwd |> filter(Plot_Name %in% plot_name) |> arrange(TransectCode, Distance, ScientificName) |> 
   mutate(Multi = ifelse(MultiCrossCode == "NA", NA_character_, MultiCrossCode),
          Species = ifelse(is.na(ScientificName), "No species present", ScientificName))
 

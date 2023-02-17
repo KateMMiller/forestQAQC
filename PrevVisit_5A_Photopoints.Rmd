@@ -14,7 +14,7 @@ output:
 path <- paste0("C:/NETN/Monitoring_Projects/Forest_Health/Photopoints/", 
                year, "/", park, "/")
 all_photos <- list.files(path)
-plot2 <- sub("-", "_", plot)
+plot2 <- sub("-", "_", plot_name)
 
 photo_order <- c("UC", "UL", "UR", "BL", "BR")
 photo_list1 <- all_photos[grep(plot2, all_photos)]

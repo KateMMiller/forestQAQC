@@ -5,7 +5,7 @@ output:
     numbered_sections: false
 ---
 
-### Previous Visit: Tree Conditions and Foliage for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+### Previous Visit: Tree Conditions and Foliage for `r paste0(plot_name, '-', year)` {.page-break-before} 
 
 <hr>
 
@@ -13,8 +13,7 @@ output:
 #### Tree Conditions
 
 ```{r treec, include = F}
-treec_p <- treecondl |> filter(Plot_Name %in% params$plot) 
-#treec_p <- treecondl |> filter(Plot_Name %in% "ACAD-029") 
+treec_p <- treecondl |> filter(Plot_Name %in% plot_name) 
 
 treec_p_w <- treec_p |> select(Tag, Species = ScientificName, Status, 
                                Tot_Num = num_cond, Condition) |> 

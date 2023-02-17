@@ -11,7 +11,7 @@ output:
 
 ```{r soildata, include = F}
 
-soil_p <- soil |> filter(Plot_Name %in% params$plot) 
+soil_p <- soil |> filter(Plot_Name %in% plot_name) 
 
 soil_tab <- kable(soil_p |> select(Sample, Horizon, Depth_cm),
                   table.attr = "class='table-striped'",

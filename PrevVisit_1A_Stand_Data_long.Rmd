@@ -6,16 +6,15 @@ output:
     numbered_sections: false
 ---
 
-### Previous Visit: Plot and Stand Data for `r paste0(params$plot, '-', params$year)`
+### Previous Visit: Plot and Stand Data for `r paste0(plot_name, '-', year)`
 
 <hr>
 ```{r standdata, include = FALSE}
 stand_plot1 <- left_join(plotevs, stand, 
                         by = c("Plot_Name", "IsStuntedWoodland", 
                                "SampleYear", "cycle")) |> 
-  filter(Plot_Name %in% params$plot) 
-
-names(stand_plot1)
+  filter(Plot_Name %in% plot_name) 
+head(stand_plot1)
 
 stand_plot2 <- stand_plot1 |> 
   select(Plot_Name, Unit, 
@@ -37,7 +36,7 @@ plot_data <- c("Unit", "Year", "Orientation", "Aspect",
 
 stand_plot <- stand_plot2 |> mutate(Type = ifelse(Metric %in% plot_data, "Plot Data", "Stand Data"))
 
-sdist_p <- sdist |> filter(Plot_Name %in% params$plot)
+sdist_p <- sdist |> filter(Plot_Name %in% plot_name)
 
 sdist_bind <- data.frame(Type = "Stand Data", Metric = "Disturb.", Value = sdist_p$Code)
 stand_all <- rbind(stand_plot |> select(Type, Metric, Value), sdist_bind)
@@ -49,7 +48,7 @@ stand_tab <- kable(stand_all,
              #column_spec(1, width = "10px") |> 
              collapse_rows(1, valign = 'top') 
 
-treeht_p <- treeht |> filter(Plot_Name %in% params$plot)
+treeht_p <- treeht |> filter(Plot_Name %in% plot_name)
 
 if(!all(is.na(treeht_p$TagCode))){
 treeht_tab <- kable(treeht_p |> select(CrownClassLabel, TagCode, Height), 
@@ -64,25 +63,26 @@ print_treeht <- ifelse(all(is.na(treeht_p$TagCode)), FALSE, TRUE)
 ```
 
 ```{r azs, echo = F}
-UC = plotevs |> filter(Plot_Name %in% params$plot) |> select(Orientation) |> as.numeric()
-az_df <- data.frame(UC = c(UC, ifelse(grepl("ACAD", params$plot), 7.5, 10)), 
-                    UR = c(ifelse(UC + 45 > 360, UC + 45 - 360, UC + 45),
-                           ifelse(grepl("ACAD", params$plot), 10.61, 14.14)),
-                    MR = c(ifelse(UC + 90 > 360, UC + 90 - 360, UC + 90),
-                           ifelse(grepl("ACAD", params$plot), 7.5, 10)),
-                    BR = c(ifelse(UC + 135 > 360, UC + 135 - 360, UC + 135),
-                           ifelse(grepl("ACAD", params$plot), 10.61, 14.14)),
-                    BC = c(ifelse(UC + 180 > 360, UC + 180 - 360, UC + 180),
-                           ifelse(grepl("ACAD", params$plot), 7.5, 10)),
-                    BL = c(ifelse(UC + 225 > 360, UC + 225 - 360, UC + 225),
-                           ifelse(grepl("ACAD", params$plot), 10.61, 14.14)),
-                    ML = c(ifelse(UC + 270 > 360, UC + 270 - 360, UC + 270),
-                           ifelse(grepl("ACAD", params$plot), 7.5, 10)),
-                    UL = c(ifelse(UC + 315 > 360, UC + 315 - 360, UC + 315),
-                           ifelse(grepl("ACAD", params$plot), 10.61, 14.14))) 
+UC = plotevs |> filter(Plot_Name %in% plot_name) |> select(Orientation) |> as.numeric()
 
-dist1 <- ifelse(grepl("ACAD", params$plot), 7.5, 10)
-dist2 <- ifelse(grepl("ACAD", params$plot), 10.61, 14.14)
+az_df <- data.frame(UC = c(UC, ifelse(grepl("ACAD", plot_name), 7.5, 10)), 
+                    UR = c(ifelse(UC + 45 > 360, UC + 45 - 360, UC + 45),
+                           ifelse(grepl("ACAD", plot_name), 10.61, 14.14)),
+                    MR = c(ifelse(UC + 90 > 360, UC + 90 - 360, UC + 90),
+                           ifelse(grepl("ACAD", plot_name), 7.5, 10)),
+                    BR = c(ifelse(UC + 135 > 360, UC + 135 - 360, UC + 135),
+                           ifelse(grepl("ACAD", plot_name), 10.61, 14.14)),
+                    BC = c(ifelse(UC + 180 > 360, UC + 180 - 360, UC + 180),
+                           ifelse(grepl("ACAD", plot_name), 7.5, 10)),
+                    BL = c(ifelse(UC + 225 > 360, UC + 225 - 360, UC + 225),
+                           ifelse(grepl("ACAD", plot_name), 10.61, 14.14)),
+                    ML = c(ifelse(UC + 270 > 360, UC + 270 - 360, UC + 270),
+                           ifelse(grepl("ACAD", plot_name), 7.5, 10)),
+                    UL = c(ifelse(UC + 315 > 360, UC + 315 - 360, UC + 315),
+                           ifelse(grepl("ACAD", plot_name), 10.61, 14.14))) 
+
+dist1 <- ifelse(grepl("ACAD", plot_name), 7.5, 10)
+dist2 <- ifelse(grepl("ACAD", plot_name), 10.61, 14.14)
 
 az_df <- data.frame(Stake = c("UC", "UR", "MR", "BR", "BC", "BL", "ML", "UL"),
                     Az = c(UC,
@@ -102,7 +102,7 @@ az_tab <- kable(az_df, format = 'html', align = 'c') |>
 ```
 
 ```{r treesum, include = F}
-tree_sump <- tree_sum |> filter(Plot_Name %in% params$plot) 
+tree_sump <- tree_sum |> filter(Plot_Name %in% plot_name) 
 
 tree_sump_w <- tree_sump |> pivot_wider(names_from = "Status", 
                                         values_from = "num_stems", 
@@ -139,8 +139,8 @@ stand_tab
 <div style="margin-left:-20px;margin-bottom:10px;margin-top:-12px;padding-top:0;height:280px;width:260px;">
 ```{r treemap, out.width = "160%", fig.align = 'right', warning=FALSE, message=FALSE}
 suppressWarnings(
-  plotTreeMap(park = params$park, from = as.numeric(params$year), 
-            to = as.numeric(params$year), plotName = params$plot)
+  plotTreeMap(park = park, from = as.numeric(year), 
+            to = as.numeric(year), plotName = plot_name)
 )
 ```
 </div>

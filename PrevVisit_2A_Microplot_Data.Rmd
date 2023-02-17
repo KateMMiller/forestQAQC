@@ -6,12 +6,12 @@ output:
     numbered_sections: false
 ---
 
-### Previous Visit: Microplot & CWD Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+### Previous Visit: Microplot & CWD Data for `r paste0(plot_name, '-', year)` {.page-break-before} 
 
 <hr>
 
 ```{r sapdat, include = FALSE}
-sap_p <- saps |> filter(Plot_Name %in% params$plot) |> arrange(Micro, ScientificName, DBHcm) |> 
+sap_p <- saps |> filter(Plot_Name %in% plot_name) |> arrange(Micro, ScientificName, DBHcm) |> 
   mutate(Count = ifelse(Count > 1, Count, NA_real_))
 
 sap_tab <- kable(sap_p |> select(Micro, ScientificName, DBHcm, Count),
@@ -21,7 +21,7 @@ sap_tab <- kable(sap_p |> select(Micro, ScientificName, DBHcm, Count),
                          font_size = 11) |>
            collapse_rows(1, valign = 'top') 
 
-shrub_p <- shrubs |> filter(Plot_Name %in% params$plot) |> 
+shrub_p <- shrubs |> filter(Plot_Name %in% plot_name) |> 
   arrange(Micro, ScientificName) |> select(Micro, ScientificName, Pct_Cover)
   
 shrub_tab <- kable(shrub_p, col.names = c("Micro", "Species", "% Cover"),
@@ -29,7 +29,7 @@ shrub_tab <- kable(shrub_p, col.names = c("Micro", "Species", "% Cover"),
              kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
              collapse_rows(1, valign = 'top')
 
-seed_p <- seeds |> filter(Plot_Name %in% params$plot) |> 
+seed_p <- seeds |> filter(Plot_Name %in% plot_name) |> 
   arrange(Micro, ScientificName) |> select(Micro, ScientificName:Seedlings_Above_150cm)
 
 seed_tab <- kable(seed_p, 
