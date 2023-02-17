@@ -3,12 +3,17 @@ output:
   pagedown::html_paged:
     toc: false
     numbered_sections: false
+params:
+  print: TRUE
 ---
 
-### Previous Visit: Tree Conditions and Foliage for `r paste0(plot_name, '-', year)` {.page-break-before} 
+```{r results = 'asis', echo = FALSE, eval = params$print}
 
+cat("### Previous Visit: Tree Conditions and Foliage for ")
+cat(paste0(plot_name, '-', year))
+
+```
 <hr>
-
 
 #### Tree Conditions
 

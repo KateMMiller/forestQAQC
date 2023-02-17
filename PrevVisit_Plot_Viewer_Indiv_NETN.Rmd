@@ -1,12 +1,11 @@
 ---
 output: 
-  pagedown::html_paged:
+  html_document:
     css: www/styles_prevvisit.css
-    toc: false
-    numbered_sections: false
-    number_sections: false
+    anchor_sections: FALSE
 params:
-  year: "2019"
+  year: 2019
+  park: "ACAD"
   plot_name: "ACAD-040"
   print: FALSE
 ---
@@ -41,33 +40,32 @@ plot_name <- params$plot_name
 ```{r source, include = FALSE}
 source("PrevVisit_FieldForms_NETN_compile.R")
 ```
+## `r paste0(plot_name, '-', year)` {.tabset .tabset-pills} 
 
-### Previous Visit: Plot and Stand Data for `r paste0(plot_name, '-', year)`
-
-```{r stand, child = "PrevVisit_1A_Stand_Data_long.Rmd"}
-```
-
-#### Plot and Visit Notes
-
+### Plot & Visit Notes
 ```{r visit_notes, child = "PrevVisit_1B_Visit_Notes.Rmd"}
 ```
 
-### Previous Visit: Microplot and CWD Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+### Plot & Stand Data
+
+```{r stand, child = "PrevVisit_1A_Stand_Data_wide.Rmd"}
+```
+
+### Microplot 
 
 ```{r micro2A, child = "PrevVisit_2A_Microplot_Data.Rmd"}
 ```
 
-#### Coarse Woody Debris 
-
+### CWD 
 ```{r cwd, child = "PrevVisit_2B_CWD_Data.Rmd"}
 ```
 
-### Previous Visit: Tree Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+### Trees {.tabset}
+
+#### Tree Data  
 
 ```{r tree3A, child = "PrevVisit_3A_Tree_Measurements.Rmd"}
 ```
-
-### Previous Visit: Tree Conditions and Foliage for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
 
 ```{r tree3B, child = "PrevVisit_3B_Tree_Conditions.Rmd"}
 ```
@@ -77,16 +75,21 @@ source("PrevVisit_FieldForms_NETN_compile.R")
 ```{r tree3C, child = "PrevVisit_3C_Tree_Foliage_Cond.Rmd"}
 ```
 
-### Previous Visit: Quadrat Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+### Quadrat Data 
 
 <hr>
 
 ```{r quad1a, child = "PrevVisit_4A_Quadrat_Data.Rmd"}
 ```
 
-### Previous Visit: Photopoints for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+### Photopoints 
 
 <hr>
 
-```{r photos, child = "PrevVisit_5A_Photopoints.Rmd"}
+```{r photos, child = "PrevVisit_5A_Photopoints_wide.Rmd"}
 ```
+
+```{r}
+rm(list = ls())
+```
+

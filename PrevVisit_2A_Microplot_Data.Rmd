@@ -4,9 +4,16 @@ output:
     css: www/styles_weeklyQC.css
     toc: false
     numbered_sections: false
+params: 
+  print: TRUE
 ---
 
-### Previous Visit: Microplot & CWD Data for `r paste0(plot_name, '-', year)` {.page-break-before} 
+```{r results = 'asis', echo = FALSE, eval = params$print}
+
+cat("### Previous Visit: Microplot and CWD Data for ")
+cat(paste0(plot_name, '-', year))
+
+```
 
 <hr>
 

@@ -19,7 +19,6 @@ visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
 
 ```
 
-#### Plot and Visit Notes
 ```{r visittab, echo = F}
 visit_table
 ```
