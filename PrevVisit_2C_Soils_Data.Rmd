@@ -9,7 +9,7 @@ output:
 
 ### Soil Samples
 
-```{r soildata, include = F}
+```{r include = F}
 
 soil_p <- soil |> filter(Plot_Name %in% plot_name) 
 
@@ -21,11 +21,11 @@ soil_tab <- kable(soil_p |> select(Sample, Horizon, Depth_cm),
 printsoil <- ifelse(nrow(soil_p) > 0, TRUE, FALSE)
 ```
 
-```{r soil_tab, eval = printsoil}
+```{r eval = printsoil}
 soil_tab
 ```
 
-```{r soil_cat, eval = !printsoil, results = 'asis'}
+```{r eval = !printsoil, results = 'asis'}
 cat("No soils sampled during visit")
 ```
 

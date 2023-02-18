@@ -22,7 +22,7 @@ cat(paste0(plot_name, '-', year))
 <hr>
 
 
-```{r quadd, include = F}
+```{r include = F}
 library(tidyverse)
 library(kableExtra)
 library(htmltools)
@@ -45,7 +45,7 @@ quad_tab <- kable(quad_p |> select(Species, UC, UR, MR, BR, BC, BL, ML, UL, Note
 ```
 
 <div class = 'quads'>
-```{r quad_tab}
+```{r }
 quad_tab
 ```
 </div>
@@ -53,13 +53,13 @@ quad_tab
 <br>
 
 #### Additional Species
-```{r addspp, include = F}
+```{r include = F}
 addspp_p <- addspp |> filter(Plot_Name %in% plot_name) |> 
   select(Species = ScientificName) |> arrange(Species) |> c()
 
 ```
 
-```{r, results = 'asis'}
+```{r results = 'asis'}
 cat(noquote(addspp_p$Species), sep = ", ")
 ```
 

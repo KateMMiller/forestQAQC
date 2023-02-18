@@ -16,7 +16,7 @@ cat(paste0(plot_name, '-', year))
 ```
 
 <hr>
-```{r standdata, include = FALSE}
+```{r include = FALSE}
 stand_plot1 <- left_join(plotevs, stand, 
                         by = c("Plot_Name", "IsStuntedWoodland", 
                                "SampleYear", "cycle")) |> 
@@ -69,7 +69,7 @@ treeht_tab <- kable(treeht_p |> select(CrownClassLabel, TagCode, Height),
 print_treeht <- ifelse(all(is.na(treeht_p$TagCode)), FALSE, TRUE)
 ```
 
-```{r azs, echo = F}
+```{r echo = F}
 UC = plotevs |> filter(Plot_Name %in% plot_name) |> select(Orientation) |> as.numeric()
 
 az_df <- data.frame(UC = c(UC, ifelse(grepl("ACAD", plot_name), 7.5, 10)), 
@@ -108,7 +108,7 @@ az_tab <- kable(az_df, format = 'html', align = 'c') |>
 
 ```
 
-```{r treesum, include = F}
+```{r include = F}
 tree_sump <- tree_sum |> filter(Plot_Name %in% plot_name) 
 
 tree_sump_w <- tree_sump |> pivot_wider(names_from = "Status", 
@@ -135,7 +135,7 @@ tree_sum_tab <- kable(tree_sump_w2,
 <div>
 <h4>Plot and Stand Data</h4>
 
-```{r standtab1, echo = F}
+```{r echo = F}
 stand_tab
 ```
 </div>
@@ -144,7 +144,7 @@ stand_tab
 <div class='map'>
 <h4>Tree Map</h4>
 <div style="margin-left:-50px;margin-bottom:10px;margin-top:0;padding-top:0;height:500px;width:550px;">
-```{r treemap, fig.align = 'right', warning=FALSE, message=FALSE}
+```{r fig.align = 'right', warning=FALSE, message=FALSE}
 suppressWarnings(
   plotTreeMap(park = park, from = as.numeric(year), 
             to = as.numeric(year), plotName = plot_name)
@@ -154,11 +154,11 @@ suppressWarnings(
 <h4>Tree Heights</h4>
 
 <div style="margin-right:20px;">
-```{r standtab4, echo = F, eval = print_treeht}
+```{r echo = F, eval = print_treeht}
 treeht_tab
 ```
 
-```{r treeht_cat, echo = F, eval = !print_treeht, results = 'asis'}
+```{r echo = F, eval = !print_treeht, results = 'asis'}
 cat("None taken")
 ```
 
@@ -167,7 +167,7 @@ cat("None taken")
 <div class = "two">
 <h4 style='margin-left:25px;'>Dist/Az.</h4>
 <div style="margin-left:25px;margin-right:0px;">
-```{r aztab, echo = F}
+```{r echo = F}
 az_tab
 ```
 </div>

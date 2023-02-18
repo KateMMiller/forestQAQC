@@ -17,7 +17,7 @@ cat(paste0(plot_name, '-', year))
 
 <hr>
 
-```{r sapdat, include = FALSE}
+```{r include = FALSE}
 sap_p <- saps |> filter(Plot_Name %in% plot_name) |> arrange(Micro, ScientificName, DBHcm) |> 
   mutate(Count = ifelse(Count > 1, Count, NA_real_))
 
@@ -50,21 +50,21 @@ seed_tab <- kable(seed_p,
 <div class = "flexbox">
 <div>
 <h4> Saplings </h4>
-```{r saptab, echo = F}
+```{r echo = F}
 sap_tab
 ```
 </div>
 
 <div>
 <h4> Shrubs </h4>
-```{r shrubtab, echo = F}
+```{r echo = F}
 shrub_tab
 ```
 </div>
 </div>
 
 #### Seedlings
-```{r seedtab, echo = F}
+```{r echo = F}
 seed_tab
 ```
 

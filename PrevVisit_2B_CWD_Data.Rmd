@@ -7,7 +7,7 @@ output:
 
 <br style = "clear:both">
 
-```{r cwddata, include = F}
+```{r include = F}
 
 cwd_p <- cwd |> filter(Plot_Name %in% plot_name) |> arrange(TransectCode, Distance, ScientificName) |> 
   mutate(Multi = ifelse(MultiCrossCode == "NA", NA_character_, MultiCrossCode),
@@ -26,7 +26,7 @@ cwd_tab <- kable(cwd_p |> select(TransectCode, Distance, Species, Diameter,
 
 ```
 
-```{r cwd_tab}
+```{r echo = F}
 cwd_tab
 ```
 </span>

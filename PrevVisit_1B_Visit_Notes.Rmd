@@ -6,7 +6,7 @@ output:
     numbered_sections: false
 ---
 
-```{r visitnotes, include = FALSE}
+```{r include = FALSE}
 visit_notes_p <- visit_notes |> filter(Plot_Name %in% plot_name) |> select(-Plot_Name, -SampleYear)
 
 visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
@@ -19,6 +19,6 @@ visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
 
 ```
 
-```{r visittab, echo = F}
+```{r echo = F}
 visit_table
 ```

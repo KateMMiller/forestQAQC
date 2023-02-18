@@ -17,7 +17,7 @@ cat(paste0(plot_name, '-', year))
 
 #### Tree Conditions
 
-```{r treec, include = F}
+```{r include = F}
 treec_p <- treecondl |> filter(Plot_Name %in% plot_name) 
 
 treec_p_w <- treec_p |> select(Tag, Species = ScientificName, Status, 
@@ -35,11 +35,11 @@ treec_tab <- kable(treec_p_w,
 print_c <- ifelse(nrow(treec_p) > 0, TRUE, FALSE)
 ```
 
-```{r treec_tab, eval = print_c}
+```{r eval = print_c}
 treec_tab
 ```
 
-```{r treec_cat, eval = !print_c, retults = 'asis'}
+```{r eval = !print_c, retults = 'asis'}
 cat("No tree conditions were reported during this visit.")
 
 ```

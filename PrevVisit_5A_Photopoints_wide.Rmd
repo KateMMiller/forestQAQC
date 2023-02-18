@@ -6,7 +6,7 @@ output:
     numbered_sections: false
     number_sections: false
 ---
-```{r plotnms, include = FALSE}
+```{r include = FALSE}
 # Using params to pull photo location and names from Z drive
 # park = "MABI"; year = 2018; plot = "MABI-001"
 # path <- paste0("Z:/PROJECTS/MONITORING/Forest_Health/5_Data/Photos/Photopoints/", 
@@ -26,7 +26,7 @@ photo_list <- photo_list[photo_order]
 <div class = "flexbox">
 <div>
 <h4 style='text-align:center'>UC</h4>
-```{r uc, echo = F, out.width = "75%", warnings = F, message = FALSE, fig.align = 'center'}
+```{r echo = F, out.width = "75%", warnings = F, message = FALSE, fig.align = 'center'}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UC"])))
 ```
 </div>
@@ -35,13 +35,13 @@ suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UC"])))
 <div class = "flexbox">
 <div>
 <h4 style='text-align:center'>UL</h4>
-```{r ul, echo = F, out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F, out.width = "98%", warnings = F, message = FALSE}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UL"])))
 ```
 </div>
 <div>
 <h4 style='text-align:center'>UR</h4>
-```{r ur, echo = F, out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F, out.width = "98%", warnings = F, message = FALSE}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UR"])))
 ```
 </div>
@@ -49,13 +49,13 @@ suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UR"])))
 
 <div class = "flexbox">
 <div>
-```{r bl, echo = F,  out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F,  out.width = "98%", warnings = F, message = FALSE}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BL"])))
 ```
 <h4 style='text-align:center'>BL</h4>
 </div>
 <div>
-```{r br, echo = F,  out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F,  out.width = "98%", warnings = F, message = FALSE}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BR"])))
 ```
 <h4 style='text-align:center'>BR</h4>

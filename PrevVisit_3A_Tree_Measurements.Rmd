@@ -21,7 +21,7 @@ cat(paste0(plot_name, '-', year))
 ```
 <hr>
 
-```{r treem, include = F}
+```{r include = F}
 library(tidyverse)
 library(kableExtra)
 library(htmltools)
@@ -42,7 +42,7 @@ tree_tab <- kable(tree_p |> select(Tag, ScientificName, Fork, Azimuth, Distance,
 
 ```
 
-```{r tree_tab, echo = F}
+```{r echo = F}
 tree_tab
 ```
 
