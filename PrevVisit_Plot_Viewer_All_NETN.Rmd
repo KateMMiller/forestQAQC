@@ -1,0 +1,139 @@
+---
+output: 
+  html_document:
+    css: www/styles_prevvisit.css
+    anchor_sections: FALSE
+params:
+  yearpv: 2019
+  parkcode: "ACAD"
+  print: FALSE
+---
+
+# Previous visit data for `r paste0(params$parkcode, " ", params$yearpv)` {.tabset .tabset-pills}
+```{r echo = F, include = F}
+library(forestNETN)
+library(pagedown)
+library(tidyverse)
+library(htmltools)
+library(knitr)
+#devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0") # for collapse_rows()
+library(kableExtra)
+library(ggrepel)
+library(cowplot)
+library(DT) # for sort/filter table features
+importData()
+```
+
+```{r echo = F, include = F, cache = F}
+# Create environment for rmds to pull params from
+child_env <- new.env()
+
+year = as.numeric(params$yearpv)
+park = params$parkcode
+
+
+child_env$year <- year
+child_env$park <- park
+
+child_env$acad_plots <- joinLocEvent(park = park, 
+                                     from = year, 
+                                     to = year) |> 
+                        select(Plot_Name, SampleYear) |> 
+                        arrange(Plot_Name)
+
+child_env$plot_list <- child_env$acad_plots$Plot_Name
+#child_env$plot_name <- child_env$plot_list[1]
+
+sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
+```
+
+
+```{r echo = F, include = F}
+year = as.numeric(params$yearpv)
+park = params$parkcode
+
+# Summary Table for first tab
+plot_info <- joinLocEvent(park = park, from = year, to = year) |> 
+             mutate(Unit = case_when(ParkSubUnit %in% "ACAD_MDI_East" ~ "East",
+                                     ParkSubUnit %in% "ACAD_MDI_West" ~ "West",
+                                     ParkSubUnit %in% "ACAD_Schoodic" ~ "Schoodic",
+                                     ParkSubUnit %in% "ACAD_Isle_Au_Haut" ~ "IAH", 
+                                     TRUE ~ substr(ParkSubUnit, 6, nchar(ParkSubUnit)))) |> 
+               select(Plot_Name, PlotCode, Unit, Notes = PlotNotes, 
+                      Directions, Stunted = IsStuntedWoodland)  
+
+
+trees <- joinTreeData(park = park, from = year, to = year) |> 
+  group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
+
+regen <- joinRegenData(park = park, from = year, to = year) |> 
+  group_by(Plot_Name) |> summarize(num_saps = round(sum(sap_den) * 3, 1),
+                                   num_seeds = round(sum(seed_den) * 3, 1))
+
+quadspp <- joinQuadSpecies(park = park, from = year, to = year) |> 
+  filter(IsGerminant == FALSE) |> 
+  group_by(Plot_Name) |> 
+  summarize(num_quadspp = sum(!ScientificName %in% "None present"))
+
+addspp <- joinAdditionalSpecies(park = park, from = year, to = year) |> 
+  group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
+
+comb <- purrr::reduce(list(plot_info, trees, regen, quadspp, addspp), left_join, by = "Plot_Name") |> 
+  mutate(Concerns = NA, Stunt = ifelse(Stunted == TRUE, "T", "F")) |> 
+  select(PlotCode, Unit, Stunt, num_trees, num_saps, num_seeds, num_quadspp, num_addspp, 
+         Notes, Directions, Concerns)
+
+fakerow <- comb[1,]
+fakerow[,2:8] <- NA
+morespace <- "XXXXXXXXXXXXXXXXXXXXXXXXXX"
+fakerow$Notes <- morespace
+fakerow$Directions <- morespace
+fakerow$Concerns <- morespace
+fakerow$PlotCode <- "999"
+
+comb <- rbind(comb, fakerow) 
+
+# comb_table <- kable(comb, col.names = c("Plot", "Unit", "Stunt", "Trees", "Saps", "Seeds", 
+#                                     "QuadSpp", "AddSpp", "Notes", "Directions", "Concerns"),
+#                     format = 'html', escape = F, align = c(rep('c', 8), rep('l', 3)),
+#                     table.attr = "class='dtable'") |> 
+#               kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE)
+#                                     
+# comb_table
+comb_tbl <- datatable(comb, class = 'cell-border stripe', rownames = FALSE,
+                      extensions = "FixedColumns",
+                      colnames = c("Plot", "Unit", "Stunt", "Trees", "Saps", "Seeds",
+                                   "QuadSpp", "AddSpp", "Notes", "Directions", "Concerns"),
+                      options = list(
+                            pageLength = nrow(comb)-1,
+                            AutoWidth = TRUE, scrollX = TRUE, scrollY = '600px',
+                            scrollCollapse = TRUE,
+                                     lengthMenu = c(5, 10, nrow(comb)-1),
+                                     fixedColumns = TRUE,
+                                     columnDefs = list(
+                                       list(className = 'dt-center', width = '62px', targets = 0:7),
+                                       list(className = 'dt-left', width = '186px', targets = 8:10)
+                                       )),
+                      filter = list(position = c('top'), clear = FALSE),
+                      editable = list(target = 'cell', disable = list(columns = 1:10))) 
+
+
+```
+
+## Summary {.tabset}
+```{r echo = F}
+comb_tbl
+```
+
+```{r results = 'asis', echo = F}
+res <- lapply(seq_along(child_env$plot_list), function(x) {
+  child_env$plot_name = child_env$plot_list[[x]]
+
+  knitr::knit_child(
+    'PrevVisit_Plot_Viewer_Indiv_NETN.Rmd', 
+     envir = child_env,
+     quiet = TRUE )
+  
+})
+cat(unlist(res), sep = '\n')
+```
