@@ -136,21 +136,24 @@ quaddata <- do.call(joinQuadData, arglist) |>
 
 quad_tramp <- get("QuadNotes_NETN", envir = VIEWS_NETN) 
 
+quad_tramp_note <- quad_tramp |> group_by(Plot_Name, SampleYear) |> 
+  filter(!is.na(SQQuadCharNotes)) |> 
+  summarize(Note = toString(unique(SQQuadCharNotes)))
+
 quad_tramp2 <- quad_tramp %>% 
   filter(EventID %in% ev_list$EventID) %>% 
-  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled, 
-         Note = SQQuadCharNotes) %>% 
+  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% # Note = SQQuadCharNotes) %>% 
   unique() |> 
   mutate(Trampled = ifelse(IsTrampled == TRUE, "X", NA_character_)) |> 
   select(-IsTrampled, -SQQuadCharCode)
-
-head(quad_tramp2)
 
 quad_tramp_w <- quad_tramp2 |> pivot_wider(names_from = "QuadratCode", 
                                            values_from = "Trampled") |> 
   arrange(Plot_Name) |> 
   mutate(Species = "Trampled") |> 
-  select(Plot_Name, SampleYear, Note, Species, UC, UR, MR, BR, BC, BL, ML, UL)
+  select(Plot_Name, SampleYear, Species, UC, UR, MR, BR, BC, BL, ML, UL) 
+
+quad_tramp_w2 <- left_join(quad_tramp_w, quad_tramp_note, by = c("Plot_Name", "SampleYear"))
 
 quadspp <- do.call(joinQuadSpecies, arglist) |> 
   filter(IsGerminant == FALSE) |> 
@@ -159,8 +162,7 @@ quadspp <- do.call(joinQuadSpecies, arglist) |>
   arrange(Plot_Name, Species)|> 
   rename_with(stringr::str_replace, pattern = "Txt_Cov_", replacement = "") 
 
-quad_all <- rbind(quad_tramp_w, quaddata, quadspp)
-names(quadspp)
+quad_all <- rbind(quad_tramp_w2, quaddata, quadspp)
 
 #----- Additional Species -----
 addspp <- do.call(joinAdditionalSpecies, arglist) |> 
