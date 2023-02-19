@@ -15,7 +15,6 @@ cat(paste0(plot_name, '-', year))
 
 ```
 
-<hr>
 ```{r include = FALSE}
 stand_plot1 <- left_join(plotevs, stand, 
                         by = c("Plot_Name", "IsStuntedWoodland", 
