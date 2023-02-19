@@ -148,8 +148,6 @@ render_viewer <- function(park, year){
 # running through a few at a time b/c bogs down laptop
 purrr::map2(parks, years, ~render_viewer(.x, .y))
 
-
-
 #---- OPTIONAL: Render report of all visit data on a plot -----
 # all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |> 
 #   select(ParkUnit, Plot_Name, SampleYear, PanelCode) |> 
