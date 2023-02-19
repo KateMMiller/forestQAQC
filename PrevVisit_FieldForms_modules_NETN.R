@@ -131,46 +131,65 @@ combine_quad_pdfs <- function(park, path, year){
 purrr::map(nhps, ~combine_quad_pdfs(., path, year = 2018))
 combine_quad_pdfs("ACAD", path, year = 2019)
 
-#---- OPTIONAL: Render report of all visit data on a plot -----
-all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |> 
-  select(ParkUnit, Plot_Name, SampleYear, PanelCode) |> 
-  filter(ParkUnit == "ACAD" & PanelCode == 2 |
-           ParkUnit != "ACAD" & PanelCode == 1) |> 
-  arrange(Plot_Name)
+#---- Render plot viewers for each park -----
+parks = c("ACAD", "MABI", "MIMA", "SAGA", "SARA")
+years = c(2019, rep(2018, 4))
 
-plot_list <- all_plots$Plot_Name
-year_list <- all_plots$SampleYear
-plot_list
-year_list
-
-render_all <- function(plot, pv_year){
-  park = substr(plot, 1, 4)
-  render(input = "PrevVisit_FieldForms_NETN.Rmd",
-         params = list(plot_name = plot, 
-                       year = as.numeric(pv_year), 
+render_viewer <- function(park, year){
+  render(input = "PrevVisit_Plot_Viewer_All_NETN.Rmd",
+         params = list(parkcode = park, 
+                       yearpv = as.numeric(year), 
                        print = FALSE),
-         output_file = paste0(path, "indiv_all\\",
-                              plot, "_", pv_year, "_Visits.html"))
+         output_file = paste0(path, park, "_", year, "_Plot_Viewer.html"))
 }
-render_poss <- possibly(.f = render_all, otherwise = NULL)
+
+#render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-purrr::map2(plot_list[51:92], year_list[51:92], ~render_poss(.x, .y))
+purrr::map2(parks[2], years[2], ~render_viewer(.x, .y))
 
-##----- Convert individual html to pdf (ignore warnings unless it doesn't work) -----
-html_list <- list.files(paste0(path, "indiv_all\\"), pattern = '.html', full.names = T)
-pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
-walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
 
-##----- Combine park-level pdfs into 1 pdf -----
-nhps <- c("MABI", "MIMA", "SAGA", "SARA")
 
-combine_visit_pdfs <- function(park, path, year){
-  pdf_list <- list.files(paste0(path, "indiv_all\\"), pattern = ".pdf", full.names = TRUE)
-  park_list <- pdf_list[grep((park), pdf_list)]
-  pdftools::pdf_combine(input = park_list,
-                        output = paste0(path, park, "_", year, "_All_Visits.pdf"))
-}
-
-purrr::map(nhps, ~combine_visit_pdfs(., path, year = 2018))
-combine_visit_pdfs("ACAD", path, year = 2019)
+#---- OPTIONAL: Render report of all visit data on a plot -----
+# all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |> 
+#   select(ParkUnit, Plot_Name, SampleYear, PanelCode) |> 
+#   filter(ParkUnit == "ACAD" & PanelCode == 2 |
+#            ParkUnit != "ACAD" & PanelCode == 1) |> 
+#   arrange(Plot_Name)
+# 
+# plot_list <- all_plots$Plot_Name
+# year_list <- all_plots$SampleYear
+# plot_list
+# year_list
+# 
+# render_all <- function(plot, pv_year){
+#   park = substr(plot, 1, 4)
+#   render(input = "PrevVisit_FieldForms_NETN.Rmd",
+#          params = list(plot_name = plot, 
+#                        year = as.numeric(pv_year), 
+#                        print = FALSE),
+#          output_file = paste0(path, "indiv_all\\",
+#                               plot, "_", pv_year, "_Visits.html"))
+# }
+# render_poss <- possibly(.f = render_all, otherwise = NULL)
+# 
+# # running through a few at a time b/c bogs down laptop
+# purrr::map2(plot_list[51:92], year_list[51:92], ~render_poss(.x, .y))
+# 
+# ##----- Convert individual html to pdf (ignore warnings unless it doesn't work) -----
+# html_list <- list.files(paste0(path, "indiv_all\\"), pattern = '.html', full.names = T)
+# pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
+# walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
+# 
+# ##----- Combine park-level pdfs into 1 pdf -----
+# nhps <- c("MABI", "MIMA", "SAGA", "SARA")
+# 
+# combine_visit_pdfs <- function(park, path, year){
+#   pdf_list <- list.files(paste0(path, "indiv_all\\"), pattern = ".pdf", full.names = TRUE)
+#   park_list <- pdf_list[grep((park), pdf_list)]
+#   pdftools::pdf_combine(input = park_list,
+#                         output = paste0(path, park, "_", year, "_All_Visits.pdf"))
+# }
+# 
+# purrr::map(nhps, ~combine_visit_pdfs(., path, year = 2018))
+# combine_visit_pdfs("ACAD", path, year = 2019)
