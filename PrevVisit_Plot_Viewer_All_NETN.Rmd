@@ -122,8 +122,8 @@ comb_tbl <- datatable(comb, class = 'cell-border stripe', rownames = FALSE,
 ```
 
 ## Summary {.tabset}
-```{r echo = F}
-comb_tbl
+```{r echo = F, message = F, warning = F}
+suppressWarnings(comb_tbl)
 ```
 
 ```{r results = 'asis', echo = F}
