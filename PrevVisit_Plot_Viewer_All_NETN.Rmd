@@ -41,7 +41,7 @@ child_env$acad_plots <- joinLocEvent(park = park,
                         select(Plot_Name, SampleYear) |> 
                         arrange(Plot_Name)
 
-child_env$plot_list <- child_env$acad_plots$Plot_Name#[c(1:2, 22)]
+child_env$plot_list <- child_env$acad_plots$Plot_Name#[c(1:2)]
 #child_env$plot_name <- child_env$plot_list[1]
 
 sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
@@ -79,7 +79,7 @@ addspp <- joinAdditionalSpecies(park = park, from = year, to = year) |>
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
 comb <- purrr::reduce(list(plot_info, trees, regen, quadspp, addspp), left_join, by = "Plot_Name") |> 
-  mutate(Concerns = NA, Stunt = ifelse(Stunted == TRUE, "T", "F"),
+  mutate(Concerns = NA, #Stunt = ifelse(Stunted == TRUE, "T", "F"),
          num_qaspp = num_quadspp + num_addspp) |> 
   select(PlotCode, Unit, #Stunt, 
          num_trees, num_saps, num_seeds, num_qaspp, #num_quadspp, num_addspp, 
@@ -93,12 +93,21 @@ comb_tbl <- datatable(comb, class = 'cell-border stripe', rownames = FALSE,
                       colnames = c("Plot", "Unit", #"Stunt", 
                                    "Trees", "Saps", "Seeds",
                                    "Quad-AddSpp", #"Notes", "Directions", "Concerns"),
-                                   "Notes_____________________", "Directions____________________",
+                                   "Notes________________________", "Directions_______________________",
                                    "Concerns__________________"),
-                      options = list(
+                      options = list(       
+                        initComplete = htmlwidgets::JS(
+                          "function(settings, json) {",
+                            "$('body').css({'font-size': '11px'});",
+                            "$('body').css({'font-family': 'Arial'});",
+                            "$(this.api().table().header()).css({'font-size': '11px'});",
+                            "$(this.api().table().header()).css({'font-family': 'Arial'});",
+                          "}"),
+                          #paste0("$(this.api().table().container()).css({'font-size': 12px;})}")),
+                            
                                      pageLength = 10,
                                      autoWidth = FALSE, scrollX = TRUE,
-                                     scrollY = '400px',
+                                     scrollY = '600px',
                                      scrollCollapse = TRUE,
                                      lengthMenu = c(5, 10, nrow(comb)),
                                      fixedColumns = list(leftColumns = 1),

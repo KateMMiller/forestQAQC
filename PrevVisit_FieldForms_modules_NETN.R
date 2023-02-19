@@ -146,7 +146,7 @@ render_viewer <- function(park, year){
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-purrr::map2(parks[2], years[2], ~render_viewer(.x, .y))
+purrr::map2(parks, years, ~render_viewer(.x, .y))
 
 
 
