@@ -58,14 +58,10 @@ library(cowplot)
 
 ### Quadrat Data 
 
-<hr>
-
 ```{r child = "PrevVisit_4A_Quadrat_Data.Rmd"}
 ```
 
 ### Photopoints 
-
-<hr>
 
 ```{r child = "PrevVisit_5A_Photopoints_wide.Rmd"}
 ```
