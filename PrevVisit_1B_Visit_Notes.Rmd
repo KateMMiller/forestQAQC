@@ -9,6 +9,8 @@ output:
 ```{r include = FALSE}
 visit_notes_p <- visit_notes |> filter(Plot_Name %in% plot_name) |> select(-Plot_Name, -SampleYear)
 
+if(nrow(visit_notes_p) == 0)(warning("PrevVisit_1B_Visit_Notes.rmd returned dataframe with 0 rows."))
+
 visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
                      col.names = c("Note Type", "Sample_Info", "Note"),
                      table.attr = "style='width:624px';") %>% 

@@ -5,7 +5,7 @@ output:
     anchor_sections: FALSE
 params:
   yearpv: 2018
-  parkcode: "MIMA"
+  parkcode: "MABI"
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -25,19 +25,21 @@ library(kableExtra)
 library(ggrepel)
 library(cowplot)
 library(DT) # for sort/filter table features
-importData()
+#source("PrevVisit_FieldForms_NETN_compile.R") 
 ```
 
 ```{r echo = F, include = F, cache = F}
 # Create environment for rmds to pull params from
 child_env <- new.env()
+importData()
+for(n in ls(VIEWS_NETN, all.names = TRUE)) assign(n, get(n, VIEWS_NETN), child_env)
 
 year = as.numeric(params$yearpv)
 park = params$parkcode
 
-
 child_env$year <- year
 child_env$park <- park
+child_env$print <- FALSE
 
 child_env$acad_plots <- joinLocEvent(park = park, 
                                      from = year, 
@@ -46,16 +48,14 @@ child_env$acad_plots <- joinLocEvent(park = park,
                         arrange(Plot_Name)
 
 child_env$plot_list <- child_env$acad_plots$Plot_Name#[c(1:2)]
-#child_env$plot_name <- child_env$plot_list[1]
+child_env$plot_name <- child_env$plot_list[1]
+
 
 sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
 ```
 
 
 ```{r echo = F, include = F}
-year = as.numeric(params$yearpv)
-park = params$parkcode
-
 # Summary Table for first tab
 plot_info <- joinLocEvent(park = park, from = year, to = year) |> 
              mutate(Unit = case_when(ParkSubUnit %in% "ACAD_MDI_East" ~ "East",
@@ -130,8 +130,9 @@ comb_tbl <- datatable(comb, class = 'cell-border stripe', rownames = FALSE,
 suppressWarnings(comb_tbl)
 ```
 
-```{r results = 'asis', echo = F}
+```{r results = 'asis', echo = F, eval = T}
 res <- lapply(seq_along(child_env$plot_list), function(x) {
+  
   child_env$plot_name = child_env$plot_list[[x]]
 
   knitr::knit_child(

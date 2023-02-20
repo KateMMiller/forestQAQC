@@ -144,10 +144,10 @@ stand_tab
 <h4>Tree Map</h4>
 <div style="margin-left:-50px;margin-bottom:10px;margin-top:0;padding-top:0;height:500px;width:550px;">
 ```{r fig.align = 'right', warning=FALSE, message=FALSE}
-suppressWarnings(
+#suppressWarnings(
   plotTreeMap(park = park, from = as.numeric(year), 
             to = as.numeric(year), plotName = plot_name)
-)
+#)
 ```
 <div class = "one">
 <h4>Tree Heights</h4>

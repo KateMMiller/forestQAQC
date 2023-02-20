@@ -111,7 +111,7 @@ walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
 nhps <- c("MABI", "MIMA", "SAGA", "SARA")
 
 combine_tree_pdfs <- function(park, path, year){
-  pdf_list <- list.files(paste0(path, '\\indiv\\'), pattern = ".pdf", full.names = TRUE)
+  pdf_list <- list.files(path, pattern = ".pdf", full.names = TRUE)
   trees <- pdf_list[grep(("Trees"), pdf_list)]
   park_trees <- trees[grep((park), trees)]
   pdftools::pdf_combine(input = park_trees,
@@ -121,8 +121,9 @@ combine_tree_pdfs <- function(park, path, year){
 purrr::map(nhps, ~combine_tree_pdfs(., path, year = 2018))
 combine_tree_pdfs("ACAD", path, year = 2019)
 
+
 combine_quad_pdfs <- function(park, path, year){
-  pdf_list <- list.files(paste0(path, '\\indiv\\'), pattern = ".pdf", full.names = TRUE)
+  pdf_list <- list.files(path, pattern = ".pdf", full.names = TRUE)
   trees <- pdf_list[grep(("Quads"), pdf_list)]
   park_trees <- trees[grep((park), trees)]
   pdftools::pdf_combine(input = park_trees,
@@ -133,6 +134,7 @@ purrr::map(nhps, ~combine_quad_pdfs(., path, year = 2018))
 combine_quad_pdfs("ACAD", path, year = 2019)
 
 #---- Render plot viewers for each park -----
+source("PrevVisit_FieldForms_NETN_compile.R") 
 parks = c("ACAD", "MABI", "MIMA", "SAGA", "SARA")
 years = c(2019, rep(2018, 4))
 

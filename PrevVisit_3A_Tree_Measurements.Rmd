@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE)
 options(knitr.kable.NA = '')
 ```
 
-```{r, echo = F, include = F}
+```{r, echo = F, include = F, eval = params$print}
 plot_name = params$plot_name
 year = as.numeric(params$year)
 park = substr(plot_name, 1, 4)
