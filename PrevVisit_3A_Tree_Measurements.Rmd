@@ -7,19 +7,28 @@ output:
     number_sections: false
 params:
   print: TRUE
+  plot_name: "MABI-001"
+  year: 2018
 ---
 ```{r include = FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 options(knitr.kable.NA = '')
 ```
 
-```{r results = 'asis', echo = FALSE, eval = params$print}
-
-cat("### Previous Visit: Tree Data for ")
-cat(paste0(plot_name, '-', year))
-
+```{r, echo = F, include = F}
+plot_name = params$plot_name
+year = as.numeric(params$year)
+park = substr(plot_name, 1, 4)
 ```
-<hr>
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+cat("<h3> Previous Visit: Tree Data for ")
+
+cat(paste0(plot_name, '-', year), "</h3>")
+
+cat("<hr>")
+```
+
 
 ```{r include = F}
 library(tidyverse)

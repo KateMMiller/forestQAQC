@@ -48,20 +48,22 @@ rmdtr <- "PrevVisit_3A_Tree_Measurements.Rmd"
 
 render_trees <- function(plot, pv_year){
   park = substr(plot, 1, 4)
+  plotname = plot
   render(input = rmdtr,
-         params = list(plot_name = plot, 
+         params = list(plot_name = plotname, 
                        year = as.numeric(pv_year), 
                        print = TRUE),
          output_file = paste0(path, "indiv\\", 
                               plot, "_", pv_year, "_Trees.html"))
 }
 
-rmdqd <- "PrevVisit_4A_Quadrat_Data.Rmd"
+rmdqd <- "PrevVisit_4A_Quadrat_Data_NETN.Rmd"
 
 render_quads <- function(plot, pv_year){
   park = substr(plot, 1, 4)
+  plotname = plot
   render(input = rmdqd,
-         params = list(plot_name = plot, 
+         params = list(plot_name = plotname, 
                        year = as.numeric(pv_year), 
                        print = TRUE),
          output_file = paste0(path, "indiv\\",
@@ -136,7 +138,7 @@ parks = c("ACAD", "MABI", "MIMA", "SAGA", "SARA")
 years = c(2019, rep(2018, 4))
 
 render_viewer <- function(park, year){
-  render(input = "PrevVisit_Plot_Viewer_All_NETN.Rmd",
+  render(input = "PrevVisit_Plot_Viewer_NETN_All.Rmd",
          params = list(parkcode = park, 
                        yearpv = as.numeric(year), 
                        print = FALSE),
@@ -162,7 +164,7 @@ purrr::map2(parks, years, ~render_viewer(.x, .y))
 # 
 # render_all <- function(plot, pv_year){
 #   park = substr(plot, 1, 4)
-#   render(input = "PrevVisit_FieldForms_NETN.Rmd",
+#   render(input = "PrevVisit_FieldForms_NETN_paged_plot.Rmd",
 #          params = list(plot_name = plot, 
 #                        year = as.numeric(pv_year), 
 #                        print = FALSE),

@@ -34,7 +34,7 @@ library(cowplot)
 
 ### Microplot 
 
-```{r child = "PrevVisit_2A_Microplot_Data.Rmd"}
+```{r child = "PrevVisit_2A_Microplot_Data_NETN.Rmd"}
 ```
 
 ### CWD 
@@ -58,7 +58,7 @@ library(cowplot)
 
 ### Quadrat Data 
 
-```{r child = "PrevVisit_4A_Quadrat_Data.Rmd"}
+```{r child = "PrevVisit_4A_Quadrat_Data_NETN.Rmd"}
 ```
 
 ### Photopoints 

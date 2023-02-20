@@ -12,10 +12,9 @@ params:
 
 cat("### Previous Visit: Microplot and CWD Data for ")
 cat(paste0(plot_name, '-', year))
-
+cat("<hr>")
 ```
 
-<hr>
 
 ```{r include = FALSE}
 sap_p <- saps |> filter(Plot_Name %in% plot_name) |> arrange(Micro, ScientificName, DBHcm) |> 

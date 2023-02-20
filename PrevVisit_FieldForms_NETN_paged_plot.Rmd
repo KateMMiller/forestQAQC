@@ -6,8 +6,8 @@ output:
     numbered_sections: false
     number_sections: false
 params:
-  year: "2019"
-  plot_name: "ACAD-040"
+  year: "2018"
+  plot_name: "SARA-001"
   print: FALSE
 ---
 ```{r setup, include = FALSE}
@@ -54,7 +54,9 @@ source("PrevVisit_FieldForms_NETN_compile.R")
 
 ### Previous Visit: Microplot and CWD Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
 
-```{r micro2A, child = "PrevVisit_2A_Microplot_Data.Rmd"}
+<hr>
+
+```{r micro2A, child = "PrevVisit_2A_Microplot_Data_NETN.Rmd"}
 ```
 
 #### Coarse Woody Debris 
@@ -63,6 +65,8 @@ source("PrevVisit_FieldForms_NETN_compile.R")
 ```
 
 ### Previous Visit: Tree Data for `r paste0(params$plot, '-', params$year)` {.page-break-before} 
+
+<hr>
 
 ```{r tree3A, child = "PrevVisit_3A_Tree_Measurements.Rmd"}
 ```
@@ -81,7 +85,7 @@ source("PrevVisit_FieldForms_NETN_compile.R")
 
 <hr>
 
-```{r quad1a, child = "PrevVisit_4A_Quadrat_Data.Rmd"}
+```{r quad1a, child = "PrevVisit_4A_Quadrat_Data_NETN.Rmd"}
 ```
 
 ### Previous Visit: Photopoints for `r paste0(params$plot, '-', params$year)` {.page-break-before} 

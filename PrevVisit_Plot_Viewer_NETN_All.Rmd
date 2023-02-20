@@ -5,7 +5,7 @@ output:
     anchor_sections: FALSE
 params:
   yearpv: 2018
-  parkcode: "MABI"
+  parkcode: "MIMA"
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -135,7 +135,7 @@ res <- lapply(seq_along(child_env$plot_list), function(x) {
   child_env$plot_name = child_env$plot_list[[x]]
 
   knitr::knit_child(
-    'PrevVisit_Plot_Viewer_Indiv_NETN.Rmd', 
+    'PrevVisit_Plot_Viewer_NETN_Indiv.Rmd', 
      envir = child_env,
      quiet = TRUE )
   
