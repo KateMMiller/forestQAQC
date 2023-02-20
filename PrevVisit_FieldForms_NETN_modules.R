@@ -139,11 +139,13 @@ parks = c("ACAD", "MABI", "MIMA", "SAGA", "SARA")
 years = c(2019, rep(2018, 4))
 
 render_viewer <- function(park, year){
+  park_code = park
+  yr = as.numeric(year)
   render(input = "PrevVisit_Plot_Viewer_NETN_All.Rmd",
-         params = list(parkcode = park, 
-                       yearpv = as.numeric(year), 
+         params = list(parkcode = park_code, 
+                       yearpv = yr, 
                        print = FALSE),
-         output_file = paste0(path, park, "_", year, "_Plot_Viewer.html"))
+         output_file = paste0(path, park, "_", yr, "_Plot_Viewer.html"))
 }
 
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
