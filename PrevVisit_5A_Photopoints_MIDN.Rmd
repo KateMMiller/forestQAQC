@@ -1,0 +1,63 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+    number_sections: false
+---
+```{r include = FALSE}
+# Using params to pull photo location and names from Z drive
+# park = "APCO"; year = 2018; plot = "APCO-262"
+# path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park 
+#                "/")
+path <- paste0("C:/NETN/Monitoring_Projects/Forest_Health/Photopoints/", 
+               year, "/", park, "/")
+all_photos <- list.files(path)
+plot2 <- sub("-", "_", plot_name)
+
+photo_order <- c("UC", "UL", "UR", "BL", "BR")
+photo_list1 <- all_photos[grep(plot2, all_photos)]
+photo_list <- photo_list1[grep("UC|UR|BR|BL|UL", photo_list1)]
+photo_list <- setNames(photo_list, substr(photo_list, 10, 11))
+photo_list <- photo_list[photo_order]
+```
+
+<div class = "flexbox">
+<div>
+<h4 style='text-align:center'>UC</h4>
+```{r echo = F, out.width = "75%", dpi = 72, warnings = F, message = FALSE, fig.align = 'center'}
+suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UC"])))
+```
+</div>
+<div></div>
+</div>
+<div class = "flexbox">
+<div>
+<h4 style='text-align:center'>UL</h4>
+```{r echo = F, out.width = "98%", dpi = 72, warnings = F, message = FALSE}
+suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UL"])))
+```
+</div>
+<div>
+<h4 style='text-align:center'>UR</h4>
+```{r echo = F, out.width = "98%", dpi = 72, warnings = F, message = FALSE}
+suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UR"])))
+```
+</div>
+</div>
+
+<div class = "flexbox">
+<div>
+```{r echo = F,  out.width = "98%", dpi = 72, warnings = F, message = FALSE}
+suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BL"])))
+```
+<h4 style='text-align:center'>BL</h4>
+</div>
+<div>
+```{r echo = F,  out.width = "98%", dpi = 72, warnings = F, message = FALSE}
+suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BR"])))
+```
+<h4 style='text-align:center'>BR</h4>
+</div>
+</div>

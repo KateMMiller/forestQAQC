@@ -1,0 +1,39 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_weeklyQC.css
+    toc: false
+    numbered_sections: false
+params: 
+  print: TRUE
+---
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+
+cat("### Previous Visit: Microplot and CWD Data for ")
+cat(paste0(plot_name, '-', year))
+cat("<hr>")
+```
+
+
+```{r include = FALSE}
+sap_p <- saps |> filter(Plot_Name %in% plot_name) |> arrange(Micro, Tag) 
+head(sap_p)
+
+sap_tab <- kable(sap_p |> select(Micro, Tag, Fork, ScientificName, DBHcm, Status),
+                  col.names = c("Micro", "Tag", "Fork", "Species", "DBH", "Status"),
+                  format = 'html', align = c('c', 'c', 'c', 'l', 'c', 'c')) |> 
+           kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                         font_size = 11) |>
+           collapse_rows(1, valign = 'top') 
+
+```
+
+<div class = "flexbox">
+<div>
+<h4> Saplings </h4>
+```{r echo = F}
+sap_tab
+```
+</div>
+
