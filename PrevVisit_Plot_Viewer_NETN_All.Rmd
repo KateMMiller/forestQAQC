@@ -5,7 +5,7 @@ output:
     anchor_sections: FALSE
 params:
   yearpv: 2018
-  parkcode: "MABI"
+  parkcode: "SAGA"
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -66,6 +66,9 @@ plot_info <- joinLocEvent(park = park, from = year, to = year) |>
                select(Plot_Name, PlotCode, Unit, Notes = PlotNotes, 
                       Directions)#, Stunted = IsStuntedWoodland)  
 
+visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all") |> 
+  filter(Note_Type %in% c("Plot_Notes", "Observer_Tab_Notes", "Stand_Notes", "Stand_Disturbances")) |> 
+  select(Plot_Name, Notes) |> group_by(Plot_Name) |> summarize(Notes = toString(unique(Notes)))
 
 trees <- joinTreeData(park = park, from = year, to = year) |> 
   group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
@@ -83,10 +86,9 @@ addspp <- joinAdditionalSpecies(park = park, from = year, to = year) |>
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
 comb <- purrr::reduce(list(plot_info, trees, regen, quadspp, addspp), left_join, by = "Plot_Name") |> 
-  mutate(Concerns = NA, #Stunt = ifelse(Stunted == TRUE, "T", "F"),
-         num_qaspp = num_quadspp + num_addspp) |> 
+  mutate(Concerns = NA) |> 
   select(PlotCode, Unit, #Stunt, 
-         num_trees, num_saps, num_seeds, num_qaspp, #num_quadspp, num_addspp, 
+         num_trees, num_saps, num_seeds, num_quadspp, num_addspp, 
          Notes, Directions, Concerns)
 
 # Couldn't get dt to recognize the column widths, so hacked it with colnames. 
@@ -96,7 +98,7 @@ comb_tbl <- datatable(comb, class = 'cell-border stripe', rownames = FALSE,
                       extensions = c("FixedColumns", "Buttons"),
                       colnames = c("Plot", "Unit", #"Stunt", 
                                    "Trees", "Saps", "Seeds",
-                                   "Quad-AddSpp", #"Notes", "Directions", "Concerns"),
+                                   "QuadSpp", "AddSpp", #"Notes", "Directions", "Concerns"),
                                    "Notes________________________", "Directions_______________________",
                                    "Concerns__________________"),
                       options = list(       
@@ -143,3 +145,8 @@ res <- lapply(seq_along(child_env$plot_list), function(x) {
 })
 cat(unlist(res), sep = '\n')
 ```
+
+```{r}
+rm(list = ls())
+```
+
