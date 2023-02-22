@@ -63,12 +63,16 @@ plot_info <- joinLocEvent(park = park, from = year, to = year) |>
                                      ParkSubUnit %in% "ACAD_Schoodic" ~ "Schoodic",
                                      ParkSubUnit %in% "ACAD_Isle_au_Haut" ~ "IAH", 
                                      TRUE ~ substr(ParkSubUnit, 6, nchar(ParkSubUnit)))) |> 
-               select(Plot_Name, PlotCode, Unit, Notes = PlotNotes, 
+               select(Plot_Name, PlotCode, Unit, #Notes = PlotNotes, 
                       Directions)#, Stunted = IsStuntedWoodland)  
 
 visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all") |> 
   filter(Note_Type %in% c("Plot_Notes", "Observer_Tab_Notes", "Stand_Notes", "Stand_Disturbances")) |> 
-  select(Plot_Name, Notes) |> group_by(Plot_Name) |> summarize(Notes = toString(unique(Notes)))
+  mutate(order = case_when(Note_Type == "Plot_Notes" ~ 1,
+                           Note_Type == "Observer_Tab_Notes" ~ 2,
+                           Note_Type == "Stand_Notes" ~ 3,
+                           TRUE ~ 4)) |> arrange(Plot_Name, order) |> 
+  select(Plot_Name, Notes) |> group_by(Plot_Name) |> unique() |> summarize(Notes = toString(unique(Notes)))
 
 trees <- joinTreeData(park = park, from = year, to = year) |> 
   group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
@@ -85,7 +89,7 @@ quadspp <- joinQuadSpecies(park = park, from = year, to = year) |>
 addspp <- joinAdditionalSpecies(park = park, from = year, to = year) |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
-comb <- purrr::reduce(list(plot_info, trees, regen, quadspp, addspp), left_join, by = "Plot_Name") |> 
+comb <- purrr::reduce(list(plot_info, visit_notes, trees, regen, quadspp, addspp), left_join, by = "Plot_Name") |> 
   mutate(Concerns = NA) |> 
   select(PlotCode, Unit, #Stunt, 
          num_trees, num_saps, num_seeds, num_quadspp, num_addspp, 
