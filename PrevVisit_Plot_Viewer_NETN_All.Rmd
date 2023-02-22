@@ -46,13 +46,13 @@ child_env$year <- year
 child_env$park <- park
 child_env$print <- FALSE
 
-child_env$acad_plots <- joinLocEvent(park = park, 
-                                     from = year, 
-                                     to = year) |> 
+child_env$plots <- joinLocEvent(park = park, 
+                                from = year, 
+                                  to = year) |> 
                         select(Plot_Name, SampleYear) |> 
                         arrange(Plot_Name)
 
-child_env$plot_list <- child_env$acad_plots$Plot_Name#[c(1:2)]
+child_env$plot_list <- child_env$plots$Plot_Name#[c(1:2)]
 child_env$plot_name <- child_env$plot_list[1]
 
 
