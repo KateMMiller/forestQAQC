@@ -134,7 +134,7 @@ purrr::map(nhps, ~combine_quad_pdfs(., path, year = 2018))
 combine_quad_pdfs("ACAD", path, year = 2019)
 
 #---- Render plot viewers for each park -----
-source("PrevVisit_FieldForms_NETN_compile.R") 
+#source("PrevVisit_FieldForms_NETN_compile.R") 
 parks = c("ACAD", "MABI", "MIMA", "SAGA", "SARA")
 years = c(2019, rep(2018, 4))
 
@@ -152,6 +152,8 @@ render_viewer <- function(park, year){
 
 # running through a few at a time b/c bogs down laptop
 purrr::map2(parks, years, ~render_viewer(.x, .y))
+
+render_viewer("MABI", 2018)
 
 #---- OPTIONAL: Render report of all visit data on a plot -----
 # all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |> 

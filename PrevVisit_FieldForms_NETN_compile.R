@@ -76,7 +76,6 @@ tree_sum <- tree |> group_by(Plot_Name, Status, ScientificName) |>
   summarize(num_stems = n()) |> ungroup()
 
 head(tree)
-# Color code statuses in table so dead are grey, live are white, and NL or EX are bold (or something like that)
 
 #----- Tree conditions -----
 treecond <- do.call(joinTreeConditions, arglist) |> 
