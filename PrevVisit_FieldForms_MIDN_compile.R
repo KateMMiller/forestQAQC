@@ -47,8 +47,12 @@ head(stand)
 
 #---- Stand disturbances -----
 sdist <- do.call(joinStandDisturbance, arglist) |> 
-  select(Plot_Name, Code = DisturbanceCode)
-head(sdist)
+  select(Plot_Name, Code = DisturbanceCode) 
+
+sdist2 <- do.call(joinStandDisturbance, arglist) |> 
+  select(Plot_Name, Dist = DisturbanceSummary, Threshold = ThresholdCode,
+         Cover = DisturbanceCoverClassLabel, Note = DisturbanceNote)|> 
+  filter(!Dist %in% "None")
 
 #----- Stand heights -----
 treeht <- get("StandTreeHeights_MIDN", envir = VIEWS_MIDN) |> 
@@ -110,10 +114,8 @@ head(treefoll)
 #----- Microplots -----
 saps <- do.call(joinMicroSaplings, c(arglist, status = 'live')) |> 
   select(Plot_Name, SampleYear, Micro = MicroplotCode, Tag = TagCode, 
-         Fork, ScientificName, DBHcm, Status = SaplingStatusCode) |> 
+         Fork, ScientificName, DBHcm, Status = SaplingStatusCode, SaplingNote) |> 
   arrange(Plot_Name, Micro, ScientificName, DBHcm)
-
-head(saps)
 
 seeds <- do.call(joinQuadSeedlings, arglist) |> 
   select(Plot_Name, SampleYear, Quad = QuadratCode, ScientificName, 

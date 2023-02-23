@@ -9,10 +9,13 @@ output:
 ```{r include = FALSE}
 # Using params to pull photo location and names from Z drive
 # park = "APCO"; year = 2018; plot = "APCO-262"
-# path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park 
+# path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park,
 #                "/")
-path <- paste0("C:/NETN/Monitoring_Projects/Forest_Health/Photopoints/", 
-               year, "/", park, "/")
+path <- ifelse(year == 2018, 
+               paste0("D:/Kate_D/MIDN/ForestVegetation/", year, "/03_Data/Photos/Photopoints/", park, "/"),
+               paste0("D:/Kate_D/MIDN/ForestVegetation/", year, "03_Data/Photos/PhotoPoints/")
+               )
+
 all_photos <- list.files(path)
 plot2 <- sub("-", "_", plot_name)
 

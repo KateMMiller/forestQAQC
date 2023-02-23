@@ -25,12 +25,12 @@ library(ggrepel)
 library(cowplot)
 
 #Comment out when done.
-year = as.numeric(params$yearpv)
-park = params$parkcode
-plot_name = params$plot_name
+# year = as.numeric(params$yearpv)
+# park = params$parkcode
+# plot_name = params$plot_name
 
-importData()
-source("PrevVisit_FieldForms_MIDN_compile.R")
+#importData()
+#source("PrevVisit_FieldForms_MIDN_compile.R")
 #sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
 ```
 
@@ -40,9 +40,15 @@ source("PrevVisit_FieldForms_MIDN_compile.R")
 ```{r child = "PrevVisit_1B_Visit_Notes.Rmd"}
 ```
 
-### Plot & Stand Data
+### Plot & Stand Data {.tabset}
+
+#### Stand Data
 
 ```{r child = "PrevVisit_1A_Stand_Data_MIDN.Rmd"}
+```
+
+#### Disturbances
+```{r child = 'PrevVisit_1A_Stand_Disturbances.Rmd'}
 ```
 
 ### Microplot 
@@ -87,6 +93,6 @@ source("PrevVisit_FieldForms_MIDN_compile.R")
 
 ### Photopoints 
 
-```{r child = "PrevVisit_5A_Photopoints_MIDN.Rmd", eval = F}
+```{r child = "PrevVisit_5A_Photopoints_MIDN.Rmd"}
 ```
 

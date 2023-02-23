@@ -20,9 +20,9 @@ cat("<hr>")
 sap_p <- saps |> filter(Plot_Name %in% plot_name) |> arrange(Micro, Tag) 
 head(sap_p)
 
-sap_tab <- kable(sap_p |> select(Micro, Tag, Fork, ScientificName, DBHcm, Status),
-                  col.names = c("Micro", "Tag", "Fork", "Species", "DBH", "Status"),
-                  format = 'html', align = c('c', 'c', 'c', 'l', 'c', 'c')) |> 
+sap_tab <- kable(sap_p |> select(Micro, Tag, Fork, ScientificName, DBHcm, Status, SaplingNote),
+                  col.names = c("Micro", "Tag", "Fork", "Species", "DBH", "Status", "Notes"),
+                  format = 'html', align = c('c', 'c', 'c', 'l', 'c', 'c', 'l')) |> 
            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
                          font_size = 11) |>
            collapse_rows(1, valign = 'top') 
