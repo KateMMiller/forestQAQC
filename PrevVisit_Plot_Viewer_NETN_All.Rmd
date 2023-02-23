@@ -6,7 +6,7 @@ output:
 params:
   yearpv: 2018
   year_curr: 2023
-  parkcode: "SAGA"
+  parkcode: "MABI"
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -29,7 +29,7 @@ library(stringr)
 library(DT) # for sort/filter table features
 #source("PrevVisit_FieldForms_NETN_compile.R")
 #park = "SAGA"; year = as.numeric(2018)
-soil_sch <- readxl::read_xlsx("../data/12-year_Soil_Sample_Schedule.xlsx", sheet = park)
+soil_sch <- readxl::read_xlsx("../data/12-year_Soil_Sample_Schedule.xlsx", sheet = params$parkcode)
 colnames(soil_sch) <- c("park", "plot", "grts", "year", "post_covid_year")
 ```
 
@@ -94,7 +94,7 @@ stand_info <- joinStandData(park = park, from = year, to = year) |>
          water = ifelse(!Water_on_Plot %in% "None", Water_on_Plot, NA_character_),
          water_cov = paste0("Water cover: ", Txt_Water)) |> 
   select(Plot_Name, slope, crown, rocky, stunt, midstory, understory, water, 
-         water_cov) |> 
+         water_cov, tree_cores) |> 
   pivot_longer(-Plot_Name, names_to = "Metric", values_to = "Value") |> 
   filter(!is.na(Value)) |> filter(!Value %in% "Water cover: 0%")
 
@@ -102,7 +102,8 @@ stand_conc <- stand_info |> group_by(Plot_Name) |> summarize(Concerns = toString
 
 visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all") |> 
   filter(Note_Type %in% c("Plot_Notes", "Stand_Notes", "Stand_Disturbances")) |> 
-  mutate(order = case_when(Note_Type == "Plot_Notes" ~ 1,
+  mutate(Notes = ifelse(Note_Type == "Stand_Disturbances", paste0("Disturbance: ", Notes), Notes),
+         order = case_when(Note_Type == "Plot_Notes" ~ 1,
                            Note_Type == "Stand_Notes" ~ 2,
                            TRUE ~ 3)) |> arrange(Plot_Name, order) |> 
   select(Plot_Name, Notes) |> group_by(Plot_Name) |> summarize(Notes = toString(unique(Notes)))

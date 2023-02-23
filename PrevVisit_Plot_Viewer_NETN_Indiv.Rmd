@@ -5,6 +5,8 @@ output:
     anchor_sections: FALSE
 params:
   print: FALSE
+  parkcode: "MABI"
+  yearpv: 2018
   
 ---
 ```{r include = FALSE}
@@ -23,8 +25,9 @@ library(cowplot)
 # plot_name <- params$plot_name
 # park <- params$parkcode
 # year <- as.numeric(params$yearpv)
-#importData()
-#source("PrevVisit_FieldForms_NETN_compile.R") 
+# importData()
+# source("PrevVisit_FieldForms_NETN_compile.R") 
+#sdist_pres <- ifelse(nrow(child_env$sdist2_p) > 0, TRUE, FALSE)
 #sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
 ```
 
@@ -34,13 +37,18 @@ library(cowplot)
 ```{r child = "PrevVisit_1B_Visit_Notes.Rmd"}
 ```
 
-### Plot & Stand Data
+### Plot & Stand Data {.tabset}
+
+#### Stand Data
 
 ```{r child = "PrevVisit_1A_Stand_Data_wide.Rmd"}
 ```
 
-### Microplot 
+#### Disturbances
+```{r child = 'PrevVisit_1A_Stand_Disturbances.Rmd'}
+```
 
+### Microplot 
 ```{r child = "PrevVisit_2A_Microplot_Data_NETN.Rmd"}
 ```
 

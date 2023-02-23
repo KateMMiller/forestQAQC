@@ -44,8 +44,12 @@ head(stand)
 
 #---- Stand disturbances -----
 sdist <- do.call(joinStandDisturbance, arglist) |> 
-  select(Plot_Name, Code = DisturbanceCode)
-head(sdist)
+  select(Plot_Name, Code = DisturbanceCode) 
+
+sdist2 <- do.call(joinStandDisturbance, arglist) |> 
+  select(Plot_Name, Dist = DisturbanceSummary, Threshold = ThresholdCode,
+         Cover = DisturbanceCoverClassLabel, Note = DisturbanceNote)|> 
+  filter(!Dist %in% "None")
 
 #----- Stand heights -----
 treeht <- get("StandTreeHeights_NETN", envir = VIEWS_NETN) |> 
