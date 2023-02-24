@@ -7,8 +7,8 @@ output:
     number_sections: false
 params:
   print: TRUE
-  plot_name: "MABI-001"
-  year: 2018
+  plot_name: "FRSP-001"
+  year: 2019
 ---
 ```{r include = FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
