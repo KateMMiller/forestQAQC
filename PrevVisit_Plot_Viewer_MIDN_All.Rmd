@@ -103,8 +103,9 @@ trees <- joinTreeData(park = park, from = year, to = year, status = 'active') |>
   filter(!TreeStatusCode %in% "DF") |> 
   group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
 
-regen <- joinRegenData(park = park, from = year, to = year) |> 
-  group_by(Plot_Name) |> summarize(num_saps = round(sum(sap_den) * 3, 1),
+
+regen <- joinRegenData(park = park, from = year, to = year, units = "sq.m") |> 
+  group_by(Plot_Name) |> summarize(num_saps = round(sum(sap_den) * 84.823, 1),
                                    num_seeds = round(sum(seed_den) * 12, 1))
 
 shrubs <- joinMicroShrubData(park = park, from = year, to = year) |> 
@@ -134,13 +135,14 @@ cwd_conc <- VIEWS_MIDN$CWD_MIDN |> filter(ParkUnit == park) |> filter(SampleYear
 concerns <- rbind(stand_conc, shrubs, cwd_conc) |> 
   group_by(Plot_Name) |> summarize(Concerns = toString(unique(Concerns)))
 
-
-comb <- purrr::reduce(list(plot_info, visit_notes, trees, regen, quadspp, addspp), 
+comb <- purrr::reduce(list(plot_info, visit_notes, trees, regen, quadspp, addspp, concerns), 
                       left_join, by = "Plot_Name") |> 
   mutate(Concerns = NA) |> 
   select(PlotCode, Unit, 
          num_trees, num_saps, num_seeds, num_quadspp, num_addspp, 
-         Notes, Directions, Concerns)
+         Notes, Directions, Concerns) |> 
+  arrange(PlotCode)
+
 
 # Couldn't get dt to recognize the column widths, so hacked it with colnames. 
 
