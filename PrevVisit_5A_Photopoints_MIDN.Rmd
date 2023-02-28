@@ -11,10 +11,14 @@ output:
 # park = "APCO"; year = 2018; plot = "APCO-262"
 # path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park,
 #                "/")
-path <- ifelse(year == 2018, 
-               paste0("D:/Kate_D/MIDN/ForestVegetation/", year, "/03_Data/Photos/Photopoints/", park, "/"),
-               paste0("D:/Kate_D/MIDN/ForestVegetation/", year, "03_Data/Photos/PhotoPoints/")
-               )
+path <- dplyr::case_when(year == 2017 ~ paste0("D:/Kate_D/MIDN/ForestVegetation/", year,
+                                               "/03_Data/Photos/", park, "/"),
+                         year == 2018 ~ paste0("D:/Kate_D/MIDN/ForestVegetation/", year,
+                                               "/03_Data/Photos/PhotoPoints/", park, "/"),
+                         year == 2019 ~ paste0("D:/Kate_D/MIDN/ForestVegetation/", year,                
+                                               "/03_Data/Photos/PhotoPoints/"),
+                         TRUE ~ paste0("D:/Kate_D/MIDN/ForestVegetation/", year,                
+                                               "/03_Data/Photos/PhotoPoints/"))#Assumes 2019 is the way forward
 
 all_photos <- list.files(path)
 plot2 <- sub("-", "_", plot_name)
