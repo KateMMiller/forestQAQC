@@ -16,10 +16,6 @@ if(!dir.exists(path)){dir.create(path)}
 if(!dir.exists(paste0(path, "indiv"))){
   dir.create(paste0(path, "\\indiv\\"))}
 
-# Individual full visit of plot files go into "Field_Forms/indiv_all" folder.
-if(!dir.exists(paste0(path, "indiv_all"))){
-  dir.create(paste0(path, "indiv_all\\"))}
-
 # Tree maps go into "NETN_Tree_Maps" folder on Desktop
 path_trmaps <- paste0(file.path(Sys.getenv("USERPROFILE"),"Desktop",fsep="\\"), 
                       "\\MIDN_Tree_Maps\\")
@@ -79,6 +75,8 @@ year = 2018
 ##----- Source from compile script -----
 source("PrevVisit_FieldForms_MIDN_compile.R") 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
+#plots <- plots[grepl("VAFO", plots)] # not all VAFO tree reports rendered the first time
+# 39 panel 4 plots
 
 ##----- Render Reports -----
 map(plots, ~render_reports(., pv_year = year, rmdtr, "Trees")) # trees
@@ -91,18 +89,21 @@ year = 2019
 ##----- Source from compile script -----
 source("PrevVisit_FieldForms_MIDN_compile.R") 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
+length(plots) #51 panel 1 plots
 
 ##----- Render Reports -----
 map(plots, ~render_reports(., pv_year = year, rmdtr, "Trees")) # trees
 map(plots, ~ render_reports(., pv_year = year, rmdqd, "Quads")) # quads
 
 ##----- params for SAHI -----
-SAHI <- "SAHI" # Sampled 2017
+park <- "SAHI" # Sampled 2017
 year = 2017
 
 ##----- Source from compile script -----
 source("PrevVisit_FieldForms_MIDN_compile.R") 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
+
+length(plots) # 4 SAHI plots
 
 ##----- Render Reports -----
 map(plots, ~render_reports(., pv_year = year, rmdtr, "Trees")) # trees
@@ -141,7 +142,12 @@ pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
 walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
 
 ##----- Combine park-level pdfs into 1 pdf per module -----
-nhps <- c("MABI", "MIMA", "SAGA", "SARA")
+park_4 <- c("APCO", "BOWA", "COLO", "GETT", "HOFU", "VAFO") # Panel 4, sampled 2018
+park_1 <- c("FRSP", "GEWA", "PETE", "RICH", "THST") # Panel 1, sampled 2019
+SAHI <- "SAHI" # Sampled 2017
+
+parks <- c(park_4, park_1, "SAHI")
+years = c(rep(2018, length(park_4)), rep(2019, length(park_1)), 2017)
 
 combine_tree_pdfs <- function(park, year, path){
   pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
@@ -151,9 +157,6 @@ combine_tree_pdfs <- function(park, year, path){
                         output = paste0(path, park, "_", year, "_Trees.pdf"))
 }
 
-purrr::map2(parks, years, ~combine_tree_pdfs(.x, .y, path))
-
-
 combine_quad_pdfs <- function(park, year, path){
   pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
   trees <- pdf_list[grep(("Quads"), pdf_list)]
@@ -162,25 +165,32 @@ combine_quad_pdfs <- function(park, year, path){
                         output = paste0(path, park, "_", year, "_Quads.pdf"))
 }
 
+purrr::map2(parks, years, ~combine_tree_pdfs(.x, .y, path))
 purrr::map2(parks, years, ~combine_quad_pdfs(.x, .y, path))
 
 #---- Render plot viewers for each park -----
-source("PrevVisit_FieldForms_NETN_compile.R") 
-parks = c("ACAD", "MABI", "MIMA", "SAGA", "SARA")
-years = c(2019, rep(2018, 4))
+park_4 <- c("APCO", "BOWA", "COLO", "GETT", "HOFU", "VAFO") # Panel 4, sampled 2018
+park_1 <- c("FRSP", "GEWA", "PETE", "RICH", "THST") # Panel 1, sampled 2019
+SAHI <- "SAHI" # Sampled 2017
 
-render_viewer <- function(park, year){
-  park_code = park
-  yr = as.numeric(year)
-  render(input = "PrevVisit_Plot_Viewer_NETN_All.Rmd",
-         params = list(parkcode = park_code, 
-                       yearpv = yr, 
+parks <- c(park_4, park_1, SAHI)
+years <- c(rep(2018, length(park_4)), rep(2019, length(park_1)), 2017)
+
+#source("PrevVisit_FieldForms_MIDN_compile.R") 
+
+render_viewer <- function(parkcode, yearpv){
+  year = as.numeric(yearpv)
+  render(input = "PrevVisit_Plot_Viewer_MIDN_All.Rmd",
+         params = list(parkcode = parkcode, 
+                       yearpv = year, 
                        print = FALSE),
-         output_file = paste0(path, park, "_", yr, "_Plot_Viewer.html"))
+         output_file = paste0(path, parkcode, "_", year, "_Plot_Viewer.html"))
 }
 
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-purrr::map2(parks[c(1:3,5)], years[c(1:3,5)], ~render_viewer(.x, .y))
+purrr::map2(parks[c(1:6)], years[c(1:6)], ~render_viewer(.x, .y))
+purrr::map2(parks[c(7:11)], years[c(7:11)], ~render_viewer(.x, .y))
+render_viewer("SAHI", 2017)
 
