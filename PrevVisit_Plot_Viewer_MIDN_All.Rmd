@@ -5,7 +5,7 @@ output:
     anchor_sections: FALSE
 params:
   yearpv: 2018
-  parkcode: "APCO"
+  parkcode: "BOWA"
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -137,7 +137,6 @@ concerns <- rbind(stand_conc, shrubs, cwd_conc) |>
 
 comb <- purrr::reduce(list(plot_info, visit_notes, trees, regen, quadspp, addspp, concerns), 
                       left_join, by = "Plot_Name") |> 
-  mutate(Concerns = NA) |> 
   select(PlotCode, Unit, 
          num_trees, num_saps, num_seeds, num_quadspp, num_addspp, 
          Notes, Directions, Concerns) |> 
