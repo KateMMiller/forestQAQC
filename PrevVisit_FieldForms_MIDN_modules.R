@@ -118,22 +118,15 @@ SAHI <- "SAHI" # Sampled 2017
 parks <- c(park_4, park_1, SAHI)
 years = c(rep(2018, length(park_4)), rep(2019, length(park_1)), 2017)
 
-#++++++++ STILL WORKING ON THIS +++++++++++
-# collapse_rows doesn't handle page breaks well, so instead I want to 
-# generate plot-level reports that are all in the same html with a loop
-# I just need to work out knit_child code to do that
-#
-# rmdsap <- "PrevVisit_2A_Microplot_Sapling_Data_MIDN_long.Rmd"
-# 
-# render_saps <- function(parkcode, pv_year){
-#   render(input = rmdsap,
-#          params = list(park = parkcode,
-#                        year = as.numeric(pv_year), 
-#                        print = TRUE),
-#          output_file = paste0(path, park, "_", pv_year, "_Sapling", ".html"))
-# }
-# 
-# map2(parks, years, ~render_saps(.x, .y))
+render_saps <- function(parkcode, pv_year){
+  render(input = "PrevVisit_FieldForms_MIDN_Saplings_by_Park.Rmd",
+         params = list(year = as.numeric(pv_year), 
+                       park = parkcode,
+                       print = TRUE),
+         output_file = paste0(path, parkcode, "_", pv_year, "_Saplings.html"))
+}
+
+purrr::map2(parks, years, ~render_saps(.x, .y)) # quads
 
 #----- Convert Tree, Sapling, & Quad htmls to pdf -----
 ##----- Convert individual html to pdf (ignore warnings unless it doesn't work) -----
@@ -190,7 +183,8 @@ render_viewer <- function(parkcode, yearpv){
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-purrr::map2(parks[c(1:6)], years[c(1:6)], ~render_viewer(.x, .y))
+purrr::map2(parks[c(1)], years[c(1)], ~render_viewer(.x, .y))
+purrr::map2(parks[c(2:6)], years[c(2:6)], ~render_viewer(.x, .y))
 purrr::map2(parks[c(7:11)], years[c(7:11)], ~render_viewer(.x, .y))
 render_viewer("SAHI", 2017)
 
