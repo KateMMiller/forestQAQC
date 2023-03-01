@@ -201,8 +201,24 @@ table td{
 
 @page {
   @bottom-right{
-    content: counter(page) ' of ' counter(pages);
+    content: "Page " counter(page) ' of ' counter(pages);
   }
 }
 
+/* left page */ 
+ .shorttitle { 
+   position: running(runningTitle);
 
+ } 
+  
+/* @page :left { */
+@page{
+   @top-left { 
+     content: element(runningTitle); 
+     /* width: 150mm; */
+     font-family: "Arial",Arial,sans-serif;
+     font-size:16px;
+     font-weight: bold;
+     color: black;
+   } 
+ }
