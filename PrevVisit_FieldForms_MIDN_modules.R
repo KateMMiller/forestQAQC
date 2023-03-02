@@ -134,6 +134,10 @@ html_list <- list.files(paste0(path, "indiv\\"), pattern = '.html', full.names =
 pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
 walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
 
+sap_list <- list.files(path, pattern = 'Saplings.html', full.names = T)
+sap_pdf <- paste0(substr(sap_list, 1, nchar(sap_list) - 4), "pdf")
+walk2(sap_list, sap_pdf, ~pagedown::chrome_print(.x, .y))
+
 ##----- Combine park-level pdfs into 1 pdf per module -----
 park_4 <- c("APCO", "BOWA", "COLO", "GETT", "HOFU", "VAFO") # Panel 4, sampled 2018
 park_1 <- c("FRSP", "GEWA", "PETE", "RICH", "THST") # Panel 1, sampled 2019
