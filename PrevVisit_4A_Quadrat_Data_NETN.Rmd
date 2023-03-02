@@ -1,0 +1,74 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+    number_sections: false
+params:
+  print: TRUE
+  plot_name: "MABI-001"
+  year: 2018
+---
+```{r include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(knitr.kable.NA = '')
+```
+
+```{r, echo = F, include = F, eval = params$print}
+plot_name = params$plot_name
+year = as.numeric(params$year)
+park = substr(plot_name, 1, 4)
+```
+
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+
+cat("<h3> Previous Visit: Quadrat Data for ")
+cat(paste0(plot_name, '-', year), "</h3>")
+cat("<hr>")
+```
+
+
+```{r include = F}
+library(tidyverse)
+library(kableExtra)
+library(htmltools)
+library(knitr)
+
+quad_p <- quad_all |> filter(Plot_Name %in% plot_name) 
+
+quad_tab <- kable(quad_p |> select(Species, UC, UR, MR, BR, BC, BL, ML, UL, Note),
+                  #table.attr = "class='table-striped'", 
+                  #table.attr = "class='quads'",
+                  format = 'html', align = c('l', rep('c', 8))) |> 
+            kable_styling(fixed_thead = TRUE, bootstrap_options = c('striped'),
+                          position = 'left', full_width = TRUE, font_size = 9) |> 
+            row_spec(0, extra_css = 'border-bottom: 2px solid #000000;') |> 
+            row_spec(1, extra_css = 'border-bottom: 2px solid #000000;') |> 
+            row_spec(8, extra_css = 'border-bottom: 2px solid #000000;') |> 
+            column_spec(1, width = "120em") |> 
+            column_spec(2:9, width = "60em") |> 
+            column_spec(10, width = "70em")
+```
+
+<div class = 'quads'>
+```{r }
+quad_tab
+```
+</div>
+<br>
+<br>
+
+#### Additional Species
+```{r include = F}
+addspp_p <- addspp |> filter(Plot_Name %in% plot_name) |> 
+  select(Species = ScientificName) |> arrange(Species) |> c()
+
+```
+
+```{r results = 'asis'}
+cat(noquote(addspp_p$Species), sep = ", ")
+```
+
+<hr>

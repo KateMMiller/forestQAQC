@@ -1,0 +1,57 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+    number_sections: false
+params:
+  print: TRUE
+  plot_name: "MABI-001"
+  year: 2018
+---
+```{r include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(knitr.kable.NA = '')
+```
+
+```{r, echo = F, include = F, eval = params$print}
+plot_name = params$plot_name
+year = as.numeric(params$year)
+park = substr(plot_name, 1, 4)
+```
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+cat("<h3> Previous Visit: Tree Data for ")
+
+cat(paste0(plot_name, '-', year), "</h3>")
+
+cat("<hr>")
+```
+
+
+```{r include = F}
+library(tidyverse)
+library(kableExtra)
+library(htmltools)
+library(knitr)
+
+tree_p <- tree |> dplyr::filter(Plot_Name %in% plot_name) 
+
+tree_tab <- kable(tree_p |> select(Tag, ScientificName, Fork, Azimuth, Distance,
+                                   Status, CrownClass, DBH, Decay, Note),
+                  col.names = c("Tag", "Species", "Fork", "Az.", "Dist.", 
+                                "Status", "Crown", "DBH", "Decay", "Note"),
+                  table.attr = "class='table-striped'",
+                  format = 'html', align = c('c', 'l', rep('c', 7), 'l')) |> 
+            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                          font_size = 10) |> 
+            column_spec(2, width = "1.2in")
+                
+
+```
+
+```{r echo = F}
+tree_tab
+```
+

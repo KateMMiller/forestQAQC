@@ -1,0 +1,203 @@
+---
+output: 
+  html_document:
+    css: www/styles_prevvisit.css
+    anchor_sections: FALSE
+params:
+  yearpv: 2018
+  parkcode: "BOWA"
+  print: FALSE
+---
+```{r include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.kable.NA = '')
+```
+
+# Previous visit data for `r paste0(params$parkcode, " ", params$yearpv)` {.tabset .tabset-pills}
+```{r echo = F, include = F}
+library(forestMIDN)
+library(pagedown)
+library(tidyverse)
+library(htmltools)
+library(knitr)
+#devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0") # for collapse_rows()
+library(kableExtra)
+library(ggrepel)
+library(cowplot)
+library(DT) # for sort/filter table features
+#source("PrevVisit_FieldForms_MIDN_compile.R") 
+```
+
+```{r echo = F, include = F, cache = F}
+# Create environment for rmds to pull params from
+child_env <- new.env()
+importData()
+for(n in ls(VIEWS_MIDN, all.names = TRUE)) assign(n, get(n, VIEWS_MIDN), child_env)
+
+year = as.numeric(params$yearpv)
+park = params$parkcode
+
+child_env$year <- year
+child_env$park <- park
+child_env$print <- FALSE
+
+child_env$plots <- joinLocEvent(park = park, 
+                                from = year, 
+                                to = year) |> 
+                        select(Plot_Name, SampleYear) |> 
+                        arrange(Plot_Name)
+
+child_env$plot_list <- child_env$plots$Plot_Name#[c(1:2)]
+child_env$plot_name <- child_env$plot_list[1]
+
+
+sys.source("PrevVisit_FieldForms_MIDN_compile.R", envir = child_env)
+```
+
+
+```{r echo = F, include = F}
+# Summary Table for first tab
+plot_info <- joinLocEvent(park = park, from = year, to = year) |> 
+             mutate(Unit = substr(ParkSubUnit, 6, nchar(ParkSubUnit))) |> 
+             select(Plot_Name, PlotCode, Unit, #Notes = PlotNotes, 
+                    Directions)#, Stunted = IsStuntedWoodland)  
+
+stand_info <- joinStandData(park = park, from = year, to = year) |> 
+  mutate(slope = case_when(PlotSlope >= 35 ~ "EXTREMELY STEEP",
+                           between(PlotSlope, 35, 25) ~ "VERY STEEP",
+                           between(PlotSlope, 25, 15) ~ "STEEP",
+                           PlotSlope < 15 ~ NA_character_,
+                           TRUE ~ NA_character_),
+         crown = case_when(Pct_Crown_Closure == 5 ~ "VERY OPEN",
+                           between(Pct_Crown_Closure, 17.5, 37.5) ~ "OPEN",
+                           TRUE ~ NA_character_),
+         rocky = case_when(between(Pct_Rock, 3, 36) ~ "Rocky",
+                           Pct_Rock >= 37.5 ~ "Very Rocky"),
+         midstory = case_when(Txt_Understory_Mid == "95-100%" ~ "VERY DENSE MID-STORY",
+                              Txt_Understory_Mid == '75-95%' ~ "Very dense mid-story",
+                              Txt_Understory_Mid == '50-75%' ~ 'Dense mid-story',
+                              TRUE ~ NA_character_),
+         understory = case_when(Txt_Understory_Low == "0%" ~ "Bare understory",
+                                Txt_Understory_Low %in% c("1-5%", "5-25%") ~ 
+                                  "Sparse understory"), 
+         water = ifelse(!Water_on_Plot %in% "None", Water_on_Plot, NA_character_),
+         water_cov = paste0("Water cover: ", Txt_Water)) |> 
+  select(Plot_Name, slope, crown, rocky, midstory, understory, water, 
+         water_cov) |> 
+  pivot_longer(-Plot_Name, names_to = "Metric", values_to = "Value") |> 
+  filter(!is.na(Value)) |> filter(!Value %in% "Water cover: 0%")
+
+stand_conc <- stand_info |> group_by(Plot_Name) |> summarize(Concerns = toString(unique(Value)))
+
+visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all") |> 
+  filter(Note_Type %in% c("Plot_Notes", "Observer_Tab_Notes", "Stand_Notes", "Stand_Disturbances")) |> 
+  mutate(Notes = ifelse(Note_Type == "Stand_Disturbances", paste0("Disturbance: ", Notes), Notes),
+         order = case_when(Note_Type == "Plot_Notes" ~ 1,
+                           Note_Type == "Observer_Tab_Notes" ~ 2,
+                           Note_Type == "Stand_Notes" ~ 3,
+                           TRUE ~ 4)) |> arrange(Plot_Name, order) |> 
+  select(Plot_Name, Notes) |> group_by(Plot_Name) |> unique() |> 
+  summarize(Notes = toString(unique(Notes)))
+
+trees <- joinTreeData(park = park, from = year, to = year, status = 'active') |> 
+  filter(!TreeStatusCode %in% "DF") |> 
+  group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
+
+
+regen <- joinRegenData(park = park, from = year, to = year, units = "sq.m") |> 
+  group_by(Plot_Name) |> summarize(num_saps = round(sum(sap_den) * 84.823, 1),
+                                   num_seeds = round(sum(seed_den) * 12, 1))
+
+shrubs <- joinMicroShrubData(park = park, from = year, to = year) |> 
+  select(Plot_Name, shrub_avg_cov) |> 
+  group_by(Plot_Name) |> summarize(shrub_avg_cov = sum(shrub_avg_cov, na.rm = T)) |> 
+  mutate(Concerns = case_when(shrub_avg_cov >= 70 ~ "VERY DENSE SHRUBS",
+                             between(shrub_avg_cov, 45, 70) ~ "DENSE SHRUBS",
+                             between(shrub_avg_cov, 25, 25) ~ "SHRUBS",
+                             TRUE ~ NA_character_)) |> 
+  select(Plot_Name, Concerns) |> filter(!is.na(Concerns))
+
+quadspp <- joinQuadSpecies(park = park, from = year, to = year) |> 
+  group_by(Plot_Name) |> 
+  summarize(num_quadspp = sum(!ScientificName %in% "None present"))
+
+addspp <- joinAdditionalSpecies(park = park, from = year, to = year) |> 
+  group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
+
+cwd_conc <- VIEWS_MIDN$CWD_MIDN |> filter(ParkUnit == park) |> filter(SampleYear == year) |> 
+  group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance))) |>
+  mutate(Concerns = case_when(num_cwd > 25 ~ "TONS OF CWD",
+                             between(num_cwd, 15, 25) ~ "Lots of CWD",
+                             between(num_cwd, 8, 15) ~ "CWD",
+                             TRUE ~ NA_character_)) |> 
+  filter(!is.na(Concerns)) |> select(Plot_Name, Concerns)
+
+concerns <- rbind(stand_conc, shrubs, cwd_conc) |> 
+  group_by(Plot_Name) |> summarize(Concerns = toString(unique(Concerns)))
+
+comb <- purrr::reduce(list(plot_info, visit_notes, trees, regen, quadspp, addspp, concerns), 
+                      left_join, by = "Plot_Name") |> 
+  select(PlotCode, Unit, 
+         num_trees, num_saps, num_seeds, num_quadspp, num_addspp, 
+         Notes, Directions, Concerns) |> 
+  arrange(PlotCode)
+
+
+# Couldn't get dt to recognize the column widths, so hacked it with colnames. 
+
+comb_tbl <- datatable(comb, class = 'cell-border stripe', rownames = FALSE,
+                      width = '1200px',
+                      extensions = c("FixedColumns", "Buttons"),
+                      colnames = c("Plot", "Unit", "Trees", "Saps", "Seeds",
+                                   "QuadSpp", "AddSpp", 
+                                   "Notes________________________", 
+                                   "Directions_______________________",
+                                   "Concerns__________________"),
+                      options = list(       
+                        initComplete = htmlwidgets::JS(
+                          "function(settings, json) {",
+                            "$('body').css({'font-size': '11px'});",
+                            "$('body').css({'font-family': 'Arial'});",
+                            "$(this.api().table().header()).css({'font-size': '11px'});",
+                            "$(this.api().table().header()).css({'font-family': 'Arial'});",
+                          "}"),
+                          #paste0("$(this.api().table().container()).css({'font-size': 12px;})}")),
+                            
+                                     pageLength = 10,
+                                     autoWidth = FALSE, scrollX = TRUE,
+                                     scrollY = '600px',
+                                     scrollCollapse = TRUE,
+                                     lengthMenu = c(5, 10, nrow(comb)),
+                                     fixedColumns = list(leftColumns = 1),
+                                     dom = "Blfrtip", buttons = c('copy', 'csv', 'print'),
+                                     columnDefs = list(
+                                       list(className = 'dt-center', targets = 0:5),
+                                       list(className = 'dt-left', targets = 6:8)
+                                       )),
+                      filter = list(position = c('top'), clear = FALSE)) 
+
+```
+
+## Summary {.tabset}
+```{r echo = F, message = F, warning = F}
+suppressWarnings(comb_tbl)
+```
+
+```{r results = 'asis', echo = F, eval = T}
+res <- lapply(seq_along(child_env$plot_list), function(x) {
+  
+  child_env$plot_name = child_env$plot_list[[x]]
+
+  knitr::knit_child(
+    'PrevVisit_Plot_Viewer_MIDN_Indiv.Rmd', 
+     envir = child_env,
+     quiet = TRUE )
+  
+})
+cat(unlist(res), sep = '\n')
+```
+
+```{r}
+rm(list = ls())
+```
+

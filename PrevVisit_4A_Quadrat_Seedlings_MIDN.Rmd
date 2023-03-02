@@ -1,0 +1,44 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+    number_sections: false
+params:
+  print: TRUE
+---
+```{r include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(knitr.kable.NA = '')
+```
+
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+
+cat("<h3> Previous Visit: Quadrat Seedling Data for ")
+cat(paste0(plot_name, '-', year), "</h3>")
+cat("<hr>")
+```
+
+```{r include = F}
+library(tidyverse)
+library(kableExtra)
+library(htmltools)
+library(knitr)
+
+seed_p <- seeds |> filter(Plot_Name %in% plot_name) |> 
+  arrange(Quad, ScientificName) |> select(Quad, ScientificName:Seedlings_Above_150cm, BrowsedCount, Txt_Cov)
+
+seed_tab <- kable(seed_p, 
+                  col.names = c("Quad", "Species", "15-30cm", "30-100cm", "100-150cm", ">150cm", "Browsed", "% Cover"),
+                  format = 'html', align = 'c') |> 
+            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
+            collapse_rows(1, valign = 'top')
+
+
+```
+
+```{r }
+seed_tab
+```

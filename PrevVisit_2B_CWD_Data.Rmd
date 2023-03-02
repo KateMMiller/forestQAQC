@@ -1,0 +1,32 @@
+---
+output: 
+  pagedown::html_paged:
+    toc: false
+    numbered_sections: false
+---
+
+<br style = "clear:both">
+
+```{r include = F}
+
+cwd_p <- cwd |> filter(Plot_Name %in% plot_name) |> arrange(TransectCode, Distance, ScientificName) |> 
+  mutate(Multi = ifelse(MultiCrossCode == "NA", NA_character_, MultiCrossCode),
+         Species = ifelse(is.na(ScientificName), "No species present", ScientificName))
+
+
+cwd_tab <- kable(cwd_p |> select(TransectCode, Distance, Species, Diameter, 
+                                 Multi, Length, IsHollow, Decay),
+                 table.attr = "class='table-striped'",
+                 col.names = c("Transect", "Distance", "Species", "Diameter", 
+                               "MultiCross", "Length", "Hollow", "Decay"),
+                 format = 'html', align = 'c') |> 
+           kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                         font_size = 11) 
+                
+
+```
+
+```{r echo = F}
+cwd_tab
+```
+</span>

@@ -1,0 +1,75 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+    number_sections: false
+#knit: pagedown::chrome_print
+params: 
+  print: FALSE
+  park: "APCO"
+  year: 2018
+#title: '`r paste0("Sapling data for: ", params$park, " ", params$year)`'
+---
+<span class="shorttitle">`r paste0("Previous Visit: Sapling Data for ", params$park, " ", params$year)`</span>
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.kable.NA = '')
+```
+
+```{r echo = F, include = F}
+cat('<h4>Previous Visit: Sapling Data for `r paste0(params$park, " ", params$year)`</h4>')
+library(forestMIDN)
+library(pagedown)
+library(tidyverse)
+library(htmltools)
+library(knitr)
+library(tidyverse)
+#devtools::install_github(repo="haozhu233/kableExtra", ref="a6af5c0") # for collapse_rows()
+library(kableExtra)
+year = as.numeric(params$year)
+park = params$park
+#source("PrevVisit_FieldForms_MIDN_compile.R") 
+```
+
+```{r, include = F}
+# Create environment for rmds to pull params from
+child_env <- new.env()
+importData()
+for(n in ls(VIEWS_MIDN, all.names = TRUE)) assign(n, get(n, VIEWS_MIDN), child_env)
+
+year = as.numeric(params$year)
+park = params$park
+
+child_env$year <- year
+child_env$park <- park
+child_env$print <- FALSE
+
+child_env$plots <- joinLocEvent(park = park, 
+                                from = year, 
+                                to = year) |> 
+                        select(Plot_Name, SampleYear) |> 
+                        arrange(Plot_Name)
+
+child_env$plot_list <- child_env$plots$Plot_Name#[c(1:2)]
+child_env$plot_name <- child_env$plot_list[1]
+
+sys.source("PrevVisit_FieldForms_MIDN_compile.R", envir = child_env)
+```
+
+```{r results = 'asis', echo = F, eval = T}
+res <- lapply(seq_along(child_env$plot_list), function(x) {
+  
+  child_env$plot_name = child_env$plot_list[[x]]
+
+  knitr::knit_child(
+    'PrevVisit_2A_Microplot_Sapling_Data_MIDN_long.Rmd', 
+     envir = child_env,
+     quiet = TRUE )
+  
+})
+cat(unlist(res), sep = '\n')
+```
+
