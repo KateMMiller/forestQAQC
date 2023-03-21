@@ -129,6 +129,8 @@ check_null(zoinks_table)
 
 check_null(tree_dbh_table)
 
+check_null(tree_dbhnz_table) # new for 2023
+
 check_null(fol_maj_table)
 
 check_null(trcond_spp_table)
@@ -162,6 +164,8 @@ check_null(sap_em_spp_table) # New for MIDN
 check_null(zoinks_sap_table) # New for MIDN
 
 check_null(sap_dbh_table) # New for MIDN
+
+check_null(sap_dbhnz_table) # New for 2023
 
 check_null(shrub_pm_table)
 

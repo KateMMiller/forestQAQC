@@ -12,8 +12,8 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2022-09-18"
-# cycle_latest_num = 1
+# week_start = "2022-08-18"
+# cycle_latest_num = 4
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # cycle_latest <- paste0("cycle_", cycle_latest_num)
@@ -25,7 +25,6 @@ source("Weekly_QC_functions.R")
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
 plotevs <- do.call(joinLocEvent, arglist1) 
-
 old_evs <- plotevs %>% filter(SampleDate < week_start)
 new_evs <- plotevs %>% filter_week() %>% name_plot()
 
@@ -242,7 +241,8 @@ stand_ht_new_wide <- full_join(stand_ht_new %>% filter(CrownClassLabel == "Co-do
                                stand_ht_new %>% filter(CrownClassLabel == "Intermediate") %>% 
                                  select(Plot_Name, Height),
                                by = c("Plot_Name"),
-                               suffix = c("_codom", "_inter"))
+                               suffix = c("_codom", "_inter"),
+                               multiple = 'all')
 
 stand_ht_comp <- left_join(stand_ht_new_wide, stand_ht_prev, by = "Plot_Name") %>% 
                  filter((Height_codom > Codom_prev_up50 & !is.na(Codom_prev_up50))| 
@@ -413,6 +413,9 @@ tree_dbh <- left_join(tree_live_latest, tree_live_prev,
   filter(!is.na(DBHcm_prev)) %>% 
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
 
+old_dbh <- paste0("DBHcm_cycle_", cycle_latest_num-1)
+new_dbh <- paste0("DBHcm_cycle_", cycle_latest_num)
+
 # Identify Zoinks trees 
 zoinks_tree <- tree_dbh %>% filter(DBH_diff >= 3 | DBH_diff < -0.1)
 
@@ -433,6 +436,22 @@ QC_table <- rbind(QC_table,
                   QC_check(tree_dbh_check, "Tree Data", "DBH zoinks missing DBH Verified check"))
 
 tree_dbh_table <- make_kable(tree_dbh_check, "DBH zoinks missing DBH Verified check")
+
+# Identify non-zoinks that has DBH Verified Checkbox
+tree_nz <- tree_dbh %>% 
+  mutate(notZoinks = ifelse(is.na(DBH_diff) | (DBH_diff > -0.01 & DBH_diff < 3), TRUE, FALSE))
+
+tree_nz$wrongZoinks <- ifelse(tree_nz$notZoinks == TRUE & tree_nz$IsDBHVerified == TRUE, TRUE, FALSE)
+
+tree_nz <- tree_nz %>% filter(wrongZoinks == TRUE)
+
+tree_nz <- tree_nz[, c("Plot_Name", "TagCode", 'DBHcm_prev', 'DBHcm_latest',
+                       "DBH_diff", "IsDBHVerified")]
+
+QC_table <- rbind(QC_table,
+                  QC_check(tree_nz, "Tree Data", "DBH non-zoinks with DBH Verified check"))
+
+tree_dbhnz_table <- make_kable(tree_nz, "DBH non-zoinks with DBH Verified check")
 
 # Check for major foliage outbreak
 fol_new <- joinTreeFoliageCond(from = curr_year, to = curr_year, QAQC = FALSE, locType = 'all') %>% 
@@ -651,7 +670,8 @@ sap_status_prev <- map_dfr(seq_along(park_orig_list), function(x){
 })
 
 sap_status_check <- left_join(sap_status_latest, sap_status_prev, by = c("Plot_Name", "TagCode"),
-                          suffix = c("_latest", "_prev")) %>% 
+                          suffix = c("_latest", "_prev"),
+                          multiple = 'all') %>% 
   mutate(check = case_when(status_latest == "alive" & status_prev == "dead" ~ "zombie",
                            status_latest == "missed" ~ "missed",
                            status_latest == "exclude" ~ "excluded",
@@ -737,6 +757,22 @@ QC_table <- rbind(QC_table,
                   QC_check(sap_dbh_check, "Microplot", "Saplings: DBH zoinks missing DBH Verified check"))
 
 sap_dbh_table <- make_kable(sap_dbh_check, "Saplings: DBH zoinks missing DBH Verified check")
+
+# Identify non-zoinks that has DBH Verified Checkbox
+sap_nz <- sap_dbh %>% 
+  mutate(notZoinks = ifelse(is.na(DBH_diff) | (DBH_diff > -0.01 & DBH_diff < 3), TRUE, FALSE))
+
+sap_nz$wrongZoinks <- ifelse(sap_nz$notZoinks == TRUE & sap_nz$IsDBHVerified == TRUE, TRUE, FALSE)
+
+sap_nz <- sap_nz %>% filter(wrongZoinks == TRUE)
+
+sap_nz <- sap_nz[, c("Plot_Name", "TagCode", 'DBHcm_prev', 'DBHcm_latest',
+                     "DBH_diff", "IsDBHVerified")]
+
+QC_table <- rbind(QC_table,
+                  QC_check(sap_nz, "Microplot", "Saplings: DBH non-zoinks with DBH Verified check"))
+
+sap_dbhnz_table <- make_kable(sap_nz, "Saplings: DBH non-zoinks with DBH Verified check")
 
 # Check for PMs in shrub data
 shrubs <- do.call(joinMicroShrubData, arglist) %>% 
@@ -1053,7 +1089,8 @@ seed_0tally_table <- make_kable(seeds_0tally, "Seedlings: species recorded with 
 # check for seedling tallies > 99 percentile of non-zero counts in a microplot
 seeds <- do.call(joinQuadSeedlings, arglist) %>% name_plot()
 seeds_new <- seeds %>% filter_week()
-seeds_old <- seeds %>% filter(SampleYear < curr_year) %>% filter(!ScientificName %in% c("Not Sampled", "None present"))
+seeds_old <- seeds %>% filter(SampleYear < curr_year) %>% 
+  filter(!ScientificName %in% c("Not Sampled", "None present")) %>% as.data.frame()
 na_cols <- c("Seedlings_15_30cm", "Seedlings_30_100cm", "Seedlings_100_150cm",  
              "Seedlings_Above_150cm", "tot_seeds")
 
@@ -1063,21 +1100,40 @@ seeds_sum <- seeds_old %>% group_by(ParkUnit) %>%
   summarize(Seedlings_15_30cm_99 = quantile(Seedlings_15_30cm, probs = 0.99, na.rm = T),
             Seedlings_30_100cm_99 = quantile(Seedlings_30_100cm, probs = 0.99, na.rm = T),
             Seedlings_100_150cm_99 = quantile(Seedlings_100_150cm, probs = 0.99, na.rm = T),
-            Seedlings_Above_150cm_99 = quantile(Seedlings_Above_150cm, probs = 0.99, na.rm = T))
+            Seedlings_Above_150cm_99 = quantile(Seedlings_Above_150cm, probs = 0.99, na.rm = T)) %>%
+  as.data.frame()
+
+# Handle error if 99 comes in as NA b/c there were non recorded in that size class
+seeds_sum$Seedlings_15_30cm_99 <- ifelse(is.na(seeds_sum$Seedlings_15_30cm_99), 
+                                         max(seeds_sum$Seedlings_15_30cm_99, na.rm = T),
+                                         seeds_sum$Seedlings_15_30cm_99)
+seeds_sum$Seedlings_30_100cm_99 <- ifelse(is.na(seeds_sum$Seedlings_30_100cm_99), 
+                                         max(seeds_sum$Seedlings_30_100cm_99, na.rm = T),
+                                         seeds_sum$Seedlings_30_100cm_99)
+seeds_sum$Seedlings_100_150cm_99 <- ifelse(is.na(seeds_sum$Seedlings_100_150cm_99), 
+                                         max(seeds_sum$Seedlings_100_150cm_99, na.rm = T),
+                                         seeds_sum$Seedlings_100_150cm_99)
+seeds_sum$Seedlings_Above_150cm_99 <- ifelse(is.na(seeds_sum$Seedlings_Above_150cm_99), 
+                                         max(seeds_sum$Seedlings_Above_150cm_99, na.rm = T),
+                                         seeds_sum$Seedlings_Above_150cm_99)
 
 seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, Seedlings_15_30cm:Seedlings_Above_150cm), 
                             seeds_sum, by = "ParkUnit") %>% 
   filter(Seedlings_15_30cm > Seedlings_15_30cm_99 |
-           Seedlings_30_100cm > Seedlings_30_100cm_99 |
-           Seedlings_100_150cm > Seedlings_100_150cm_99 |
-           Seedlings_Above_150cm > Seedlings_Above_150cm_99) 
+         Seedlings_30_100cm > Seedlings_30_100cm_99 |
+         Seedlings_100_150cm > Seedlings_100_150cm_99 |
+         Seedlings_Above_150cm > Seedlings_Above_150cm_99) %>% as.data.frame()
 
 
 seeds_99_check_final <- if(nrow(seeds_99_check) > 0 & cycle_latest_num > 1){
-  seed_cols <- c(ifelse(seeds_99_check$Seedlings_15_30cm > seeds_99_check$Seedlings_15_30cm_99, "Seedlings_15_30cm", "ParkUnit"),
-                 ifelse(seeds_99_check$Seedlings_30_100cm > seeds_99_check$Seedlings_30_100cm_99 , "Seedlings_30_100cm", "ParkUnit"),
-                 ifelse(seeds_99_check$Seedlings_100_150cm > seeds_99_check$Seedlings_100_150cm_99, "Seedlings_100_150cm", "ParkUnit"),
-                 ifelse(seeds_99_check$Seedlings_Above_150cm > seeds_99_check$Seedlings_Above_150cm_99, "Seedlings_Above_150cm", "ParkUnit"))#) 
+  seed_cols <- c(ifelse(seeds_99_check$Seedlings_15_30cm > seeds_99_check$Seedlings_15_30cm_99, 
+                        "Seedlings_15_30cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_30_100cm > seeds_99_check$Seedlings_30_100cm_99 , 
+                        "Seedlings_30_100cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_100_150cm > seeds_99_check$Seedlings_100_150cm_99, 
+                        "Seedlings_100_150cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_Above_150cm > seeds_99_check$Seedlings_Above_150cm_99, 
+                        "Seedlings_Above_150cm", "ParkUnit"))#) 
   
   seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
   seeds_99_check_final
@@ -1252,7 +1308,8 @@ spplist_old <- spplist %>% filter(SampleYear > (curr_year - 5) & SampleYear < cu
 
 spp_plotcheck <- full_join(spplist_new, spplist_old, 
                            by = c("Plot_Name", "TSN", "ScientificName"),
-                           suffix = c("_new", "_old")) 
+                           suffix = c("_new", "_old"),
+                           multiple = 'all') 
 
 spp_plotcheck[, 7:19][is.na(spp_plotcheck[, 7:19])] <- 0
 
@@ -1282,7 +1339,7 @@ spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>%
   select(-SampleYear, -cycle, -TSN, -BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
          -quad_pct_freq, -pres_new, -pres_old) %>% 
   arrange(Plot_Name, ScientificName) %>% 
-  mutate(across(where(is.numeric), round, 2))
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
 
 QC_table <- rbind(QC_table, 
                   QC_check(spp_newpark, "Plant ID", "Species new to a park"))
