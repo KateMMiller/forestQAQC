@@ -1295,6 +1295,7 @@ spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spica
                 'Betula alleghaniensis',
                 'Celtis laevigata', 'Clethra acuminata',
                 'Gaylussacia baccata', 'Gaylussacia dumosa', 'Gaylussacia frondosa', 'Gaylussacia',
+                'Ilex aquifolium', #new 2023
                 'Ilex decidua', 'Ilex montana', 'Ilex verticillata', 'Ilex mucronata',
                 'Juniperus', 'Juniperus communis', 'Juniperus horizontalis',
                 'Kalmia angustifolia', 'Lonicera', 'Maianthemum', 'Myrica gale', 'Nyssa biflora',
