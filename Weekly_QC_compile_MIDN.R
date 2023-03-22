@@ -58,7 +58,8 @@ plot_check <- QC_table %>% filter(Data %in% "Plot & Visit Data" & Num_Records > 
 include_plot_tab <- tab_include(plot_check)
 
 #----- Visit Notes -----
-visit_notes <- joinVisitNotes(from = curr_year, to = curr_year, noteType = 'all', locType = loc_type) %>% 
+visit_notes <- joinVisitNotes(from = curr_year, to = curr_year, QAQC = TRUE,
+                              noteType = 'all', locType = loc_type) %>% 
                filter_week() %>% name_plot() %>% 
                select(Plot_Name, Note_Type, Sample_Info, Notes) %>% 
                arrange(Plot_Name, Note_Type, Sample_Info, Notes)
