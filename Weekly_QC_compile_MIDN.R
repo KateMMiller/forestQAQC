@@ -946,6 +946,17 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
 
 quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats")
 
+# Check for all quads trampled
+tramp_all <- tramp_plots2 %>% 
+  mutate(tramp_quads = A2 + A5 + A8 + AA + 
+                       B2 + B5 + B8 + BB +
+                       C2 + C5 + C8 + CC) %>% 
+  filter(tramp_quads == 12)
+
+QC_table <- rbind(QC_table, QC_check(tramp_all, "Quadrat", "All quadrats trampled"))
+
+quad_tramp_all_table <- make_kable(tramp_all, "All quadrats trampled")
+
 # Check for PMs in quadrat data
 quad_data_pm <- PM_check(quad_data)
 
@@ -1366,7 +1377,7 @@ sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks) %>%
   arrange(ScientificName, Plot_Name) %>%  
   select(-SampleYear, -cycle, -TSN, -BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
          -quad_pct_freq, -pres) %>% 
-  mutate(across(where(is.numeric), round, 2))
+  mutate(across(where(is.numeric), \(x) round(x, 2)))
 
 QC_table <- rbind(QC_table, 
                   QC_check(sppID_check, "Plant ID", "Potentially incorrect species entries"))

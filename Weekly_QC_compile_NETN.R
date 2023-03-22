@@ -809,6 +809,15 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
 
 quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats") 
 
+# Check for all quads trampled
+tramp_all <- tramp_plots2 %>% 
+  mutate(tramp_quads = UC + UR + MR + BR + BC + BL + ML + UL) %>% 
+  filter(tramp_quads == 8)
+
+QC_table <- rbind(QC_table, QC_check(tramp_all, "Quadrat", "All quadrats trampled"))
+
+quad_tramp_all_table <- make_kable(tramp_all, "All quadrats trampled")
+
 # Check for PMs in quadrat data
 quad_data_pm <- PM_check(quad_data)
 

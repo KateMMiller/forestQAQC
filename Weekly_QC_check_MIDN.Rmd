@@ -206,6 +206,8 @@ check_null(seed_0tally_table) # Updated for MIDN
 check_null(seeds_99_table) # Updated for MIDN
 
 check_null(quad_tramp_table)
+
+check_null(quad_tramp_all_table) # new for 2023
 ```
 
 

@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2022-05-27"
-  cycle_latest_num: 4
+  week_start: "2022-07-11"
+  cycle_latest_num: 5
   locType: 'all'
 
 ---
@@ -184,6 +184,8 @@ check_null(quad_sq_data_table)
 check_null(quad_sq_spp_table)
 
 check_null(quad_tramp_table)
+
+check_null(quad_tramp_all_table) # new for 2023
 
 ```
 
