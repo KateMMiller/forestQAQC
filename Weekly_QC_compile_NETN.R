@@ -1,17 +1,22 @@
 #--------------------------------
 # Compiling data for QAQC Reports
 #--------------------------------
+
+#profvis::profvis({
 #----- Load libraries
 library(forestNETN)
-library(tidyverse)
+#library(tidyverse)
+library(dplyr)
+library(tidyr)
 library(lubridate)
 library(knitr)
 library(kableExtra)
+library(stringr)
 
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2022-06-26"
+# week_start = "2022-07-11"
 # cycle_latest_num = 5
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
@@ -19,6 +24,7 @@ source("Weekly_QC_functions.R")
 # cycle_prev <- paste0("cycle_", cycle_latest_num-1)
 # cycle_prev_num <- cycle_latest_num - 1
 # loc_type <- 'all'
+# importData()
 
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
@@ -135,12 +141,12 @@ microtop1 <- stand %>% filter(IsQAQC == 0) %>%
   select(Plot_Name, cycle, Microtopography) %>% 
   pivot_wider(names_from = cycle,
               values_from = Microtopography,
-              names_prefix = "cycle_") 
+              names_prefix = "cycle_") %>% as.data.frame()
 
 microtop1$micro_diff <- 
   if(cycle_prev %in% names(microtop1)){
     ifelse(microtop1[,cycle_prev] == microtop1[,cycle_latest], 0, 1)
-  } else {0} 
+  } else {0} %>% as.data.frame()
 
 microtop <- microtop1 %>% filter(micro_diff > 0)
 
@@ -343,7 +349,7 @@ crown_check1 <- tree_data_live %>% filter(IsQAQC == 0) %>%
   pivot_wider(names_from = cycle,
               values_from = CrownClassCode,
               names_prefix = "cycle_") %>% 
-  filter(!is.na(noquote(cycle_prev)))  
+  filter(!is.na(noquote(cycle_prev))) %>% as.data.frame() 
 
 crown_check1$crown_change <- if(cycle_prev %in% names(crown_check1)){
                                 abs(crown_check1[,cycle_latest] - crown_check1[,cycle_prev])
@@ -1074,12 +1080,30 @@ QC_table <- rbind(QC_table,
 soil_check3_table <- make_kable(soil_check3, "Plots missing at least one soil sample qualifier")
 
 # Check for soil layers > 99 percentile for a given park
-soil_samp <- do.call(joinSoilSampleData, list(park = park_ev_list, to = curr_year, 
-                                              QAQC = TRUE, locType = loc_type,
-                                              last_lab_year = 2019)) %>% name_plot()
+# soil_samp <- do.call(joinSoilSampleData, list(park = park_ev_list, to = curr_year, 
+#                                               QAQC = TRUE, locType = loc_type,
+#                                               last_lab_year = 2006)) %>% name_plot()
+# the above code was really slow b/c QCs horizons, so doing manually below
 
-soil_new <- soil_samp %>% filter_week()
-soil_old <- soil_samp %>% filter(SampleYear < curr_year)
+soil_samp1 <- get("SoilSample_NETN", envir = VIEWS_NETN) %>% 
+  select(Plot_Name, ParkUnit, ParkSubUnit, SampleYear, SampleDate, IsQAQC, SQSoilCode, 
+         Sample = SampleSequenceCode, 
+         Horizon = SoilLayerCode, Depth_cm, Note) %>% name_plot() %>%
+  filter(Horizon %in% c("L", "O", "A", "T")) %>%
+  pivot_wider(names_from = Horizon, values_from = Depth_cm) 
+
+soil_samp2 <- soil_samp1 %>% group_by(Plot_Name, ParkUnit, ParkSubUnit, SampleYear, 
+                                      SampleDate, IsQAQC) %>%
+  summarize(num_samps = sum(SQSoilCode == "SS"),
+            Litter_cm = sum(L, na.rm = T)/num_samps,
+            O_Horizon_cm = sum(O, na.rm = T)/num_samps,
+            A_Horizon_cm = sum(A, na.rm = T)/num_samps,
+            Total_Depth_cm = sum(`T`, na.rm = T)/num_samps,
+            .groups = 'drop')
+
+
+soil_new <- soil_samp2 %>% filter_week()
+soil_old <- soil_samp2 %>% filter(SampleYear < curr_year)
 
 soil_sum <- soil_old %>% group_by(ParkUnit) %>% 
             summarize(litter_99 = quantile(Litter_cm, probs = 0.99),
