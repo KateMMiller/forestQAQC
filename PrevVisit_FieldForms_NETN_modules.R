@@ -16,6 +16,10 @@ if(!dir.exists(path)){dir.create(path)}
 if(!dir.exists(paste0(path, "indiv"))){
   dir.create(paste0(path, "\\indiv\\"))}
 
+# Individual tree and quad plot files go into "Field_Forms/indiv" folder.
+if(!dir.exists(paste0(path, "indiv\\", "NHPs"))){
+  dir.create(paste0(path, "\\indiv\\NHPs\\"))}
+
 # Individual full visit of plot files go into "Field_Forms/indiv_all" folder.
 if(!dir.exists(paste0(path, "indiv_all"))){
   dir.create(paste0(path, "indiv_all\\"))}
