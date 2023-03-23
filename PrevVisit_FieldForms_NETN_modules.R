@@ -75,7 +75,7 @@ render_quads <- function(plot, pv_year, type = "NHPs"){
          params = list(plot_name = plotname, 
                        year = as.numeric(pv_year), 
                        print = TRUE),
-         output_file = paste0(path, "indiv\\", plot, "_", pv_year, "_Quads.html"))
+         output_file = outfile)
 }
 
 # Since NHPs and ACAD are off by a year, you have to run for all NHPs, then reset
@@ -83,6 +83,9 @@ render_quads <- function(plot, pv_year, type = "NHPs"){
 # Note: Sourcing specific lines in compile script to speed process
 # Have to update line numbers if code changes (or just source entire script)
 
+#--------------------------
+#       NHP Workflow
+#--------------------------
 ##----- params for NHPs -----
 year <- 2018
 park <- c("MABI", "MIMA", "SAGA", "SARA")
@@ -96,6 +99,36 @@ plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 map(plots, ~render_trees(., pv_year = 2018)) # trees
 map(plots, ~render_quads(., pv_year = 2018)) # quads
 
+#----- Convert Tree and Quad htmls to pdf -----
+##----- Convert individual html to pdf (ignore warnings unless it doesn't work) -----
+html_list <- list.files(paste0(path, "indiv\\NHPs\\"), pattern = '.html', full.names = T)
+pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
+walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
+
+##----- Combine park-level pdfs into 1 pdf per module -----
+combine_tree_pdfs <- function(park, path, year){
+  pdf_list <- list.files(paste0(path, "indiv\\NHPs\\"), pattern = ".pdf", full.names = TRUE)
+  trees <- pdf_list[grep(("Trees"), pdf_list)]
+  park_trees <- trees[grep((park), trees)]
+  pdftools::pdf_combine(input = park_trees,
+                        output = paste0(path, park, "_", year, "_Trees.pdf"))
+}
+
+combine_quad_pdfs <- function(park, path, year){
+  pdf_list <- list.files(paste0(path, "indiv\\NHPs\\"), pattern = ".pdf", full.names = TRUE)
+  quads <- pdf_list[grep(("Quads"), pdf_list)]
+  park_quads <- quads[grep((park), quads)]
+  pdftools::pdf_combine(input = park_quads,
+                        output = paste0(path, park, "_", year, "_Quads.pdf"))
+}
+
+nhps <- c("MABI", "MIMA", "SAGA", "SARA")
+purrr::map(nhps, ~combine_tree_pdfs(., path, year = 2018))
+purrr::map(nhps, ~combine_quad_pdfs(., path, year = 2018))
+
+#------------------------------
+#        ACAD Workflow 
+#------------------------------
 ##----- params for ACAD -----
 year <- 2019
 park <- "ACAD"
@@ -105,37 +138,15 @@ source("PrevVisit_FieldForms_NETN_compile.R")
 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
-##----- Render Reports -----
-map(plots, ~render_trees(., pv_year = 2019)) # trees
-map(plots, ~render_quads(., pv_year = 2019)) # quads
+##----- Render Reports- ACAD -----
+map(plots, ~render_trees(., pv_year = 2019, type = "ACAD")) # trees
+map(plots, ~render_quads(., pv_year = 2019, type = "ACAD")) # quads
 
 #----- Convert Tree and Quad htmls to pdf -----
 ##----- Convert individual html to pdf (ignore warnings unless it doesn't work) -----
 html_list <- list.files(paste0(path, "indiv\\"), pattern = '.html', full.names = T)
 pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
 walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
-
-##----- Combine park-level pdfs into 1 pdf per module -----
-combine_tree_pdfs <- function(park, path, year){
-  pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
-  trees <- pdf_list[grep(("Trees"), pdf_list)]
-  park_trees <- trees[grep((park), trees)]
-  pdftools::pdf_combine(input = park_trees,
-                        output = paste0(path, park, "_", year, "_Trees.pdf"))
-}
-
-combine_quad_pdfs <- function(park, path, year){
-  pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
-  quads <- pdf_list[grep(("Quads"), pdf_list)]
-  park_quads <- quads[grep((park), quads)]
-  pdftools::pdf_combine(input = park_quads,
-                        output = paste0(path, park, "_", year, "_Quads.pdf"))
-}
-
-
-nhps <- c("MABI", "MIMA", "SAGA", "SARA")
-purrr::map(nhps, ~combine_tree_pdfs(., path, year = 2018))
-purrr::map(nhps, ~combine_quad_pdfs(., path, year = 2018))
 
 # Combine ACAD forms by subunit
 plot_subs <- plotevs[, c("Plot_Name", "ParkSubUnit")] # plot list to iterate on below
@@ -145,7 +156,7 @@ ACAD_IAH = plot_subs$Plot_Name[plot_subs$ParkSubUnit == "ACAD_Isle_au_Haut"]
 ACAD_SCH = plot_subs$Plot_Name[plot_subs$ParkSubUnit == "ACAD_Schoodic"]
 
 combine_tree_pdfs_ACAD <- function(plot_list, subunit, path, year){
-  pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
+  pdf_list <- list.files(paste0(path, "indiv\\"), pattern = ".pdf", full.names = TRUE)
   trees <- pdf_list[grep(("Trees"), pdf_list)]
   grep_list <- paste(plot_list, collapse = "|")
   park_trees <- trees[grep((grep_list), trees)]
@@ -159,7 +170,7 @@ combine_tree_pdfs_ACAD(ACAD_IAH, "IAH", path, 2019)
 combine_tree_pdfs_ACAD(ACAD_SCH, "SCH", path, 2019)
 
 combine_quad_pdfs_ACAD <- function(plot_list, subunit, path, year){
-  pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
+  pdf_list <- list.files(paste0(path, "indiv\\"), pattern = ".pdf", full.names = TRUE)
   quads <- pdf_list[grep(("Quads"), pdf_list)]
   grep_list <- paste(plot_list, collapse = "|")
   park_quads <- quads[grep((grep_list), quads)]
