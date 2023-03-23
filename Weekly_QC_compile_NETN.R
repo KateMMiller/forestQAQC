@@ -1,24 +1,30 @@
 #--------------------------------
 # Compiling data for QAQC Reports
 #--------------------------------
+
+#profvis::profvis({
 #----- Load libraries
 library(forestNETN)
-library(tidyverse)
+#library(tidyverse)
+library(dplyr)
+library(tidyr)
 library(lubridate)
 library(knitr)
 library(kableExtra)
+library(stringr)
 
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2022-05-27"
-# cycle_latest_num = 4
+# week_start = "2022-07-11"
+# cycle_latest_num = 5
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # cycle_latest <- paste0("cycle_", cycle_latest_num)
 # cycle_prev <- paste0("cycle_", cycle_latest_num-1)
 # cycle_prev_num <- cycle_latest_num - 1
 # loc_type <- 'all'
+# importData()
 
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
@@ -52,7 +58,8 @@ plot_check <- QC_table %>% filter(Data %in% "Plot & Visit Data" & Num_Records > 
 include_plot_tab <- tab_include(plot_check)
 
 #----- Visit Notes -----
-visit_notes <- joinVisitNotes(from = curr_year, to = curr_year, noteType = 'visit', locType = loc_type) %>% 
+visit_notes <- joinVisitNotes(from = curr_year, to = curr_year, noteType = 'visit', 
+                              QAQC = TRUE, locType = loc_type) %>% 
                filter_week() %>% name_plot() %>% 
                select(Plot_Name, Note_Type, Sample_Info, Notes) %>% 
                arrange(Plot_Name, Note_Type, Sample_Info, Notes)
@@ -115,10 +122,11 @@ stand_str1 <- stand %>% filter(IsQAQC == 0) %>%
   select(Plot_Name, cycle, Stand_Structure) %>% 
   pivot_wider(names_from = cycle,
               values_from = Stand_Structure,
-              names_prefix = "cycle_") 
+              names_prefix = "cycle_") %>% as.data.frame()
 
 stand_str1$stand_diff <- 
-if(cycle_prev %in% names(stand_str1)){
+
+  if(cycle_prev %in% names(stand_str1)){
   ifelse(stand_str1[,cycle_prev] == stand_str1[,cycle_latest], 0, 1)
 } else {0} 
 
@@ -134,12 +142,12 @@ microtop1 <- stand %>% filter(IsQAQC == 0) %>%
   select(Plot_Name, cycle, Microtopography) %>% 
   pivot_wider(names_from = cycle,
               values_from = Microtopography,
-              names_prefix = "cycle_") 
+              names_prefix = "cycle_") %>% as.data.frame()
 
 microtop1$micro_diff <- 
   if(cycle_prev %in% names(microtop1)){
     ifelse(microtop1[,cycle_prev] == microtop1[,cycle_latest], 0, 1)
-  } else {0} 
+  } else {0} %>% as.data.frame()
 
 microtop <- microtop1 %>% filter(micro_diff > 0)
 
@@ -215,7 +223,8 @@ stand_ht_new_wide <- full_join(stand_ht_new %>% filter(CrownClassLabel == "Co-do
                                stand_ht_new %>% filter(CrownClassLabel == "Intermediate") %>% 
                                  select(Plot_Name, Height),
                                by = c("Plot_Name"),
-                               suffix = c("_codom", "_inter"))
+                               suffix = c("_codom", "_inter"),
+                               multiple = 'all')
 
 stand_ht_comp <- left_join(stand_ht_new_wide, stand_ht_prev, by = "Plot_Name") %>% 
                  filter((Height_codom > Codom_prev_up50 & !is.na(Codom_prev_up50))| 
@@ -251,8 +260,9 @@ tree_data_new <- tree_data %>% filter(SampleDate >= week_start)
 # Check for PMs in tree data
 tree_data_pm <- PM_check(tree_data_new)# %>% select_if(is.character) %>% select(-SampleDate)
 
-PM_tree_data_col <- sapply(names(tree_data_pm), function(x) any(tree_data_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
-  as.logical()
+PM_tree_data_col <- sapply(names(tree_data_pm), 
+                           function(x) any(tree_data_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
+                    as.logical()
 PM_tree_data_col[c(1)] <- TRUE # For Plot_Name
 
 tree_data_pm2 <- data.frame(tree_data_pm[, PM_tree_data_col])
@@ -340,7 +350,7 @@ crown_check1 <- tree_data_live %>% filter(IsQAQC == 0) %>%
   pivot_wider(names_from = cycle,
               values_from = CrownClassCode,
               names_prefix = "cycle_") %>% 
-  filter(!is.na(noquote(cycle_prev)))  
+  filter(!is.na(noquote(cycle_prev))) %>% as.data.frame() 
 
 crown_check1$crown_change <- if(cycle_prev %in% names(crown_check1)){
                                 abs(crown_check1[,cycle_latest] - crown_check1[,cycle_prev])
@@ -357,7 +367,7 @@ crown_table <- make_kable(crown_check, "Major crown class changes")
 tree_dbh <- tree_data_live %>% select(Plot_Name, TagCode, cycle, ScientificName, DBHcm, IsDBHVerified) %>% 
                                pivot_wider(names_from = cycle,
                                            values_from = c(DBHcm, IsDBHVerified),
-                                           names_prefix = "cycle_") 
+                                           names_prefix = "cycle_") %>% as.data.frame()
 
 old_dbh <- paste0("DBHcm_cycle_", cycle_latest_num-1)
 new_dbh <- paste0("DBHcm_cycle_", cycle_latest_num)
@@ -388,6 +398,23 @@ QC_table <- rbind(QC_table,
                   QC_check(tree_dbh_check, "Tree Data", "DBH zoinks missing DBH Verified check"))
 
 tree_dbh_table <- make_kable(tree_dbh_check, "DBH zoinks missing DBH Verified check")
+
+# Identify non-zoinks that has DBH Verified Checkbox
+tree_nz <- tree_dbh %>% 
+  mutate(notZoinks = ifelse(is.na(DBH_diff) | (DBH_diff > -0.01 & DBH_diff < 3), TRUE, FALSE))
+
+latest_DBHVer <- paste0("IsDBHVerified_", cycle_latest)
+
+tree_nz$wrongZoinks <- ifelse(tree_nz$notZoinks == TRUE & tree_nz[,latest_DBHVer] == TRUE, TRUE, FALSE)
+
+tree_nz <- tree_nz %>% filter(wrongZoinks == TRUE)
+
+tree_nz <- tree_nz[, c("Plot_Name", "TagCode", "ScientificName", old_dbh, new_dbh, "DBH_diff", latest_DBHVer)]
+
+QC_table <- rbind(QC_table,
+                  QC_check(tree_nz, "Tree Data", "DBH non-zoinks with DBH Verified check"))
+
+tree_dbhnz_table <- make_kable(tree_nz, "DBH non-zoinks with DBH Verified check")
 
 # Check for major foliage outbreak
 fol_new <- joinTreeFoliageCond(from = curr_year, to = curr_year, QAQC = FALSE, locType = 'all') %>% 
@@ -626,20 +653,37 @@ seeds_sum <- seeds_old %>% group_by(ParkUnit) %>% filter(SampleYear > 2006) %>%
                            Seedlings_100_150cm_99 = quantile(Seedlings_100_150cm, probs = 0.99, na.rm = T),
                            Seedlings_Above_150cm_99 = quantile(Seedlings_Above_150cm, probs = 0.99, na.rm = T))
 
+# Handle error if 99 comes in as NA b/c there were non recorded in that size class
+seeds_sum$Seedlings_15_30cm_99 <- ifelse(is.na(seeds_sum$Seedlings_15_30cm_99), 
+                                         max(seeds_sum$Seedlings_15_30cm_99, na.rm = T),
+                                         seeds_sum$Seedlings_15_30cm_99)
+seeds_sum$Seedlings_30_100cm_99 <- ifelse(is.na(seeds_sum$Seedlings_30_100cm_99), 
+                                          max(seeds_sum$Seedlings_30_100cm_99, na.rm = T),
+                                          seeds_sum$Seedlings_30_100cm_99)
+seeds_sum$Seedlings_100_150cm_99 <- ifelse(is.na(seeds_sum$Seedlings_100_150cm_99), 
+                                           max(seeds_sum$Seedlings_100_150cm_99, na.rm = T),
+                                           seeds_sum$Seedlings_100_150cm_99)
+seeds_sum$Seedlings_Above_150cm_99 <- ifelse(is.na(seeds_sum$Seedlings_Above_150cm_99), 
+                                             max(seeds_sum$Seedlings_Above_150cm_99, na.rm = T),
+                                             seeds_sum$Seedlings_Above_150cm_99)
 
 seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, Seedlings_15_30cm:Seedlings_Above_150cm), 
                             seeds_sum, by = "ParkUnit") %>% 
                   filter(Seedlings_15_30cm > Seedlings_15_30cm_99 |
                          Seedlings_30_100cm > Seedlings_30_100cm_99 |
                          Seedlings_100_150cm > Seedlings_100_150cm_99 |
-                         Seedlings_Above_150cm > Seedlings_Above_150cm_99) 
+                         Seedlings_Above_150cm > Seedlings_Above_150cm_99) %>% as.data.frame()
                   
-seeds_99_check_final <- if(nrow(seeds_99_check) > 0){
-  seed_cols <- c(ifelse(seeds_99_check$Seedlings_15_30cm > seeds_99_check$Seedlings_15_30cm_99, "Seedlings_15_30cm", "ParkUnit"),
-                 ifelse(seeds_99_check$Seedlings_30_100cm > seeds_99_check$Seedlings_30_100cm_99 , "Seedlings_30_100cm", "ParkUnit"),
-                 ifelse(seeds_99_check$Seedlings_100_150cm > seeds_99_check$Seedlings_100_150cm_99, "Seedlings_100_150cm", "ParkUnit"),
-                 ifelse(seeds_99_check$Seedlings_Above_150cm > seeds_99_check$Seedlings_Above_150cm_99, "Seedlings_Above_150cm", "ParkUnit"))#) 
-
+seeds_99_check_final <- if(nrow(seeds_99_check) > 0 & cycle_latest_num > 1){
+  seed_cols <- c(ifelse(seeds_99_check$Seedlings_15_30cm > seeds_99_check$Seedlings_15_30cm_99, 
+                        "Seedlings_15_30cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_30_100cm > seeds_99_check$Seedlings_30_100cm_99 , 
+                        "Seedlings_30_100cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_100_150cm > seeds_99_check$Seedlings_100_150cm_99, 
+                        "Seedlings_100_150cm", "ParkUnit"),
+                 ifelse(seeds_99_check$Seedlings_Above_150cm > seeds_99_check$Seedlings_Above_150cm_99, 
+                        "Seedlings_Above_150cm", "ParkUnit"))#) 
+  
   seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
   seeds_99_check_final
 } else {seeds_99_check}
@@ -711,7 +755,6 @@ quad_spp <- do.call(joinQuadSpecies, arglist) %>%
 
 #check for trampled quadrats
 quad_tramp <- get("QuadNotes_NETN", envir = VIEWS_NETN) 
-head(quad_tramp)
 
 quad_tramp2 <- quad_tramp %>% #mutate(Plot_Name = 
                               #         paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
@@ -721,11 +764,10 @@ quad_tramp2 <- quad_tramp %>% #mutate(Plot_Name =
                               unique()
 
 quad_tramp3 <- left_join(quad_tramp2, plotevs %>% select(Plot_Name, SampleYear, IsQAQC, cycle), 
-                         by = c("Plot_Name", "SampleYear")) %>% 
+                         by = c("Plot_Name", "SampleYear"),
+                         multiple = 'all') %>% 
   filter(cycle %in% c(cycle_latest_num, cycle_prev_num)) %>% 
   filter(IsQAQC == 0)
-
-head(quad_tramp3)
 
 quad_tramp_wide <- quad_tramp3 %>% select(Plot_Name, SampleYear, cycle, QuadratCode, IsTrampled) %>% 
   pivot_wider(names_from = c("QuadratCode"), values_from = "IsTrampled")
@@ -767,8 +809,15 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
 
 
 quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats") 
-quad_tramp_table
-names(tramp_plots2)
+
+# Check for all quads trampled
+tramp_all <- tramp_plots2 %>% 
+  mutate(tramp_quads = UC + UR + MR + BR + BC + BL + ML + UL) %>% 
+  filter(tramp_quads == 8)
+
+QC_table <- rbind(QC_table, QC_check(tramp_all, "Quadrat", "All quadrats trampled"))
+
+quad_tramp_all_table <- make_kable(tramp_all, "All quadrats trampled")
 
 # Check for PMs in quadrat data
 quad_data_pm <- PM_check(quad_data)
@@ -1041,12 +1090,30 @@ QC_table <- rbind(QC_table,
 soil_check3_table <- make_kable(soil_check3, "Plots missing at least one soil sample qualifier")
 
 # Check for soil layers > 99 percentile for a given park
-soil_samp <- do.call(joinSoilSampleData, list(park = park_ev_list, to = curr_year, 
-                                              QAQC = TRUE, locType = loc_type,
-                                              last_lab_year = 2019)) %>% name_plot()
+# soil_samp <- do.call(joinSoilSampleData, list(park = park_ev_list, to = curr_year, 
+#                                               QAQC = TRUE, locType = loc_type,
+#                                               last_lab_year = 2006)) %>% name_plot()
+# the above code was really slow b/c QCs horizons, so doing manually below
 
-soil_new <- soil_samp %>% filter_week()
-soil_old <- soil_samp %>% filter(SampleYear < curr_year)
+soil_samp1 <- get("SoilSample_NETN", envir = VIEWS_NETN) %>% 
+  select(Plot_Name, ParkUnit, ParkSubUnit, SampleYear, SampleDate, IsQAQC, SQSoilCode, 
+         Sample = SampleSequenceCode, 
+         Horizon = SoilLayerCode, Depth_cm, Note) %>% name_plot() %>%
+  filter(Horizon %in% c("L", "O", "A", "T")) %>%
+  pivot_wider(names_from = Horizon, values_from = Depth_cm) 
+
+soil_samp2 <- soil_samp1 %>% group_by(Plot_Name, ParkUnit, ParkSubUnit, SampleYear, 
+                                      SampleDate, IsQAQC) %>%
+  summarize(num_samps = sum(SQSoilCode == "SS"),
+            Litter_cm = sum(L, na.rm = T)/num_samps,
+            O_Horizon_cm = sum(O, na.rm = T)/num_samps,
+            A_Horizon_cm = sum(A, na.rm = T)/num_samps,
+            Total_Depth_cm = sum(`T`, na.rm = T)/num_samps,
+            .groups = 'drop')
+
+
+soil_new <- soil_samp2 %>% filter_week()
+soil_old <- soil_samp2 %>% filter(SampleYear < curr_year)
 
 soil_sum <- soil_old %>% group_by(ParkUnit) %>% 
             summarize(litter_99 = quantile(Litter_cm, probs = 0.99),
@@ -1090,11 +1157,13 @@ spplist_old <- spplist %>% filter(cycle < cycle_latest_num) %>%
 
 spp_plotcheck <- full_join(spplist_new, spplist_old, 
                            by = c("Plot_Name", "TSN", "ScientificName"),
-                           suffix = c("_new", "_old")) 
+                           suffix = c("_new", "_old"), 
+                           multiple = 'all') 
 
 nacols <- c("BA_cm2", "DBH_mean", "tree_stems", "seed_den", "sap_den", "stock", 
             "shrub_avg_cov", "shrub_pct_freq", "quad_avg_cov", "quad_pct_freq", 
             "addspp_present", "pres_new", "pres_old")
+
 spp_plotcheck[, nacols][is.na(spp_plotcheck[, nacols])] <- 0
 
 spp_newplot <- spp_plotcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 

@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2022-05-27"
-  cycle_latest_num: 4
+  week_start: "2022-07-11"
+  cycle_latest_num: 5
   locType: 'all'
 
 ---
@@ -123,6 +123,8 @@ check_null(zoinks_table)
 
 check_null(tree_dbh_table)
 
+check_null(tree_dbhnz_table) # new for 2023
+
 check_null(fol_maj_table)
 
 check_null(trcond_spp_table)
@@ -182,6 +184,8 @@ check_null(quad_sq_data_table)
 check_null(quad_sq_spp_table)
 
 check_null(quad_tramp_table)
+
+check_null(quad_tramp_all_table) # new for 2023
 
 ```
 

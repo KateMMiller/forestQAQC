@@ -19,13 +19,15 @@ options(knitr.kable.NA = '')
 plot_name = params$plot_name
 year = as.numeric(params$year)
 park = substr(plot_name, 1, 4)
+subunit <- joinLocEvent(park = substr(plot_name, 1, 4), from = year, to = year) |> 
+  filter(Plot_Name == plot_name) |>  select(ParkSubUnit) |> as.character()
 ```
 
 
 ```{r results = 'asis', echo = FALSE, eval = params$print}
 
 cat("<h3> Previous Visit: Quadrat Data for ")
-cat(paste0(plot_name, '-', year), "</h3>")
+cat(paste0(plot_name, '-', year, "     ", substr(subunit, 6, nchar(subunit))), "</h3>")
 cat("<hr>")
 ```
 
