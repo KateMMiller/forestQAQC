@@ -92,7 +92,7 @@ tree_qaqc <- tree_data %>% filter(Team == "QAQC")
 
 tree_wide <- full_join(tree_crew, tree_qaqc, 
                        by = c("Plot_Name", "SampleYear", "ScientificName", "TagCode", "Fork"),
-                       suffix = c("_C", "_Q")) %>% 
+                       suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
              mutate(DBH_diff = DBHcm_C - DBHcm_Q, 
                     fol_diff = abs(TotFol_code_C - TotFol_code_Q),
                     dec_diff = abs(DecayClassCode_C - DecayClassCode_Q),
@@ -139,7 +139,7 @@ dead <- c("2", "DB", "DL", "DM", "DS")
 
 trcond_wide <- full_join(trcond_c, trcond_q, 
                          by = c("Plot_Name", "TagCode", "sppcode", "TreeStatusCode"),
-                         suffix = c("_C", "_Q")) %>% 
+                         suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
   mutate(cond_diff = abs(num_cond_C - num_cond_Q),
          Status = ifelse(TreeStatusCode %in% live, "live", "dead")) %>% 
   select(TagCode, Status, cond_diff, num_cond_C, num_cond_Q, H_C, H_Q, NO_C, NO_Q,
@@ -174,7 +174,7 @@ folcond_q <- fol_cond2 %>% filter(Team == "QAQC")
 
 folcond_wide <- full_join(folcond_c, folcond_q,
                           by = c("Plot_Name", "TagCode", "sppcode"),
-                          suffix = c("_C", "_Q")) %>%
+                          suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>%
                 select(TagCode, Txt_Leaves_Aff_C_C, Txt_Leaves_Aff_C_Q, Txt_Leaf_Area_C_C, Txt_Leaf_Area_C_Q,
                                 Txt_Leaves_Aff_H_C, Txt_Leaves_Aff_H_Q, Txt_Leaf_Area_H_C, Txt_Leaf_Area_H_Q,
                                 Txt_Leaves_Aff_L_C, Txt_Leaves_Aff_L_Q, 
@@ -202,7 +202,7 @@ sap_qaqc <- sap_data %>% filter(Team == "QAQC")
 sap_wide <- full_join(sap_crew, sap_qaqc, 
                        by = c("Plot_Name", "SampleYear", "ScientificName", "MicroplotCode", 
                               "TagCode", "Fork"),
-                       suffix = c("_C", "_Q")) %>% 
+                       suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
   mutate(DBH_diff = DBHcm_C - DBHcm_Q)
 
 # For saplings not sampled, so doesn't fail
@@ -259,18 +259,18 @@ shrubs_long <- shrubs %>% select(Team, ScientificName, UR, UL, B) %>%
 shrub_cov <- data.frame(txt = c("0%", "<1%", "1-5%", "5-10%", "10-25%", "25-50%", "50-75%", "75-95%", "95-100%"),
                        pct_class = c(0, 1, 2, 3, 4, 5, 6, 7, 8))
 
-shrubs_long2 <- left_join(shrubs_long, shrub_cov, by = c("Txt_Cov" = 'txt')) 
+shrubs_long2 <- left_join(shrubs_long, shrub_cov, by = c("Txt_Cov" = 'txt'), multiple = 'all') 
 
 shrubs_comp <- full_join(shrubs_long2 %>% filter(Team == "Crew") %>% select(-Team), 
                          shrubs_long2 %>% filter(Team == "QAQC") %>% select(-Team),
                          by = c("Micro", "ScientificName"),
-                         suffix = c("_C", "_Q")) %>% 
+                         suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
                select(Micro, everything()) %>% arrange(Micro, ScientificName)
 
 # handle if microplot was dropped
 micro_names <- data.frame(Micro = c("UR", "UL", "B")) 
 
-shrubs_full <- full_join(shrubs_comp, micro_names, by = "Micro")
+shrubs_full <- full_join(shrubs_comp, micro_names, by = "Micro", multiple = 'all', relationship = 'many-to-many')
 shrubs_full[, c("Txt_Cov_C", "Txt_Cov_Q")][is.na(shrubs_full[, c("Txt_Cov_C", "Txt_Cov_Q")])] <- "0%"
 shrubs_full[, c("pct_class_C", "pct_class_Q")][is.na(shrubs_full[, c("pct_class_C", "pct_class_Q")])] <- 0
 shrubs_full$ScientificName[is.na(shrubs_full$ScientificName)] <- "None present"
@@ -278,7 +278,7 @@ shrubs_full$ScientificName[is.na(shrubs_full$ScientificName)] <- "None present"
 # Shrub taxonomic accuracy +++ NEW 20220321 +++
 shrub_ta <- full_join(shrubs %>% filter(Team == "Crew") %>% select(ScientificName, shrub_avg_cov),
                       shrubs %>% filter(Team == "QAQC") %>% select(ScientificName, shrub_avg_cov),
-                      by = c("ScientificName"), suffix = c("_C", "_Q"))
+                      by = c("ScientificName"), suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many')
 
 shrub_spp <- rbind(shrub_ta %>% filter(shrub_avg_cov_C >= 1) %>% #drop <1%
                      mutate(team = "crew", 
@@ -326,7 +326,7 @@ regen_sum <- do.call(joinRegenData, c(arglist, list(speciesType = 'all', canopyF
 regen_comp1 <- full_join(regen_sum %>% filter(Team == "Crew") %>% select(-Team),
                          regen_sum %>% filter(Team == "QAQC") %>% select(-Team),
                          by = "ScientificName",
-                         suffix = c("_C", "_Q"))
+                         suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many')
 
 regen_comp1[,2:7][is.na(regen_comp1[,2:7])] <- 0
 
@@ -350,7 +350,7 @@ quad_tramp_wide <- quad_tramp %>% select(-SQQuadCharCode) %>% pivot_wider(names_
 quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(Team == "Crew") %>% select(-Team), 
                               quad_tramp_wide %>% filter(Team == "QAQC") %>% select(-Team),
                               by = c("Plot_Name", "SampleYear"),
-                              suffix = c("_C", "_Q")) %>% 
+                              suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
   mutate(A2_dif = abs(A2_C - A2_Q),
          A5_dif = abs(A5_C - A5_Q),
          A8_dif = abs(A8_C - A8_Q),
@@ -396,7 +396,8 @@ quad_chr_class[,3:14][quad_chr_class[,3:14] == "95-100%"] <- 9
 
 quad_chr_class <- quad_chr_class %>% mutate(across(A2:CC, ~as.numeric(.)))
 quad_chr2 <- full_join(quad_chr, quad_chr_class, by = c("Team", "CharacterLabel"),
-                       suffix = c("", "_class")) %>% 
+                       suffix = c("", "_class"), multiple = 'all', 
+                       relationship = 'many-to-many') %>% 
                        mutate(order = case_when(CharacterLabel == "Soil" ~ 1,
                                                 CharacterLabel == "Rock" ~ 2,
                                                 CharacterLabel == "Stem" ~ 3,
@@ -410,7 +411,7 @@ quad_chr2 <- full_join(quad_chr, quad_chr_class, by = c("Team", "CharacterLabel"
 quad_chr_comp <- full_join(quad_chr2 %>% filter(Team == "Crew") %>% select(-Team), 
                        quad_chr2 %>% filter(Team == "QAQC") %>% select(-Team),
                        by = c("CharacterLabel", "order"),
-                       suffix = c("_C", "_Q")) %>% 
+                       suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
                        mutate(A2_dif = abs(A2_class_C - A2_class_Q),
                               A5_dif = abs(A5_class_C - A5_class_Q),
                               A8_dif = abs(A8_class_C - A8_class_Q),
@@ -462,12 +463,12 @@ quad_spp_class[,3:14][is.na(quad_spp_class[,3:14])] <- 0
 quad_spp_class <- suppressWarnings(quad_spp_class %>% mutate(across(A2:CC, ~as.numeric(.))))
 
 quad_spp2 <- full_join(quad_spp, quad_spp_class, by = c("Team", "ScientificName"),
-                       suffix = c("", "_class"))
+                       suffix = c("", "_class"), multiple = 'all', relationship = 'many-to-many')
   
 quad_spp_comp <- full_join(quad_spp2 %>% filter(Team == "Crew") %>% select(-Team), 
                            quad_spp2 %>% filter(Team == "QAQC") %>% select(-Team),
                            by = c("ScientificName"),
-                           suffix = c("_C", "_Q"))  
+                           suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many')  
 names(quad_spp_comp)
 #head(quad_spp_comp)
 quad_spp_comp[, c(2:13, 26:37)][is.na(quad_spp_comp[, c(2:13, 26:37)])] <- "0%"
@@ -520,7 +521,7 @@ quad_sum <- quad_spp1 %>% select(Team, ScientificName, quad_avg_cov, quad_pct_fr
 quad_sum_comp <- full_join(quad_sum %>% filter(Team == "Crew") %>% select(-Team), 
                            quad_sum %>% filter(Team == "QAQC") %>% select(-Team),
                            by = c("ScientificName"),
-                           suffix = c("_C", "_Q")) 
+                           suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') 
 names(quad_sum_comp)
 
 quad_sum_comp[,2:5][is.na(quad_sum_comp[,2:5])] <- 0
@@ -572,7 +573,7 @@ seeds <- do.call(joinQuadSeedlings, c(arglist, list(speciesType = 'all', canopyF
 seeds_comp1 <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
                          seeds %>% filter(Team == "QAQC") %>% select(-Team),
                          by = c("QuadratCode", "ScientificName"),
-                         suffix = c("_C", "_Q")) %>% 
+                         suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
   arrange(QuadratCode, ScientificName) %>% 
   select(QuadratCode, ScientificName, 
          Seedlings_15_30cm_C, Seedlings_15_30cm_Q, Seedlings_30_100cm_C, Seedlings_30_100cm_Q,
@@ -582,7 +583,9 @@ seeds_comp1 <- full_join(seeds %>% filter(Team == "Crew") %>% select(-Team),
   filter(!ScientificName %in% "None present")
 
 quad_names <- data.frame(QuadratCode = c("A2", "A5", "A8", "AA", "B2", "B5", "B8", "BB", "C2", "C5", "C8", "CC")) 
-seeds_comp <- full_join(seeds_comp1, quad_names, by = "QuadratCode") %>% arrange(QuadratCode, ScientificName)
+seeds_comp <- full_join(seeds_comp1, quad_names, by = "QuadratCode", 
+                        multiple = 'all', relationship = 'many-to-many') %>% 
+  arrange(QuadratCode, ScientificName)
 seeds_comp[,c(3:14, 17:18)][is.na(seeds_comp[,c(3:14, 17:18)])] <- 0
 seeds_comp[,15:16][is.na(seeds_comp[,15:16])] <- "0%"
 seeds_comp$ScientificName[is.na(seeds_comp$ScientificName)] <- "None present"
@@ -679,7 +682,7 @@ spp_list2 <- spp_list %>% mutate(Trees = ifelse(DBH_mean > 0, 1, 0),
 spp_list_comp <- full_join(spp_list2 %>% filter(Team == "Crew") %>% select(-Team), 
                            spp_list2 %>% filter(Team == "QAQC") %>% select(-Team),
                            by = c("ScientificName"),
-                           suffix = c("_C", "_Q")) %>% 
+                           suffix = c("_C", "_Q"), multiple = 'all', relationship = 'many-to-many') %>% 
                  select(ScientificName, Trees_C, Trees_Q, Micros_C, Micros_Q, 
                         Quads_C, Quads_Q, AddSpp_C, AddSpp_Q)
 
@@ -744,7 +747,8 @@ cwd_sum1 <- cwd_raw2 %>%
 
 cwd_sum <- full_join(cwd_sum1 %>% filter(Team == "Crew") %>% select(-Team),
                      cwd_sum1 %>% filter(Team == "QAQC") %>% select(-Team),
-                     by = "Species", suffix = c("_C", "_Q"))
+                     by = "Species", suffix = c("_C", "_Q"), 
+                     multiple = 'all', relationship = 'many-to-many')
 
 cwd_vol <- do.call(joinCWDData, arglist[1:5]) %>% filter_plot() %>% name_team() %>% 
   select(Team, ScientificName, DecayClassCode, CWD_Vol) %>% 
@@ -753,10 +757,10 @@ cwd_vol <- do.call(joinCWDData, arglist[1:5]) %>% filter_plot() %>% name_team() 
 cwd_comp <- full_join(cwd_vol %>% filter(Team == "Crew") %>% select(-Team),
                       cwd_vol %>% filter(Team == "QAQC") %>% select(-Team),
                       by = c("Species"),#, "Decay"),
-                      suffix = c("_C", "_Q")) %>% filter(Species != "None present") %>% 
+                      suffix = c("_C", "_Q"), multiple = 'all') %>% filter(Species != "None present") %>% 
             arrange(Species)#, Decay)
 
-cwd_join <- full_join(cwd_comp, cwd_sum, by = "Species")
+cwd_join <- full_join(cwd_comp, cwd_sum, by = "Species", multiple = 'all', relationship = 'many-to-many')
 
 cwd_join$Decay_C <- as.integer(cwd_join$Decay_C)            
 cwd_join$Decay_Q <- as.integer(cwd_join$Decay_Q)            
