@@ -133,7 +133,7 @@ stand_str_prev <- stand %>% filter(IsQAQC == 0) %>%
   group_by(Plot_Name) %>% slice(which.max(cycle)-1) %>% ungroup()
   
 stand_str1 <- full_join(stand_str_latest, stand_str_prev, by = c("Plot_Name", "ParkUnit"),
-                        suffix = c("_latest", "_prev"))
+                        suffix = c("_latest", "_prev"), multiple = 'all', relationship = 'many-to-many')
 
 stand_str1$stand_diff <- 
   ifelse(stand_str1$Stand_Structure_latest == stand_str1$Stand_Structure_prev, 0, 1)
@@ -156,7 +156,7 @@ microtop_prev <- stand %>% filter(IsQAQC == 0) %>%
   group_by(Plot_Name) %>% slice(which.max(cycle)-1) %>% ungroup()
 
 microtop1 <- full_join(microtop_latest, microtop_prev, by = c("Plot_Name", "ParkUnit"),
-                        suffix = c("_latest", "_prev"))
+                        suffix = c("_latest", "_prev"), multiple = 'all', relationship = 'many-to-many')
 
 microtop1$micro_diff <- ifelse(microtop1$Microtopography_latest == microtop1$Microtopography_prev, 0, 1)
 
@@ -186,7 +186,7 @@ dbi_prev <- stand %>% filter(IsQAQC == 0) %>%
 
 dbi_diff <- full_join(dbi_latest, dbi_prev,
                       by = c("Plot_Name", "ParkUnit"), 
-                      suffix = c("_latest", "_prev")) %>% 
+                      suffix = c("_latest", "_prev"), multiple = 'all', relationship = 'many-to-many') %>% 
             mutate(DBI_diff = abs(Deer_Browse_Index_latest - Deer_Browse_Index_prev)) %>% 
             filter(DBI_diff > 1) %>% select(-DBI_diff)
 
@@ -220,7 +220,7 @@ stand_ht_sum <- stand_ht %>% filter(SampleYear < curr_year) %>% group_by(ParkUni
                 summarize(stand_ht_99 = quantile(Height, probs = 0.99))
 
 stand_ht_99_check <- left_join(stand_ht_new, stand_ht_sum, 
-                               by = "ParkUnit") %>% 
+                               by = "ParkUnit", multiple = 'all', relationship = 'many-to-many') %>% 
                      filter(Height > stand_ht_99)
 
 QC_table <- rbind(QC_table, QC_check(stand_ht_99_check, "Stand Data", "Stand heights > 99% percentile for a given park"))
@@ -243,9 +243,10 @@ stand_ht_new_wide <- full_join(stand_ht_new %>% filter(CrownClassLabel == "Co-do
                                  select(Plot_Name, Height),
                                by = c("Plot_Name"),
                                suffix = c("_codom", "_inter"),
-                               multiple = 'all')
+                               multiple = 'all', relationship = 'many-to-many')
 
-stand_ht_comp <- left_join(stand_ht_new_wide, stand_ht_prev, by = "Plot_Name") %>% 
+stand_ht_comp <- left_join(stand_ht_new_wide, stand_ht_prev, by = "Plot_Name",
+                           multiple = 'all', relationship = 'many-to-many') %>% 
                  filter((Height_codom > Codom_prev_up50 & !is.na(Codom_prev_up50))| 
                           (Height_codom < Codom_prev_low50 & !is.na(Codom_prev_low50))| 
                             (Height_inter > Inter_prev_up50 & !is.na(Inter_prev_up50))| 
@@ -325,7 +326,8 @@ status_prev <- map_dfr(seq_along(park_orig_list), function(x){
                        })
 
 status_check <- left_join(status_latest, status_prev, by = c("Plot_Name", "TagCode"),
-                          suffix = c("_latest", "_prev")) %>% 
+                          suffix = c("_latest", "_prev"),
+                          multiple = 'all', relationship = 'many-to-many') %>% 
                 mutate(check = case_when(status_latest == "alive" & status_prev == "dead" ~ "zombie",
                                         status_latest == "missed" ~ "missed",
                                         status_latest == "exclude" ~ "excluded",
@@ -349,7 +351,8 @@ live_stems_new <- tree_data_live %>% filter(SampleYear == curr_year & IsQAQC == 
   summarize(num_live = sum(num_stems), .groups = 'drop')
 
 elev_mort <- full_join(live_stems_new, live_stems_prev, 
-                       by = "Plot_Name", suffix = c("_new", "_old")) %>% 
+                       by = "Plot_Name", suffix = c("_new", "_old"),
+                       multiple = 'all', relationship = 'many-to-many') %>% 
   mutate(mort = 100*(num_live_new - num_live_old)/(num_live_old * (SampleYear_new - SampleYear_old))) %>% 
   filter(mort < -1.6)
 
@@ -367,7 +370,8 @@ em_dead_new <- tree_data_new %>% filter(Plot_Name %in% elev_mort$Plot_Name) %>%
                                  filter(TreeStatusCode %in% dead) %>% 
                                  select(Plot_Name, TagCode, ScientificName, TreeStatusCode)
 
-em_spp <- left_join(em_live_old, em_dead_new, by = c("Plot_Name", "TagCode", "ScientificName")) %>% 
+em_spp <- left_join(em_live_old, em_dead_new, by = c("Plot_Name", "TagCode", "ScientificName"),
+                    multiple = 'all', relationship = 'many-to-many') %>% 
            filter(!is.na(TreeStatusCode))
 
 QC_table <- rbind(QC_table, 
@@ -386,7 +390,8 @@ crown_check_latest <- tree_data_new %>% filter(TreeStatusCode %in% alive) %>%
 
 crown_check1 <- left_join(crown_check_latest, crown_check_prev, 
                           by = c("Plot_Name", "ParkUnit", "TagCode"),
-                          suffix = c("_latest", "_prev")) %>% 
+                          suffix = c("_latest", "_prev"),
+                          multiple = 'all', relationship = 'many-to-many') %>% 
                 filter(!is.na(CrownClassCode_prev)) %>% 
                 filter(!is.na(CrownClassCode_latest)) %>% 
                 mutate(crown_change = abs(CrownClassCode_latest - CrownClassCode_prev))
@@ -409,7 +414,8 @@ tree_live_latest <- tree_data_new %>% filter(TreeStatusCode %in% alive) %>%
 
 tree_dbh <- left_join(tree_live_latest, tree_live_prev, 
                       by = c("Plot_Name", "ParkUnit", "TagCode"),
-                      suffix = c("_latest", "_prev")) %>% 
+                      suffix = c("_latest", "_prev"),
+                      multiple = 'all', relationship = 'many-to-many') %>% 
   filter(!is.na(DBHcm_latest)) %>% 
   filter(!is.na(DBHcm_prev)) %>% 
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
@@ -614,7 +620,9 @@ sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year) %>%
 tag_check1 <- full_join(sap_data_prev %>% select(Plot_Name, TagCode, sap_key) %>% unique(), 
                         sap_data_curr %>% select(TagCode, sap_key) %>% unique(), 
                         by = "sap_key", 
-                        suffix = c("_prev", "_new")) %>% filter(Plot_Name %in% new_evs$Plot_Name) %>% 
+                        suffix = c("_prev", "_new"),
+                        multiple = 'all', relationship = 'many-to-many') %>% 
+  filter(Plot_Name %in% new_evs$Plot_Name) %>% 
               select(-Plot_Name)
 
 tag_check2 <- tag_check1 %>% select(sap_key, TagCode_prev, TagCode_new) %>% 
@@ -672,7 +680,7 @@ sap_status_prev <- map_dfr(seq_along(park_orig_list), function(x){
 
 sap_status_check <- left_join(sap_status_latest, sap_status_prev, by = c("Plot_Name", "TagCode"),
                           suffix = c("_latest", "_prev"),
-                          multiple = 'all') %>% 
+                          multiple = 'all', relationship = 'many-to-many') %>% 
   mutate(check = case_when(status_latest == "alive" & status_prev == "dead" ~ "zombie",
                            status_latest == "missed" ~ "missed",
                            status_latest == "exclude" ~ "excluded",
@@ -696,7 +704,8 @@ live_saps_new <- sap_data_live %>% filter(SampleYear == curr_year & IsQAQC == 0)
   summarize(num_live = sum(Count), .groups = 'drop')
 
 sap_elev_mort <- full_join(live_saps_new, live_saps_prev, 
-                       by = "Plot_Name", suffix = c("_new", "_old")) %>% 
+                       by = "Plot_Name", suffix = c("_new", "_old"),
+                       multiple = 'all', relationship = 'many-to-many') %>% 
   mutate(mort = 100*(num_live_new - num_live_old)/(num_live_old * (SampleYear_new - SampleYear_old))) %>% 
   filter(mort < -1.6)
 
@@ -714,7 +723,9 @@ em_dead_sap_new <- sap_data_new %>% filter(Plot_Name %in% sap_elev_mort$Plot_Nam
   filter(SaplingStatusCode %in% dead) %>% 
   select(Plot_Name, TagCode, ScientificName, SaplingStatusCode)
 
-sap_em_spp <- left_join(em_live_sap_old, em_dead_sap_new, by = c("Plot_Name", "TagCode", "ScientificName")) %>% 
+sap_em_spp <- left_join(em_live_sap_old, em_dead_sap_new, 
+                        by = c("Plot_Name", "TagCode", "ScientificName"),
+                        multiple = 'all', relationship = 'many-to-many') %>% 
   filter(!is.na(SaplingStatusCode))
 
 QC_table <- rbind(QC_table, 
@@ -733,7 +744,8 @@ sap_live_latest <- sap_data_new %>% filter(SaplingStatusCode %in% alive) %>%
 
 sap_dbh <- left_join(sap_live_latest, sap_live_prev, 
                      by = c("Plot_Name", "ParkUnit", "TagCode"),
-                     suffix = c("_latest", "_prev")) %>% 
+                     suffix = c("_latest", "_prev"),
+                     multiple = 'all', relationship = 'many-to-many') %>% 
   filter(!is.na(DBHcm_latest)) %>% 
   filter(!is.na(DBHcm_prev)) %>% 
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
@@ -836,7 +848,8 @@ saps_sum <- saps_old %>% filter(IsQAQC == 0) %>%
             summarize(sap_count_99 = quantile(sap_count, probs = 0.99, na.rm = T))
 
 
-saps_99_check <- left_join(saps_new, saps_sum, by = "ParkUnit") %>% 
+saps_99_check <- left_join(saps_new, saps_sum, by = "ParkUnit",
+                           multiple = 'all', relationship = 'many-to-many') %>% 
                  filter(sap_count > sap_count_99)
 
 QC_table <- rbind(QC_table, QC_check(saps_99_check, "Microplot", "Sapling tallies > 99% percentile for a given park"))
@@ -897,7 +910,8 @@ quad_tramp2 <- quad_tramp %>% #mutate(Plot_Name =
   unique()
 
 quad_tramp3 <- left_join(quad_tramp2, plotevs %>% select(Plot_Name, SampleYear, cycle, IsQAQC), 
-                         by = c("Plot_Name", "SampleYear", "IsQAQC")) %>% 
+                         by = c("Plot_Name", "SampleYear", "IsQAQC"),
+                         multiple = 'all', relationship = 'many-to-many') %>% 
                         filter(cycle %in% c(cycle_latest_num, cycle_prev_num)) 
 
 quad_tramp_wide <- quad_tramp3 %>% select(Plot_Name, SampleYear, cycle, QuadratCode, IsTrampled) %>% 
@@ -908,7 +922,8 @@ quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(cycle %in% cycle_prev_n
                               quad_tramp_wide %>% filter(cycle %in% cycle_latest_num) %>% 
                                 select(-cycle, -SampleYear),
                               by = c("Plot_Name"),
-                              suffix = c("_C3", "_C4"))
+                              suffix = c("_C3", "_C4"),
+                              multiple = 'all', relationship = 'many-to-many')
 
 
 quad_tramp_wide3 <- quad_tramp_wide2 %>% mutate(A2_dif = abs(A2_C3 - A2_C4),
@@ -1130,7 +1145,8 @@ seeds_sum$Seedlings_Above_150cm_99 <- ifelse(is.na(seeds_sum$Seedlings_Above_150
                                          seeds_sum$Seedlings_Above_150cm_99)
 
 seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, Seedlings_15_30cm:Seedlings_Above_150cm), 
-                            seeds_sum, by = "ParkUnit") %>% 
+                            seeds_sum, by = "ParkUnit",
+                            multiple = 'all', relationship = 'many-to-many') %>% 
   filter(Seedlings_15_30cm > Seedlings_15_30cm_99 |
          Seedlings_30_100cm > Seedlings_30_100cm_99 |
          Seedlings_100_150cm > Seedlings_100_150cm_99 |
@@ -1263,7 +1279,8 @@ cwd_old <- cwd %>% filter(SampleYear < curr_year)
 cwd_sum <- cwd_old %>% group_by(ParkUnit) %>% 
   summarize(CWD_Vol_99 = quantile(CWD_Vol, probs = 0.99))
 
-cwd_99_check <- left_join(cwd_new, cwd_sum, by = "ParkUnit") %>% 
+cwd_99_check <- left_join(cwd_new, cwd_sum, by = "ParkUnit",
+                          multiple = 'all', relationship = 'many-to-many') %>% 
   filter(CWD_Vol > CWD_Vol_99)
 
 QC_table <- rbind(QC_table, QC_check(cwd_99_check, "CWD", "CWD Volume > 99% percentile for a given park"))
@@ -1287,7 +1304,8 @@ cwdvw_sum <- cwdvw_old %>% group_by(ParkUnit) %>%
                                      cwd_length_99 = quantile(Length, probs = 0.99, na.rm = T))
 
 
-cwd_data_99_check <- left_join(cwdvw_new, cwdvw_sum, by = "ParkUnit") %>% 
+cwd_data_99_check <- left_join(cwdvw_new, cwdvw_sum, by = "ParkUnit",
+                               multiple = 'all', relationship = 'many-to-many') %>% 
                      filter(Diameter > cwd_diam_99 |
                             Length > cwd_length_99) %>% 
                      select(Plot_Name, TransectCode, ScientificName, Distance, Diameter, Length, DecayClassCode)
@@ -1321,7 +1339,7 @@ spplist_old <- spplist %>% filter(SampleYear > (curr_year - 5) & SampleYear < cu
 spp_plotcheck <- full_join(spplist_new, spplist_old, 
                            by = c("Plot_Name", "TSN", "ScientificName"),
                            suffix = c("_new", "_old"),
-                           multiple = 'all') 
+                           multiple = 'all', relationship = 'many-to-many') 
 
 spp_plotcheck[, 7:19][is.na(spp_plotcheck[, 7:19])] <- 0
 
@@ -1343,7 +1361,8 @@ park_spplist <- spplist %>% filter(SampleYear < curr_year) %>%
 
 spp_parkcheck <- full_join(spplist_new, park_spplist, 
                            by = c("ParkUnit", "TSN", "ScientificName"),
-                           suffix = c("_new", "_old")) 
+                           suffix = c("_new", "_old"),
+                           multiple = 'all', relationship = 'many-to-many') 
 
 spp_parkcheck[, 7:19][is.na(spp_parkcheck[, 7:19])] <- 0
 
@@ -1413,12 +1432,15 @@ ised_taxon1 <- xref_taxon %>% select(ParkID, TaxonID, IsEarlyDetection) %>%
                               filter(IsEarlyDetection == 1) %>% 
                               unique()
 
-ised_taxon2 <- inner_join(ised_taxon1, tlu_park2, by = "ParkID") %>% select(-ParkID) %>% unique()
+ised_taxon2 <- inner_join(ised_taxon1, tlu_park2, by = "ParkID",
+                          multiple = 'all', relationship = 'many-to-many') %>% select(-ParkID) %>% unique()
 
 ised_taxon <- left_join(ised_taxon2, taxa %>% select(TaxonID, TSN, ScientificName), 
-                        by = "TaxonID")
+                        by = "TaxonID",
+                        multiple = 'all', relationship = 'many-to-many')
 
-ised_join <- left_join(spplist_new, ised_taxon, by = c("TSN", "ScientificName", "ParkUnit" = "Unit")) %>% 
+ised_join <- left_join(spplist_new, ised_taxon, by = c("TSN", "ScientificName", "ParkUnit" = "Unit"),
+                       multiple = 'all', relationship = 'many-to-many') %>% 
              filter(IsEarlyDetection == 1) %>% 
              select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
              -quad_pct_freq, -IsEarlyDetection) %>% 
