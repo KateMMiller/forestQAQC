@@ -71,18 +71,14 @@ QC_check <- function(df, tab, check){
 }
 
 PM_check <- function(df){
-  pms <- apply(df, 1, function(x) sum(grepl("Permanently Missing", x))) > 0
-  pms2 <- apply(df, 1, function(x) sum(grepl("PM", x))) > 0
-  pm_tot <- rbind(pms, pms2)
-  pm_check <- df[pm_tot,] %>% filter(!is.na(Plot_Name))
+  pms <- apply(df, 1, function(x) sum(grepl("Permanently Missing|PM", x))) > 0
+  pm_check <- df[pms,] 
   return(pm_check)
 }
 
 NS_check <- function(df){
-  ns <- apply(df, 1, function(x) sum(grepl("Not Sampled", x))) > 0
-  ns2 <- apply(df, 1, function(x) sum(grepl("NS", x))) > 0
-  ns_tot <- rbind(ns, ns2)
-  ns_check <- df[ns_tot,] %>% filter(!is.na(Plot_Name))
+  ns <- apply(df, 1, function(x) sum(grepl("Not Sampled|NS", x))) > 0
+  ns_check <- df[ns,] 
   return(ns_check)
 }
 

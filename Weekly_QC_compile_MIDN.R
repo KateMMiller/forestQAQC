@@ -974,13 +974,12 @@ QC_table <- rbind(QC_table, QC_check(tramp_all, "Quadrat", "All quadrats trample
 quad_tramp_all_table <- make_kable(tramp_all, "All quadrats trampled")
 
 # Check for PMs in quadrat data
-quad_data_pm <- PM_check(quad_data)
-
-PM_quad_data_col <- sapply(names(quad_data_pm), function(x) any(quad_data_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
+pms <- apply(quad_data, 1, function(x) sum(grepl("Permanently Missing|PM", x))) > 0
+pm_check <- quad_data[pms,]
+PM_quad_data_col <- sapply(names(quad_data), function(x) any(quad_data[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
-PM_quad_data_col[c(1)] <- TRUE # For Plot_Name
-
-quad_data_pm2 <- data.frame(quad_data_pm[, PM_quad_data_col])
+PM_cols <- names(pm_check[which(PM_quad_data_col==TRUE)])
+quad_data_pm2 <- data.frame(pm_check[, c("Plot_Name", "CharacterLabel", PM_cols)])
 
 QC_table <- rbind(QC_table, 
                   QC_check(quad_data_pm2, "Quadrat", "Quadrat Data: Permanently Missing records"))
@@ -988,13 +987,12 @@ QC_table <- rbind(QC_table,
 quad_data_pm_table <- make_kable(quad_data_pm2, "Quadrat Data: Permanently Missing records")
 
 # Check for PMs in quadrat species
-quad_spp_pm <- PM_check(quad_spp)
-
-PM_quad_spp_col <- sapply(names(quad_spp_pm), function(x) any(quad_spp_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
+pmsp <- apply(quad_spp, 1, function(x) sum(grepl("Permanently Missing|PM", x))) > 0
+pmsp_check <- quad_spp[pmsp,]
+PM_quad_spp_col <- sapply(names(quad_spp), function(x) any(quad_spp[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
-PM_quad_spp_col[c(1)] <- TRUE # For Plot_Name
-
-quad_spp_pm2 <- data.frame(quad_spp_pm[, PM_quad_spp_col])
+PMsp_cols <- names(pmsp_check[which(PM_quad_spp_col == TRUE)])
+quad_spp_pm2 <- data.frame(pmsp_check[, c("Plot_Name", "ScientificName", PMsp_cols)])
 
 QC_table <- rbind(QC_table, 
                   QC_check(quad_spp_pm2, "Quadrat", "Quadrat Species: Permanently Missing records"))
@@ -1002,19 +1000,17 @@ QC_table <- rbind(QC_table,
 quad_spp_pm_table <- make_kable(quad_spp_pm2, "Quadrat Species: Permanently Missing records")
 
 # Check for PMs in quadrat seedling
-quad_seed_pm <- PM_check(quad_seed)
-
-PM_quad_seed_col <- sapply(names(quad_seed_pm), function(x) any(quad_seed_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
+pmsd <- apply(quad_seed, 1, function(x) sum(grepl("Permanently Missing|PM", x))) > 0
+pmsd_check <- quad_seed[pmsd,]
+PM_quad_seed_col <- sapply(names(quad_seed), function(x) any(quad_seed[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
-PM_quad_seed_col[c(1)] <- TRUE # For Plot_Name
-
-quad_seed_pm2 <- data.frame(quad_seed_pm[, PM_quad_seed_col])
+PMsd_cols <- names(pmsd_check[which(PM_quad_seed_col == TRUE)])
+quad_seed_pm2 <- data.frame(pmsd_check[, c("Plot_Name", "ScientificName", PMsd_cols)])
 
 QC_table <- rbind(QC_table, 
                   QC_check(quad_seed_pm2, "Quadrat", "Quadrat Seedlings: Permanently Missing records"))
 
 quad_seed_pm_table <- make_kable(quad_seed_pm2, "Quadrat Seedlings: Permanently Missing records")
-
 
 # Check for quadrat species recorded with 0 cover
 quad_0cov <- quad_spp %>% filter((!ScientificName %in% c("Not Sampled", "None present")) & 
