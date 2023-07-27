@@ -12,7 +12,8 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2022-08-18"
+#importData()
+# week_start = "2023-07-16"
 # cycle_latest_num = 4
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
@@ -1273,7 +1274,7 @@ cwd_new <- cwd %>% filter(Plot_Name %in% new_evs_list) %>%
 cwd_old <- cwd %>% filter(SampleYear < curr_year)
 
 cwd_sum <- cwd_old %>% group_by(ParkUnit) %>% 
-  summarize(CWD_Vol_99 = quantile(CWD_Vol, probs = 0.99))
+  summarize(CWD_Vol_99 = quantile(CWD_Vol, probs = 0.99, na.rm = TRUE))
 
 cwd_99_check <- left_join(cwd_new, cwd_sum, by = "ParkUnit",
                           multiple = 'all', relationship = 'many-to-many') %>% 
