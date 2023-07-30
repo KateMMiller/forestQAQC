@@ -11,16 +11,16 @@ library(kableExtra)
 library(vegan) # for betadiver()
 source("QAQC_report_functions.R")
 
-#importData() #local instance
-#forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
+# importData() #local instance
+# forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
 
 #----- Compile data
-# year = 2022
-# plot = "FRSP-275"
-# #plot = "COLO-347"
+# year = 2023
+# plot = "VAFO-244" #VAFO-245
 # loc_type = 'all'
 
-arglist = list(park = substr(plot, 1, 4), from = year, to = year, QAQC = TRUE, 
+arglist = list(park = substr(plot, 1, 4), 
+               from = year, to = year, QAQC = TRUE, 
                locType = loc_type, eventType = 'all')
 
 plotevs <- do.call(joinLocEvent, arglist) %>% filter_plot() %>% name_team()
@@ -114,7 +114,7 @@ max_dbh <- max(abs(dbh_diff$DBH_diff))
 diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) + 
                geom_density(alpha = 0.5, fill = "#8CAF88", color = "#738C70") + 
                theme_FVM() + 
-               geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", size = 1) + 
+               geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", linewidth = 1) + 
                labs(y = "Density", x = "DBH difference (cm)") + 
                theme(legend.position = 'none', panel.border = element_blank(), panel.background = element_blank()) +
                annotate(geom = "text", x = -max_dbh, y = Inf, label = "Crew tighter", 
@@ -149,7 +149,7 @@ trcond_wide <- full_join(trcond_c, trcond_q,
          ID_C, ID_Q, OTH_C, OTH_Q, RPS_C, RPS_Q, SB_C, SB_Q, SLF_C, SLF_Q,
          VIN_B_C, VIN_B_Q, VIN_C_C, VIN_C_Q)
 
-trcond_wide[,c(3:55)][is.na(trcond_wide[,c(3:55)])] <- 0
+trcond_wide[,c(3:ncol(trcond_wide))][is.na(trcond_wide[,c(3:ncol(trcond_wide))])] <- 0
 trcond_wide[,c(8:9)][trcond_wide$Status == 'live',] <- NA
 trcond_wide[,c(6:7, 10:19, 24:55)][trcond_wide$Status == 'dead',] <- NA
 trcond_wide[,c(3:4)][is.na(trcond_wide[,c(3:4)])] <- 0
@@ -184,8 +184,10 @@ folcond_wide <- full_join(folcond_c, folcond_q,
                                 Txt_Leaves_Aff_W_C, Txt_Leaves_Aff_W_Q, 
                                 contains("_code"))
 
-check_covclass(folcond_wide, "Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")
-folcond_wide[, c("Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")]
+# check_covclass(folcond_wide, "Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")
+# folcond_wide[, c("Leaves_Aff_L_code_C", "Leaves_Aff_L_code_Q")]
+
+# head(folcond_wide)
 
 #----- Microplot Saplings
 live <- c("AB", "AF", "AL", "AS", "AM", "RB", "RF", "RL", "RS")
