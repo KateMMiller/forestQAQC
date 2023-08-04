@@ -1,5 +1,5 @@
 
-path = c("D:/NETN/Monitoring_Projects/Forest_Health/2022_data/Maps_and_Data/Weekly_Checks/")
+path = c("C:/NETN/Monitoring_Projects/Forest_Health/2023_data/Maps&Data/")
 
 
 # Knit weekly reports
@@ -11,14 +11,17 @@ rmarkdown::render('Weekly_QC_check_MIDN.Rmd',
                                 locType = 'VS')) 
 # For MIDN
 rmarkdown::render('Weekly_QC_check_MIDN.Rmd',
-                  output_file = paste0(path, "Weekly_QC_check_MIDN_Week8.html"),
-                  params = list(week_start = '2022-09-11',
+                  output_file = paste0(path, "Weekly_QC_check_MIDN_Week1.html"),
+                  params = list(week_start = '2023-07-16',
                                 cycle_latest_num = 4,
                                 locType = 'VS')) 
 
 # Knit QAQC Report
 rmarkdown::render('QAQC_report_MIDN.Rmd', 
-                  output_file = paste0(path, "QAQC_report_MIDN", "_FRSP-281-2022.html"),
-                  params = list(year = 2022, plot = 'FRSP-281', locType = 'all'))
+                  output_file = paste0(path, "QAQC_report_MIDN", "_VAFO-244-2023.html"),
+                  params = list(year = 2023, plot = 'VAFO-244', locType = 'all'))
 
+rmarkdown::render('QAQC_report_MIDN.Rmd', 
+                  output_file = paste0(path, "QAQC_report_MIDN", "_VAFO-245-2023.html"),
+                  params = list(year = 2023, plot = 'VAFO-245', locType = 'all'))
 
