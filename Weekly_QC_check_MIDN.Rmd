@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2021-08-30"
+  week_start: "2023-07-16"
   cycle_latest_num: 4
   locType: 'all'
 
@@ -166,6 +166,8 @@ check_null(zoinks_sap_table) # New for MIDN
 check_null(sap_dbh_table) # New for MIDN
 
 check_null(sap_dbhnz_table) # New for 2023
+
+check_null(sap_stat_table) # New for 2023
 
 check_null(shrub_pm_table)
 

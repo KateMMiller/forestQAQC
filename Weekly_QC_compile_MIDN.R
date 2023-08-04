@@ -12,7 +12,7 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-#importData()
+# importData()
 # week_start = "2023-07-16"
 # cycle_latest_num = 4
 # curr_year <- year(week_start)
@@ -21,7 +21,7 @@ source("Weekly_QC_functions.R")
 # cycle_prev <- paste0("cycle_", cycle_latest_num-1)
 # cycle_prev_num <- cycle_latest_num - 1
 # loc_type <- 'VS'
-
+# 
 #----- Compile data -----
 arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
 
@@ -787,6 +787,30 @@ QC_table <- rbind(QC_table,
                   QC_check(sap_nz, "Microplot", "Saplings: DBH non-zoinks with DBH Verified check"))
 
 sap_dbhnz_table <- make_kable(sap_nz, "Saplings: DBH non-zoinks with DBH Verified check")
+
+# Check for new saplings that are missing recruit or missing status #new 2023
+#-- start with all sapling data from plots sampled during specified week
+sap_data <- do.call(joinMicroSaplings, c(arglist, list(status = 'live', speciesType = 'all'))) %>% 
+  name_plot() %>% add_cycle_MIDN() %>% 
+  filter(Plot_Name %in% new_evs_list) |> filter(IsQAQC == FALSE)
+
+cycle_curr <- paste0("cycle_", max(sap_data$cycle, na.rm = T))
+cycle_prev <- paste0("cycle_", max(sap_data$cycle, na.rm = T) - 1)
+
+# Reshape wide
+sap_wide <- sap_data |> select(Plot_Name, cycle, MicroplotCode, TagCode, ScientificName, SaplingStatusCode) %>% 
+  pivot_wider(names_from = cycle, values_from = SaplingStatusCode, names_prefix = "cycle_") 
+
+# Find new saplings with incorrect status
+new_status = c("RB", "RF", "RL", "RS", "AM")
+sap_stat_check <- sap_wide %>% filter(is.na(.data[[cycle_prev]]) & !.data[[cycle_curr]] %in% new_status) %>% 
+  # .data[[ ]] allows you to specify quoted names as columns with dplyr's non-standard evaluation
+  filter(!is.na(.data[[cycle_curr]])) # drop current cycle NAs
+               
+QC_table <- rbind(QC_table,
+                  QC_check(sap_stat_check, "Microplot", "Saplings: New saplings with wrong status"))
+
+sap_stat_table <- make_kable(sap_stat_check, "Saplings: New saplings with wrong status")
 
 # Check for PMs in shrub data
 shrubs <- do.call(joinMicroShrubData, arglist) %>% 
