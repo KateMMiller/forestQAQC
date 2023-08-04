@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2022
-  plot: "FRSP-275"
+  year: 2023
+  plot: "VAFO-245"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -760,8 +760,12 @@ color_leg
 #### Foliage Conditions
 ```{r, fol_table, echo = FALSE}
 if(nrow(tree_wide2) > 1){
+  
 folcond_tab
 
+  }
+
+if(nrow(tree_wide2) > 1){
 cat("\n")
 color_leg
 } else {
