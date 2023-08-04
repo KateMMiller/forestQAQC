@@ -15,8 +15,8 @@ importData() #local instance
 #importData(name = "NETN_Forest_MABI_training")
 
 # Params for troubleshooting inside script
-# year = as.numeric(2022)
-# plot = "MABI-999"
+# year = as.numeric(2023)
+# plot = "ACAD-078"
 # loc_type = "all"
 # plot_year <- paste0(plot, "-", year)
 
@@ -114,7 +114,7 @@ dbh_diff <- tree_wide2 %>% select(TagCode, DBH_diff) %>% na.omit()
 max_dbh <- max(abs(dbh_diff$DBH_diff))
 diff_plot <- ggplot(data = dbh_diff, aes(x = DBH_diff)) + 
                geom_density(alpha = 0.5, fill = "#8CAF88", color = "#738C70") + theme_FHM() + 
-               geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", size = 1) + 
+               geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", linewidth = 1) + 
                labs(y = "Density", x = "DBH difference (cm)") + 
                theme(legend.position = 'none', panel.border = element_blank(), panel.background = element_blank()) +
                annotate(geom = "text", x = -max_dbh, y = Inf, label = "Crew tighter", 
@@ -147,7 +147,7 @@ trcond_wide <- full_join(trcond_c, trcond_q,
                       ID_C, ID_Q, OTH_C, OTH_Q, RPS_C, RPS_Q, SB_C, SB_Q, SLF_C, SLF_Q,
                       VIN_B_C, VIN_B_Q, VIN_C_C, VIN_C_Q)
 
-trcond_wide[,c(3:55)][is.na(trcond_wide[,c(3:55)])] <- 0
+trcond_wide[,c(3:ncol(trcond_wide))][is.na(trcond_wide[,c(3:ncol(trcond_wide))])] <- 0
 trcond_wide[,c(8:9)][trcond_wide$Status == 'live',] <- NA
 trcond_wide[,c(6:7, 10:19, 24:55)][trcond_wide$Status == 'dead',] <- NA
 trcond_wide[,c(3:4)][is.na(trcond_wide[,c(3:4)])] <- 0
@@ -157,6 +157,8 @@ fol_cond <- do.call(joinTreeFoliageCond,
                    c(arglist[1:4], list(speciesType = 'all', canopyPosition = 'all', valueType = 'classes', locType = loc_type))) %>%
   filter_plot() %>% name_team() %>% select(Plot_Name, TagCode, ScientificName, Team, Txt_Leaves_Aff_C:Txt_Leaf_Area_N) %>% 
   arrange(Team, TagCode)
+
+#View(VIEWS_NETN$TreesFoliageCond_NETN)
 
 fol_cond <- make_sppcode(fol_cond) %>% select(-ScientificName, -genus, -species)
 fol_cols <- names(fol_cond[,4:13])
