@@ -24,6 +24,7 @@ library(kableExtra)
 library(ggrepel)
 library(cowplot)
 
+photo_eval <- ifelse(plot_name == "COLO-380", FALSE, TRUE) # Photopoints not taken for this plot
 #Comment out when done.
 # year = as.numeric(params$yearpv)
 # park = params$parkcode
@@ -93,6 +94,6 @@ library(cowplot)
 
 ### Photopoints 
 
-```{r child = "PrevVisit_5A_Photopoints_MIDN.Rmd"}
+```{r child = "PrevVisit_5A_Photopoints_MIDN.Rmd", eval = photo_eval}
 ```
 

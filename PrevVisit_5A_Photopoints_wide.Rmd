@@ -13,7 +13,7 @@ output:
 #                year, "/", park, "/")
 path <- paste0("C:/NETN/Monitoring_Projects/Forest_Health/Photopoints/", 
                year, "/", park, "/")
-all_photos <- list.files(path)
+all_photos <- list.files(path, pattern = ".JPG")
 plot2 <- sub("-", "_", plot_name)
 
 photo_order <- c("UC", "UL", "UR", "BL", "BR")

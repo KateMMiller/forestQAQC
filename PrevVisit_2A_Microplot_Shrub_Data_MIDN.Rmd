@@ -9,17 +9,20 @@ output:
 ```{r include = FALSE}
 shrub_p <- shrubs |> filter(Plot_Name %in% plot_name) |> 
   arrange(Micro, ScientificName) |> select(Micro, ScientificName, Pct_Cover)
-  
+
+if(nrow(shrub_p) > 0){  
 shrub_tab <- kable(shrub_p, col.names = c("Micro", "Species", "% Cover"),
                    format = "html", align = "c") |> 
              kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
              collapse_rows(1, valign = 'top')
+}
 
+shrub_eval <- ifelse(nrow(shrub_p) > 0, TRUE, FALSE)
 ```
 
 <div>
 <h4> Shrubs </h4>
-```{r echo = F}
+```{r echo = F, eval = shrub_eval}
 shrub_tab
 ```
 </div>
