@@ -8,15 +8,17 @@ library(forestMIDN)
 library(htmltools)
 library(knitr)
 library(kableExtra)
-#importData()
+
+# importData()
 #----- Compile data -----
-# params <- data.frame(parkcode = "APCO", plot_name = "APCO-262", yearpv = 2018)
+# params <- data.frame(parkcode = "COLO", plot_name = "COLO-380", yearpv = 2018)
 # park <- params$parkcode
 # year <- as.numeric(params$yearpv)
+# plot_name <- "COLO-380"
 
-arglist = list(park = park, from = year, to = year, QAQC = FALSE)
+arglist = list(park = park, from = year, to = year, QAQC = FALSE, eventType = 'all')
 
-plotevs <- do.call(joinLocEvent, arglist) |> 
+plotevs <- do.call(joinLocEvent, c(arglist)) |> 
   mutate(Unit = ifelse(nchar(ParkSubUnit) > 4,                                                                           
                        substr(ParkSubUnit, 6, nchar(ParkSubUnit)),
                        paste0("None"))) 
@@ -81,7 +83,7 @@ tree_sum <- tree |> group_by(Plot_Name, Status, ScientificName) |>
 head(tree)
 
 #----- Tree conditions -----
-treecond <- do.call(joinTreeConditions, arglist) |> 
+treecond <- do.call(joinTreeConditions, arglist[1:4]) |> 
   select(Plot_Name, SampleYear, ScientificName, Tag = TagCode, Status = TreeStatusCode,
          num_cond, AD:VIN_C) 
 
@@ -146,7 +148,7 @@ quad_tramp <- get("QuadNotes_MIDN", envir = VIEWS_MIDN)
 
 quad_tramp_note <- quad_tramp |> group_by(Plot_Name, SampleYear) |> 
   filter(!is.na(SQQuadCharNotes)) |> 
-  summarize(Note = toString(unique(SQQuadCharNotes)))
+  summarize(Note = toString(unique(SQQuadCharNotes)), .groups = 'drop')
 
 quad_tramp2 <- quad_tramp %>% 
   filter(EventID %in% ev_list$EventID) %>% 

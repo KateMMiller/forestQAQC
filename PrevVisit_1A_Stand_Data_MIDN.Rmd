@@ -140,7 +140,7 @@ stand_tab
 ```{r fig.align = 'right', warning=FALSE, message=FALSE}
 #suppressWarnings(
   plotTreeMap(park = park, from = as.numeric(year), 
-            to = as.numeric(year), plotName = plot_name)
+            to = as.numeric(year), plotName = plot_name, eventType = 'all')
 #)
 ```
 <div class = "one">
