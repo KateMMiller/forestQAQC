@@ -17,12 +17,8 @@ source("Weekly_QC_functions.R")
 
 #----- Compile data -----
 # week_start = "2023-06-12"
-# cycle_latest_num = 5
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
-# cycle_latest <- paste0("cycle_", cycle_latest_num)
-# cycle_prev <- paste0("cycle_", cycle_latest_num-1)
-# cycle_prev_num <- cycle_latest_num - 1
 # loc_type <- 'all'
 # importData()
 
