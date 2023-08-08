@@ -13,17 +13,14 @@ source("Weekly_QC_functions.R")
 
 #----- Compile data -----
 # importData()
-# week_start = "2023-07-16"
-# cycle_latest_num = 4
+# week_start = "2023-07-30"
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
-# cycle_latest <- paste0("cycle_", cycle_latest_num)
-# cycle_prev <- paste0("cycle_", cycle_latest_num-1)
-# cycle_prev_num <- cycle_latest_num - 1
 # loc_type <- 'VS'
-# 
+
 #----- Compile data -----
-arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
+arglist1 = list(to = curr_year, QAQC = TRUE, eventType = 'all', #eventType = 'complete', 
+                locType = loc_type)
 
 plotevs <- do.call(joinLocEvent, arglist1) 
 old_evs <- plotevs %>% filter(SampleDate < week_start)
@@ -35,8 +32,9 @@ new_evs_list <- unique(new_evs$Plot_Name)
 
 park_ev_list <- sort(unique(new_evs$ParkUnit)) #use for checks on current year
 park_orig_list <- unique(substr(new_evs_list[!grepl("ASIS", new_evs_list)], 1, 4)) # use for comparisons
+ # Drop the !grepl("ASIS") after 2024
 
-arglist = list(park = park_ev_list, to = curr_year, QAQC = TRUE, eventType = 'complete', locType = loc_type)
+arglist = list(park = park_ev_list, to = curr_year, QAQC = TRUE, eventType = 'all', locType = loc_type)
 
 #----- Check for complete visit info -----
 comp_visits <- new_evs %>% select(Plot_Name, PanelCode, xCoordinate, yCoordinate, ZoneCode, PhysiographyCode,
@@ -141,9 +139,9 @@ stand_str1$stand_diff <-
   
 stand_str <- stand_str1 %>% filter(stand_diff > 0)
 
-QC_table <- rbind(QC_table, QC_check(stand_str, "Stand Data", "Stand structure in cycle 4 != cycle 3"))
+QC_table <- rbind(QC_table, QC_check(stand_str, "Stand Data", "Stand structure differs from previous cycles"))
 
-stand_str_table <- make_kable(stand_str, "Fluctuating stand structures")
+stand_str_table <- make_kable(stand_str, "Stand structure differs from previous cycles")
 
 # Check plots with fluctuating microtopography
 microtop_latest <- stand %>% filter(IsQAQC == 0) %>% 
@@ -163,9 +161,9 @@ microtop1$micro_diff <- ifelse(microtop1$Microtopography_latest == microtop1$Mic
 
 microtop <- microtop1 %>% filter(micro_diff > 0)
 
-QC_table <- rbind(QC_table, QC_check(microtop, "Stand Data", "Microtopography in cycle 4 != cycle 3"))
+QC_table <- rbind(QC_table, QC_check(microtop, "Stand Data", "Microtopography differs from previous cycles"))
 
-microtop_table <- make_kable(microtop, "Fluctuating microtopography")
+microtop_table <- make_kable(microtop, "Microtopography differs from previous cycles")
 
 # Check for DBI = 1 not in deer exclosure
 dbi1 <- stand_new %>% filter(Deer_Browse_Index == 1)
@@ -211,9 +209,8 @@ stand_dist_table <- make_kable(stand_dist, "Recorded disturbances")
 
 # Check for potential stand height outliers
 stand_ht <- get("StandTreeHeights_MIDN", env = VIEWS_MIDN) %>% 
-            #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
             select(Plot_Name, ParkUnit, SampleYear, SampleDate, IsQAQC, CrownClassLabel, Height) %>% 
-            filter(!is.na(CrownClassLabel)) %>% add_cycle_MIDN()
+            filter(!is.na(CrownClassLabel)) 
 
 stand_ht_new <- stand_ht %>% filter_week() %>% filter(IsQAQC == 0)
 
@@ -266,14 +263,14 @@ include_stand_tab <- tab_include(stand_check)
 
 #----- Tree checks -----
 tree_data <- do.call(joinTreeData, c(arglist, list(speciesType = 'all'))) %>% 
-  name_plot() %>% add_cycle_MIDN() %>% 
+  name_plot() %>% 
   filter(Plot_Name %in% new_evs_list)
 
 tree_data_live <- do.call(joinTreeData, c(arglist, list(speciesType = 'all', status = "live"))) %>% 
-  name_plot() %>% add_cycle_MIDN() %>% 
+  name_plot() %>% 
   filter(Plot_Name %in% new_evs_list)
 
-tree_data_old <- tree_data %>% filter(SampleYear >= (curr_year - 5) & SampleYear < curr_year)
+tree_data_old <- tree_data %>% filter(SampleYear >= (curr_year - 6) & SampleYear < curr_year) # Covers SAHI
 tree_data_new <- tree_data %>% filter(SampleDate >= week_start)
 
 # Check for PMs in tree data
@@ -298,7 +295,7 @@ exc <- c("0","ES","EX","XO","XP")
 missed <- c("AM", "DM")
 
 status_check1 <- tree_data %>% filter(IsQAQC == 0) %>% filter(!ParkUnit %in% "ASIS") %>% 
-                               select(Plot_Name, ParkUnit, TagCode, cycle, TreeStatusCode) %>% 
+                               select(Plot_Name, ParkUnit, TagCode, SampleYear, cycle, TreeStatusCode) %>% 
                                mutate(status = case_when(TreeStatusCode %in% alive ~ "alive",
                                                               TreeStatusCode %in% dead ~ "dead", 
                                                               TreeStatusCode %in% recr ~ "alive_recruit",
@@ -311,17 +308,15 @@ status_check1 <- tree_data %>% filter(IsQAQC == 0) %>% filter(!ParkUnit %in% "AS
                                select(-TreeStatusCode) 
 
 
-
 status_latest <- map_dfr(seq_along(park_orig_list), function(x){
                          filter(status_check1, 
-                                cycle == get_latest(parkcode = park_orig_list[x])  &
-                                ParkUnit == park_orig_list[x]
+                                SampleYear == curr_year & ParkUnit == park_orig_list[x]
                                 )
                         })
 
 status_prev <- map_dfr(seq_along(park_orig_list), function(x){
                        filter(status_check1, 
-                              cycle == get_prev(parkcode = park_orig_list[x])  &
+                              between(SampleYear, curr_year - 6, curr_year - 1) & # covers SAHI too
                               ParkUnit == park_orig_list[x]
                               )
                        })
@@ -342,7 +337,7 @@ QC_table <- rbind(QC_table,
 status_table <- make_kable(status_check, "Zombie and excluded trees")
 
 # Check for potential elevated mortality events
-live_stems_prev <- tree_data_live %>% filter(SampleYear >= (curr_year - 5) & SampleYear < curr_year) %>% 
+live_stems_prev <- tree_data_live %>% filter(SampleYear >= (curr_year - 6) & SampleYear < curr_year) %>%  # Covers SAHI
                                       filter(IsQAQC == 0) %>% 
                                       group_by(Plot_Name, SampleYear) %>% 
                                       summarize(num_live = sum(num_stems), .groups = 'drop')
@@ -420,9 +415,6 @@ tree_dbh <- left_join(tree_live_latest, tree_live_prev,
   filter(!is.na(DBHcm_latest)) %>% 
   filter(!is.na(DBHcm_prev)) %>% 
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
-
-old_dbh <- paste0("DBHcm_cycle_", cycle_latest_num-1)
-new_dbh <- paste0("DBHcm_cycle_", cycle_latest_num)
 
 # Identify Zoinks trees 
 zoinks_tree <- tree_dbh %>% filter(DBH_diff >= 3 | DBH_diff < -0.1)
@@ -584,14 +576,14 @@ sap_pm_table <- make_kable(sap_data_pm2, "Saplings: Permanently Missing records"
 
 # Tree-like sapling checks
 sap_data <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all'))) %>% 
-  name_plot() %>% add_cycle_MIDN() %>% 
+  name_plot() %>% #add_cycle_MIDN() %>% 
   filter(Plot_Name %in% new_evs_list)
 
 sap_data_live <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all', status = "live"))) %>% 
-  name_plot() %>% add_cycle_MIDN() %>% 
+  name_plot() %>% #add_cycle_MIDN() %>% 
   filter(Plot_Name %in% new_evs_list) 
 
-sap_data_old <- sap_data %>% filter(SampleYear >= (curr_year - 5) & SampleYear < curr_year)
+sap_data_old <- sap_data %>% filter(SampleYear >= (curr_year - 6) & SampleYear < curr_year) #6 includes SAHI
 sap_data_new <- sap_data %>% filter(SampleDate >= week_start)
 
 # Check for PMs in tree data
@@ -612,7 +604,7 @@ sap_data_pm_table <- make_kable(sap_data_pm2, "Saplings: Permanently Missing rec
 sap_data_prev <- joinMicroSaplings(from = 2007, to = curr_year-1) %>% 
   select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
   mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode)) 
-  
+
 sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
@@ -652,7 +644,7 @@ exc <- c("ES","EX","XO","XP")
 missed <- c("AM", "DM")
 
 sap_status_check1 <- sap_data %>% filter(IsQAQC == 0) %>% filter(!ParkUnit %in% "ASIS") %>% 
-  select(Plot_Name, ParkUnit, TagCode, cycle, SaplingStatusCode) %>% 
+  select(Plot_Name, ParkUnit, TagCode, SampleYear, cycle, SaplingStatusCode) %>% 
   mutate(status = case_when(SaplingStatusCode %in% alive ~ "alive",
                             SaplingStatusCode %in% dead ~ "dead", 
                             SaplingStatusCode %in% recr ~ "alive_recruit",
@@ -664,17 +656,16 @@ sap_status_check1 <- sap_data %>% filter(IsQAQC == 0) %>% filter(!ParkUnit %in% 
                             TRUE ~ NA_character_)) %>% 
   select(-SaplingStatusCode) 
 
-
 sap_status_latest <- map_dfr(seq_along(park_orig_list), function(x){
   filter(sap_status_check1, 
-         cycle == get_latest(parkcode = park_orig_list[x])  &
+         SampleYear == curr_year  &
            ParkUnit == park_orig_list[x]
   )
 })
 
 sap_status_prev <- map_dfr(seq_along(park_orig_list), function(x){
   filter(sap_status_check1, 
-         cycle == get_prev(parkcode = park_orig_list[x])  &
+         between(SampleYear, curr_year - 6, curr_year - 1) &
            ParkUnit == park_orig_list[x]
   )
 })
@@ -695,7 +686,7 @@ QC_table <- rbind(QC_table,
 sap_status_table <- make_kable(sap_status_check, "Saplings: Zombie and excluded saplings")
 
 # Check for potential elevated mortality events
-live_saps_prev <- sap_data_live %>% filter(SampleYear >= (curr_year - 5) & SampleYear < curr_year) %>% 
+live_saps_prev <- sap_data_live %>% filter(SampleYear >= (curr_year - 6) & SampleYear < curr_year) %>% 
   filter(IsQAQC == 0) %>% 
   group_by(Plot_Name, SampleYear) %>% 
   summarize(num_live = sum(Count), .groups = 'drop')
@@ -790,23 +781,29 @@ sap_dbhnz_table <- make_kable(sap_nz, "Saplings: DBH non-zoinks with DBH Verifie
 
 # Check for new saplings that are missing recruit or missing status #new 2023
 #-- start with all sapling data from plots sampled during specified week
-sap_data <- do.call(joinMicroSaplings, c(arglist, list(status = 'live', speciesType = 'all'))) %>% 
-  name_plot() %>% add_cycle_MIDN() %>% 
-  filter(Plot_Name %in% new_evs_list) |> filter(IsQAQC == FALSE)
 
-cycle_curr <- paste0("cycle_", max(sap_data$cycle, na.rm = T))
-cycle_prev <- paste0("cycle_", max(sap_data$cycle, na.rm = T) - 1)
+sap_prev <- joinMicroSaplings(from = 2007, to = curr_year-1, status = 'live', speciesType = 'all') %>% 
+  group_by(Plot_Name, MicroplotCode, TagCode) %>% slice(which.max(cycle)) |> ungroup() %>%
+  select(Plot_Name, cycle, TagCode, SaplingStatusCode) %>%
+  filter(Plot_Name %in% new_evs_list) %>% # new evs are only Plot_Name, not year, so works 
+  filter(!is.na(SaplingStatusCode))
 
-# Reshape wide
-sap_wide <- sap_data |> select(Plot_Name, cycle, MicroplotCode, TagCode, ScientificName, SaplingStatusCode) %>% 
-  pivot_wider(names_from = cycle, values_from = SaplingStatusCode, names_prefix = "cycle_") 
+sap_curr <- joinMicroSaplings(from = curr_year, to = curr_year, status = 'live', speciesType = 'all') %>% 
+  filter(Plot_Name %in% new_evs_list) %>% 
+  select(Plot_Name, cycle, MicroplotCode, TagCode, ScientificName, SaplingStatusCode)
+
+sap_check <- left_join(sap_curr, sap_prev, by = c("Plot_Name", "TagCode"),
+                       suffix = c("_curr", "_prev")) %>%
+             select(Plot_Name, MicroplotCode, TagCode, ScientificName, cycle_prev, cycle_curr, 
+                    status_prev = SaplingStatusCode_prev, status_curr = SaplingStatusCode_curr) %>%
+             filter(!is.na(status_curr))
 
 # Find new saplings with incorrect status
 new_status = c("RB", "RF", "RL", "RS", "AM")
-sap_stat_check <- sap_wide %>% filter(is.na(.data[[cycle_prev]]) & !.data[[cycle_curr]] %in% new_status) %>% 
-  # .data[[ ]] allows you to specify quoted names as columns with dplyr's non-standard evaluation
-  filter(!is.na(.data[[cycle_curr]])) # drop current cycle NAs
-               
+
+sap_stat_check <- sap_check %>% filter(is.na(status_prev) & !status_curr %in% new_status) |> 
+  select(-status_prev, -cycle_prev)
+
 QC_table <- rbind(QC_table,
                   QC_check(sap_stat_check, "Microplot", "Saplings: New saplings with wrong status"))
 
@@ -818,8 +815,7 @@ shrubs <- do.call(joinMicroShrubData, arglist) %>%
   filter(Plot_Name %in% new_evs_list) %>% 
   filter(SampleYear %in% curr_year)
 
-shrub_data_pm <- PM_check(shrubs)# %>% select_if(is.character) %>% select(-SampleDate)
-
+shrub_data_pm <- PM_check(shrubs)
 PM_shrub_col <- sapply(names(shrub_data_pm), function(x) any(shrub_data_pm[,x] %in% c("Permanently Missing", "PM"))) %>% 
   as.logical()
 PM_shrub_col[c(1)] <- TRUE # For Plot_Name
@@ -833,7 +829,6 @@ shrub_pm_table <- make_kable(shrub_data_pm2, "Shrubs: Permanently Missing record
 
 # Check for plots with SS shrubsample qualifier and no species data
 shrub_ss_sq <- get("MicroplotShrubs_MIDN", envir = VIEWS_MIDN) %>% 
-               #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
                name_plot() %>% 
                filter(Plot_Name %in% new_evs_list) %>% 
                select(Plot_Name, SampleYear, IsQAQC, SQShrubCode, MicroplotCode, ScientificName, CoverClassCode) %>%
@@ -856,12 +851,11 @@ QC_table <- rbind(QC_table,
 
 shrub_0cov_table <- make_kable(shrubs_0cov, "Shrubs: species recorded with 0 or missing cover")
 
-
 # check for sapling counts > 99 percentile of non-zero counts
 saps <- do.call(joinMicroSaplings, arglist) %>% name_plot()
 saps_new <- saps %>% filter_week() %>% group_by(Plot_Name, ParkUnit) %>% 
             summarize(sap_count = sum(Count, na.rm = T), .groups = 'drop')
-  
+
 saps_old <- saps %>% filter(SampleYear < curr_year & IsQAQC == 0) %>% 
                      filter(!ScientificName %in% c("Not Sampled", "None present"))
                        
@@ -936,62 +930,81 @@ quad_tramp2 <- quad_tramp %>% #mutate(Plot_Name =
 
 quad_tramp3 <- left_join(quad_tramp2, plotevs %>% select(Plot_Name, SampleYear, cycle, IsQAQC), 
                          by = c("Plot_Name", "SampleYear", "IsQAQC"),
-                         multiple = 'all', relationship = 'many-to-many') %>% 
-                        filter(cycle %in% c(cycle_latest_num, cycle_prev_num)) 
+                         multiple = 'all', relationship = 'many-to-many') 
 
-quad_tramp_wide <- quad_tramp3 %>% select(Plot_Name, SampleYear, cycle, QuadratCode, IsTrampled) %>% 
-  pivot_wider(names_from = c("QuadratCode"), values_from = "IsTrampled")
+quad_tramp4 <- rbind(quad_tramp3 %>% filter(SampleYear == curr_year) %>% mutate(cycle_txt = "prev"),
+                     quad_tramp3 %>% filter(between(SampleYear, curr_year - 6, curr_year - 1)) %>% # covers SAHI
+                       mutate(cycle_txt = 'curr')
+                     )
 
-quad_tramp_wide2 <- full_join(quad_tramp_wide %>% filter(cycle %in% cycle_prev_num) %>% 
-                                select(-cycle, -SampleYear),
-                              quad_tramp_wide %>% filter(cycle %in% cycle_latest_num) %>% 
-                                select(-cycle, -SampleYear),
-                              by = c("Plot_Name"),
-                              suffix = c("_C3", "_C4"),
-                              multiple = 'all', relationship = 'many-to-many')
+quad_tramp_wide <- quad_tramp4 %>% select(Plot_Name, SampleYear, cycle_txt, QuadratCode, IsTrampled) %>% 
+  arrange(Plot_Name, -SampleYear) %>% select(-SampleYear) %>%
+  pivot_wider(names_from = c("QuadratCode", "cycle_txt"), values_from = "IsTrampled",
+              names_glue = ("{QuadratCode}_{cycle_txt}")) 
 
+tramp_check <- data.frame(table(quad_tramp_wide$Plot_Name)) %>% filter(Freq > 1)
 
-quad_tramp_wide3 <- quad_tramp_wide2 %>% mutate(A2_dif = abs(A2_C3 - A2_C4),
-                                                A5_dif = abs(A5_C3 - A5_C4),
-                                                A8_dif = abs(A8_C3 - A8_C4),
-                                                AA_dif = abs(AA_C3 - AA_C4),
-                                                B2_dif = abs(B2_C3 - B2_C4),
-                                                B5_dif = abs(B5_C3 - B5_C4),
-                                                B8_dif = abs(B8_C3 - B8_C4),
-                                                BB_dif = abs(BB_C3 - BB_C4),
-                                                C2_dif = abs(C2_C3 - C2_C4),
-                                                C5_dif = abs(C5_C3 - C5_C4),
-                                                C8_dif = abs(C8_C3 - C8_C4),
-                                                CC_dif = abs(CC_C3 - CC_C4)) %>% 
+if(nrow(tramp_check) > 0){
+  warning("Year logic in quad_tramp checks not working properly")
+}
+
+quad_tramp_wide2 <- quad_tramp_wide %>% mutate(A2_dif = abs(A2_prev - A2_curr),
+                                               A5_dif = abs(A5_prev - A5_curr),
+                                               A8_dif = abs(A8_prev - A8_curr),
+                                               AA_dif = abs(AA_prev - AA_curr),
+                                               B2_dif = abs(B2_prev - B2_curr),
+                                               B5_dif = abs(B5_prev - B5_curr),
+                                               B8_dif = abs(B8_prev - B8_curr),
+                                                BB_dif = abs(BB_prev - BB_curr),
+                                                C2_dif = abs(C2_prev - C2_curr),
+                                                C5_dif = abs(C5_prev - C5_curr),
+                                                C8_dif = abs(C8_prev - C8_curr),
+                                                CC_dif = abs(CC_prev - CC_curr)) %>% 
   select(Plot_Name, 
-         A2_C3, A2_C4, A5_C3, A5_C4, A8_C3, A8_C4, AA_C3, AA_C4,
-         B2_C3, B2_C4, B5_C3, B5_C4, B8_C3, B8_C4, BB_C3, BB_C4,
-         C2_C3, C2_C4, C5_C3, C5_C4, C8_C3, C8_C4, CC_C3, CC_C4,
+         A2_prev, A2_curr, A5_prev, A5_curr, A8_prev, A8_curr, AA_prev, AA_curr,
+         B2_prev, B2_curr, B5_prev, B5_curr, B8_prev, B8_curr, BB_prev, BB_curr,
+         C2_prev, C2_curr, C5_prev, C5_curr, C8_prev, C8_curr, CC_prev, CC_curr,
          A2_dif, A5_dif, A8_dif, AA_dif, 
          B2_dif, B5_dif, B8_dif, BB_dif,
          C2_dif, C5_dif, C8_dif, CC_dif)
 
-
-quad_tramp_diff <- quad_tramp_wide3 %>% filter(A2_dif > 0 | A5_dif > 0 | A8_dif > 0 | AA_dif > 0 | 
+quad_tramp_diff <- quad_tramp_wide2 %>% filter(A2_dif > 0 | A5_dif > 0 | A8_dif > 0 | AA_dif > 0 | 
                                                B2_dif > 0 | B5_dif > 0 | B8_dif > 0 | BB_dif > 0 |
                                                C2_dif > 0 | C5_dif > 0 | C8_dif > 0 | CC_dif > 0 )
 
 #quad_tramp_diff <- quad_tramp_wide3 %>% filter(colSums(A2_dif:CC_dif)>0) 
 
-QC_table <- rbind(QC_table, QC_check(quad_tramp_diff, "Quadrat", "Trampled in cycle 4 != cycle 3"))
+QC_table <- rbind(QC_table, QC_check(quad_tramp_diff, "Quadrat", "Trampled in current cycle differs from previous"))
 
 tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_Name) %>% 
-  select(Plot_Name, SampleYear, cycle, A2, A5, A8, AA,
-         B2, B5, B8, BB,
-         C2, C5, C8, CC)
+  mutate(SampleYear = curr_year) %>%
+  select(Plot_Name, 
+         A2_c = A2_curr, A2_p = A2_prev, 
+         A5_c = A5_curr, A5_p = A5_prev, 
+         A8_c = A8_curr, A8_p = A8_prev, 
+         AA_c = AA_curr, AA_p = AA_prev, 
+         B2_c = B2_curr, B2_p = B2_prev, 
+         B5_c = B5_curr, B5_p = B5_prev, 
+         B8_c = B8_curr, B8_p = B8_prev, 
+         BB_c = BB_curr, BB_p = BB_prev, 
+         C2_c = C2_curr, C2_p = C2_prev, 
+         C5_c = C5_curr, C5_p = C5_prev, 
+         C8_c = C8_curr, C8_p = C8_prev, 
+         CC_c = CC_curr, CC_p = CC_prev
+  )
 
-quad_tramp_table <- make_kable(tramp_plots2, "Fluctuating trampled quadrats")
+quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous") %>%
+  purrr::reduce(2:ncol(tramp_plots2), function(x, y){
+    col <- tramp_plots2[, y]
+    column_spec(x, y, background = ifelse(col == TRUE, "#F2F2A0", "#FFFFFF"))
+  }, .init = .) # fills TRUE as yellow, so easier to see
+
 
 # Check for all quads trampled
 tramp_all <- tramp_plots2 %>% 
-  mutate(tramp_quads = A2 + A5 + A8 + AA + 
-                       B2 + B5 + B8 + BB +
-                       C2 + C5 + C8 + CC) %>% 
+  mutate(tramp_quads = A2_c + A5_c + A8_c + AA_c + 
+                       B2_c + B5_c + B8_c + BB_c +
+                       C2_c + C5_c + C8_c + CC_c) %>% 
   filter(tramp_quads == 12)
 
 QC_table <- rbind(QC_table, QC_check(tramp_all, "Quadrat", "All quadrats trampled"))
@@ -1049,7 +1062,7 @@ quad_0cov_table <- make_kable(quad_0cov, "Quadrat Species: species recorded with
 
 # Check for quadrats with SS sample qualifier, but no quad character data (eg potentially lost)
 quad_sq_data1 <- get("QuadCharacter_MIDN", envir = VIEWS_MIDN) %>% 
-  name_plot() %>% filter(Plot_Name %in% new_evs_list)
+  name_plot() %>% filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear == curr_year)
 
 quad_sq_data1$num_missing <- rowSums(is.na(quad_sq_data1[, c("A2_txt", "A5_txt", "A8_txt", "AA_txt", 
                                                              "B2_txt", "B5_txt", "B8_txt", "BB_txt",
@@ -1057,10 +1070,18 @@ quad_sq_data1$num_missing <- rowSums(is.na(quad_sq_data1[, c("A2_txt", "A5_txt",
 
 quad_sq_data <- quad_sq_data1 %>% filter(num_missing > 0)
 
-QC_table <- rbind(QC_table, 
-                  QC_check(quad_sq_data, "Quadrat", "Quadrat Data: SS sample qualifier without % cover data"))
+# Drop quads that are NS
+quad_sq_long <- quad_sq_data %>% select(Plot_Name, SampleYear, matches("_SQ")) %>%
+  pivot_longer(A2_SQ:CC_SQ, names_to = 'quad', values_to = "SQ") %>% 
+  group_by(Plot_Name, SampleYear) %>% summarize(num_NS = sum(!SQ == "NS"), .groups = 'drop') 
 
-quad_sq_data_table <- make_kable(quad_sq_data, "Quadrat Data: SS sample qualifier without % cover data")
+quad_sq_data_final <- left_join(quad_sq_data, quad_sq_long, by = c("Plot_Name", "SampleYear")) %>%
+  filter(num_NS > 0) %>% select(Plot_Name, SampleYear, A2:CC)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(quad_sq_data_final, "Quadrat", "Quadrat Data: SS sample qualifier without % cover data"))
+
+quad_sq_data_table <- make_kable(quad_sq_data_final, "Quadrat Data: SS sample qualifier without % cover data")
 
 # Check for quadrats with SS sample qualifier, but no quad species data (eg potentially lost)
 quad_sq_spp1 <- get("QuadSpecies_MIDN", envir = VIEWS_MIDN) %>% 
@@ -1072,11 +1093,18 @@ quad_sq_spp1$num_missing <- rowSums(is.na(quad_sq_spp1[, c("A2_txt", "A5_txt", "
 
 quad_sq_spp <- quad_sq_spp1 %>% filter(num_missing > 0)
 
+# Drop quads that are NS
+quad_sq_spp_long <- quad_sq_spp %>% select(Plot_Name, SampleYear, matches("_SQ")) %>%
+  pivot_longer(A2_SQ:CC_SQ, names_to = 'quad', values_to = "SQ") %>% 
+  group_by(Plot_Name, SampleYear) %>% summarize(num_NS = sum(!SQ == "NS"), .groups = 'drop') 
+
+quad_sq_spp_final <- left_join(quad_sq_spp, quad_sq_spp_long, by = c("Plot_Name", "SampleYear")) %>%
+  filter(num_NS > 0) %>% select(Plot_Name, SampleYear, A2:CC, QuadSppNote)
+
 QC_table <- rbind(QC_table, 
-                  QC_check(quad_sq_spp, "Quadrat", "Quadrat Species: SS sample qualifier without % cover data"))
+                  QC_check(quad_sq_spp_final, "Quadrat", "Quadrat Species: SS sample qualifier without % cover data"))
 
-quad_sq_spp_table <- make_kable(quad_sq_spp, "Quadrat Species: SS sample qualifier without % cover data")
-
+quad_sq_spp_table <- make_kable(quad_sq_spp_final, "Quadrat Species: SS sample qualifier without % cover data")
 
 # Quadrat Seedling Checks
 # Check for PMs in seedling data
@@ -1165,7 +1193,7 @@ seeds_sum$Seedlings_Above_150cm_99 <- ifelse(is.na(seeds_sum$Seedlings_Above_150
                                          max(seeds_sum$Seedlings_Above_150cm_99, na.rm = T),
                                          seeds_sum$Seedlings_Above_150cm_99)
 
-seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, Seedlings_15_30cm:Seedlings_Above_150cm), 
+seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, cycle, Seedlings_15_30cm:Seedlings_Above_150cm), 
                             seeds_sum, by = "ParkUnit",
                             multiple = 'all', relationship = 'many-to-many') %>% 
   filter(Seedlings_15_30cm > Seedlings_15_30cm_99 |
@@ -1174,7 +1202,7 @@ seeds_99_check <- left_join(seeds_new %>% select(Plot_Name, ParkUnit, Seedlings_
          Seedlings_Above_150cm > Seedlings_Above_150cm_99) %>% as.data.frame()
 
 
-seeds_99_check_final <- if(nrow(seeds_99_check) > 0 & cycle_latest_num > 1){
+seeds_99_check2 <- if(nrow(seeds_99_check) > 0){
   seed_cols <- c(ifelse(seeds_99_check$Seedlings_15_30cm > seeds_99_check$Seedlings_15_30cm_99, 
                         "Seedlings_15_30cm", "ParkUnit"),
                  ifelse(seeds_99_check$Seedlings_30_100cm > seeds_99_check$Seedlings_30_100cm_99 , 
@@ -1184,14 +1212,15 @@ seeds_99_check_final <- if(nrow(seeds_99_check) > 0 & cycle_latest_num > 1){
                  ifelse(seeds_99_check$Seedlings_Above_150cm > seeds_99_check$Seedlings_Above_150cm_99, 
                         "Seedlings_Above_150cm", "ParkUnit"))#) 
   
-  seeds_99_check_final <- seeds_99_check[, c("Plot_Name", unique(seed_cols))]
+  seeds_99_check_final <- seeds_99_check[, c("Plot_Name", 'cycle', unique(seed_cols))]
   seeds_99_check_final
 } else {seeds_99_check}
 
+seeds_99_check_final <- seeds_99_check2 %>% filter(cycle > 1)
 
-QC_table <- rbind(QC_table, QC_check(seeds_99_check_final, "Quadrat", "Seedling tallies > 99% percentile for a given park"))
+QC_table <- rbind(QC_table, QC_check(seeds_99_check_final, "Quadrat", "Seedling records with a size class tally > 99% percentile for a given park"))
 
-seeds_99_table <- make_kable(seeds_99_check_final, "Seedling tallies > 99% percentile for a given park")
+seeds_99_table <- make_kable(seeds_99_check_final, "Seedling records with a size class tally > 99% percentile for a given park")
 
 #----- + Summarize quadrat checks + -----
 quad_check <- QC_table %>% filter(Data %in% "Quadrat" & Num_Records > 0) 
@@ -1352,7 +1381,7 @@ spplist <- do.call(sumSpeciesList, arglist) %>%
 spplist_new <- spplist %>% filter(SampleYear %in% curr_year) %>% 
                            filter(Plot_Name %in% new_evs_list) %>% mutate(pres = 1)
 
-spplist_old <- spplist %>% filter(SampleYear > (curr_year - 5) & SampleYear < curr_year) %>%  
+spplist_old <- spplist %>% filter(SampleYear < curr_year) %>%  
                            filter(Plot_Name %in% new_evs_list) %>% mutate(pres = 1) %>% 
                            select(Plot_Name, TSN, ScientificName,
                                   pres)
@@ -1475,7 +1504,6 @@ ised_table <- make_kable(ised_join, "Invasive species early detections")
 #----- + Summarize ISED checks + -----
 ISED_check <- QC_table %>% filter(Data %in% "Early Detection" & Num_Records > 0) 
 include_ISED_tab <- tab_include(ISED_check)
-
 
 #+++++ Compile final QC Table
 QC_check_table <-  kable(QC_table, format = 'html', align = 'c', caption = "QC checking results",
