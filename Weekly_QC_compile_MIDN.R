@@ -1430,14 +1430,14 @@ spp_newpark_table <- make_kable(spp_newpark, "Species new to a park") %>%
 
 # check possible miss-IDed species
 spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spicatum', 'Acer',
-                'Betula alleghaniensis',
+                'Betula alleghaniensis', 'Berberis bealei',
                 'Celtis laevigata', 'Clethra acuminata',
                 'Gaylussacia baccata', 'Gaylussacia dumosa', 'Gaylussacia frondosa', 'Gaylussacia',
-                'Ilex aquifolium', #new 2023
+                'Ilex aquifolium', 'Ilex crenata',#new 2023
                 'Ilex decidua', 'Ilex montana', 'Ilex verticillata', 'Ilex mucronata',
                 'Juniperus', 'Juniperus communis', 'Juniperus horizontalis',
                 'Kalmia angustifolia', 'Lonicera', 'Maianthemum', 'Myrica gale', 'Nyssa biflora',
-                'Persea palustris','Persicaria posumbu', 
+                'Persea palustris', 'Persea', 'Persea borbonia','Persicaria posumbu', 
                 'Picea', 'Picea abies', 'Picea glauca', 'Picea mariana', 'Picea rubens', 
                 'Symphoricarpos albus', 'Toxicodendron',
                 'Ulmus alata', 'Vaccinium angustifolium', 'Vaccinium myrtilloides'
