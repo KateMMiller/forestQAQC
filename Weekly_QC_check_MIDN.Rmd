@@ -7,7 +7,6 @@ output:
         in_header: "header_manual.html"
 params:
   week_start: "2023-07-30"
-  #cycle_latest_num: 4
   locType: 'all'
 
 ---
