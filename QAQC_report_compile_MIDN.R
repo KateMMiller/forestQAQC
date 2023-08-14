@@ -16,7 +16,7 @@ source("QAQC_report_functions.R")
 
 #----- Compile data
 # year = 2023
-# plot = "VAFO-244" #VAFO-245
+# plot = "COLO-381" #VAFO-245
 # loc_type = 'all'
 
 arglist = list(park = substr(plot, 1, 4), 
@@ -153,7 +153,6 @@ trcond_wide[,c(3:ncol(trcond_wide))][is.na(trcond_wide[,c(3:ncol(trcond_wide))])
 trcond_wide[,c(8:9)][trcond_wide$Status == 'live',] <- NA
 trcond_wide[,c(6:7, 10:19, 24:55)][trcond_wide$Status == 'dead',] <- NA
 trcond_wide[,c(3:4)][is.na(trcond_wide[,c(3:4)])] <- 0
-
 
 #----- Tree Foliage Conditions
 fol_cond <- do.call(joinTreeFoliageCond,
@@ -514,7 +513,6 @@ quad_spp_comp2 <- quad_spp_comp %>% select(ScientificName,
                                            spp_miss_C, spp_miss_Q) %>% 
                                     arrange(ScientificName) 
 
-
 quad_spp_comp2[, 2:25][is.na(quad_spp_comp2[, 2:25])] <- "0%"
 quad_spp_comp2[, 26:39][is.na(quad_spp_comp2[, 26:39])] <- 0
 
@@ -551,7 +549,7 @@ quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$S
                     rename(quad_avg_cov = quad_avg_cov_Q) %>% 
                     select(team, ScientificName, quad_avg_cov) %>% unique())
 
-#if(nrow(quad_spp)>0){
+if(nrow(quad_spp)>0){
   
   quad_spp$quad_avg_cov[is.na(quad_spp$quad_avg_cov)] <- 0
   
@@ -565,8 +563,7 @@ quad_spp <- rbind(quad_sum_comp2 %>% filter(ScientificName %in% spp_to_include$S
   
   quad_spp_wide2 <- rbind(quad_spp_wide2,
                           c("Sorensen Similarity", NA, quad_taxa_acc, NA, NA))
-#}
-
+  }
 #----- Quadrat seedlings
 seeds <- do.call(joinQuadSeedlings, c(arglist, list(speciesType = 'all', canopyForm = 'all'))) %>% 
   filter_plot() %>% name_team() %>% 
