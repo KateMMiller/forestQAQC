@@ -1189,10 +1189,10 @@ include_soil_tab <- tab_include(soil_check)
 unknowns <- c(-9999999901:-9999999944, -9999999950:-9999999960)
 
 spplist <- do.call(sumSpeciesList, arglist) %>% 
-           filter(IsQAQC == 0) %>% 
-           name_plot() %>% 
+           #filter(IsQAQC == 0) %>% 
+           #name_plot() %>% 
            filter(!TSN %in% unknowns) %>% 
-           select(Plot_Name, ParkUnit, SampleYear, cycle, TSN, ScientificName, BA_cm2:addspp_present)
+           select(Plot_Name, ParkUnit, SampleYear, cycle, IsQAQC, TSN, ScientificName, BA_cm2:addspp_present)
 
 # check species new to a plot
 spplist_new <- spplist %>% filter(SampleYear %in% curr_year) %>% 
@@ -1216,7 +1216,7 @@ spp_plotcheck[, nacols][is.na(spp_plotcheck[, nacols])] <- 0
 
 spp_newplot <- spp_plotcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
                select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
-                      -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, ScientificName)
+                      -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, IsQAQC, ScientificName)
 
 QC_table <- rbind(QC_table, 
                   QC_check(spp_newplot, "Plant ID", "Species new to a plot"))
@@ -1234,7 +1234,7 @@ spp_parkcheck <- full_join(spplist_new, park_spplist,
                            suffix = c("_new", "_old"), 
                            multiple = 'all', relationship = 'many-to-many') 
 
-spp_parkcheck[, 7:19][is.na(spp_parkcheck[, 7:19])] <- 0
+spp_parkcheck[, nacols][is.na(spp_parkcheck[, nacols])] <- 0
 
 spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
                                  select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,

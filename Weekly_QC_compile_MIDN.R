@@ -119,7 +119,7 @@ QC_table <- rbind(QC_table,
 stand_pm_table <- make_kable(stand_pm2, "Permanently Missing records in stand data")
 
 # Check plots with fluctuating stand structure
-stand_str_latest <- stand %>% filter(IsQAQC == 0) %>% 
+stand_str_latest <- stand %>% #filter(IsQAQC == 0) %>% 
   filter(!ParkUnit %in% "ASIS" ) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, ParkUnit, cycle, Stand_Structure) %>% 
@@ -144,7 +144,7 @@ QC_table <- rbind(QC_table, QC_check(stand_str, "Stand Data", "Stand structure d
 stand_str_table <- make_kable(stand_str, "Stand structure differs from previous cycles")
 
 # Check plots with fluctuating microtopography
-microtop_latest <- stand %>% filter(IsQAQC == 0) %>% 
+microtop_latest <- stand %>% #filter(IsQAQC == 0) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, ParkUnit, cycle, Microtopography) %>% 
   group_by(Plot_Name) %>% slice(which.max(cycle)) %>% ungroup()
@@ -172,7 +172,7 @@ QC_table <- rbind(QC_table, QC_check(dbi1, "Stand Data", "DBI = 1 outside of exc
 DBI_1_table <- make_kable(dbi1, "DBI = 1 outside exclosure") 
 
 # Check for big DBI shift between cycles
-dbi_latest <- stand %>% filter(IsQAQC == 0) %>% 
+dbi_latest <- stand %>% #filter(IsQAQC == 0) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, ParkUnit, cycle, Deer_Browse_Index) %>% 
   group_by(Plot_Name) %>% slice(which.max(cycle)) %>% ungroup()
@@ -195,7 +195,7 @@ DBI_diff_table <- make_kable(dbi_diff, "DBI change > 1 point from previous cycle
 
 # Disturbances
 stand_dist <- do.call(joinStandDisturbance, c(arglist, list(from = curr_year))) %>% 
-  filter_week() %>% filter(DisturbanceCode > 0) %>% 
+  filter_week() %>% filter(DisturbanceCode > 0) %>% name_plot() %>%
   select(Plot_Name, SampleYear, IsQAQC, DisturbanceCode, DisturbanceSummary, ThresholdCode,
          ThresholdLabel, DisturbanceCoverClassLabel, DisturbanceNote) %>% 
   rename(Summary = DisturbanceSummary, 
@@ -210,9 +210,9 @@ stand_dist_table <- make_kable(stand_dist, "Recorded disturbances")
 # Check for potential stand height outliers
 stand_ht <- get("StandTreeHeights_MIDN", env = VIEWS_MIDN) %>% 
             select(Plot_Name, ParkUnit, SampleYear, SampleDate, IsQAQC, CrownClassLabel, Height) %>% 
-            filter(!is.na(CrownClassLabel)) 
+            filter(!is.na(CrownClassLabel)) %>% name_plot()
 
-stand_ht_new <- stand_ht %>% filter_week() %>% filter(IsQAQC == 0)
+stand_ht_new <- stand_ht %>% filter_week() #%>% filter(IsQAQC == 0)
 
 stand_ht_sum <- stand_ht %>% filter(SampleYear < curr_year) %>% group_by(ParkUnit) %>% 
                 summarize(stand_ht_99 = quantile(Height, probs = 0.99))
@@ -227,7 +227,7 @@ stand_ht_99_table <- make_kable(stand_ht_99_check, "Stand heights > 99% percenti
 
 # Compare to previous stand height
 stand_ht_prev <- do.call(joinStandData, arglist) %>% name_plot() %>% 
-                 filter(Plot_Name %in% new_evs_list) %>%
+                 filter(Plot_Name %in% new_evs_list) %>% 
                  group_by(Plot_Name) %>% slice(which.max(cycle) - 1) %>% ungroup() %>% 
                  select(Plot_Name, Avg_Height_Codom, Avg_Height_Inter) %>% 
                  mutate(Codom_prev_up50 = Avg_Height_Codom + Avg_Height_Codom*0.5,
@@ -294,18 +294,19 @@ dead <- c("2","DB","DC","DL","DS")
 exc <- c("0","ES","EX","XO","XP")
 missed <- c("AM", "DM")
 
-status_check1 <- tree_data %>% filter(IsQAQC == 0) %>% filter(!ParkUnit %in% "ASIS") %>% 
-                               select(Plot_Name, ParkUnit, TagCode, SampleYear, cycle, TreeStatusCode) %>% 
-                               mutate(status = case_when(TreeStatusCode %in% alive ~ "alive",
-                                                              TreeStatusCode %in% dead ~ "dead", 
-                                                              TreeStatusCode %in% recr ~ "alive_recruit",
-                                                              TreeStatusCode %in% missed ~ "missed",
-                                                              TreeStatusCode %in% exc ~ "exclude",
-                                                              TreeStatusCode %in% "NL" ~ "not_located",
-                                                              TreeStatusCode %in% "XS" ~ "exclude_shrank",
-                                                              TreeStatusCode %in% "DF" ~ "dead fallen",
-                                                              TRUE ~ NA_character_)) %>% 
-                               select(-TreeStatusCode) 
+status_check1 <- tree_data %>% #filter(IsQAQC == 0) %>% 
+  filter(!ParkUnit %in% "ASIS") %>% 
+  select(Plot_Name, ParkUnit, TagCode, SampleYear, cycle, TreeStatusCode) %>% 
+  mutate(status = case_when(TreeStatusCode %in% alive ~ "alive",
+                            TreeStatusCode %in% dead ~ "dead", 
+                            TreeStatusCode %in% recr ~ "alive_recruit",
+                            TreeStatusCode %in% missed ~ "missed",
+                            TreeStatusCode %in% exc ~ "exclude",
+                            TreeStatusCode %in% "NL" ~ "not_located",
+                            TreeStatusCode %in% "XS" ~ "exclude_shrank",
+                            TreeStatusCode %in% "DF" ~ "dead fallen",
+                            TRUE ~ NA_character_)) %>% 
+  select(-TreeStatusCode) 
 
 
 status_latest <- map_dfr(seq_along(park_orig_list), function(x){
@@ -413,7 +414,7 @@ tree_dbh <- left_join(tree_live_latest, tree_live_prev,
                       suffix = c("_latest", "_prev"),
                       multiple = 'all', relationship = 'many-to-many') %>% 
   filter(!is.na(DBHcm_latest)) %>% 
-  filter(!is.na(DBHcm_prev)) %>% 
+  filter(!is.na(DBHcm_prev)) %>% # drops QAQC plots b/c previous is NA
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
 
 # Identify Zoinks trees 
@@ -454,7 +455,7 @@ QC_table <- rbind(QC_table,
 tree_dbhnz_table <- make_kable(tree_nz, "DBH non-zoinks with DBH Verified check")
 
 # Check for major foliage outbreak
-fol_new <- joinTreeFoliageCond(from = curr_year, to = curr_year, QAQC = FALSE, locType = 'all') %>% 
+fol_new <- joinTreeFoliageCond(from = curr_year, to = curr_year, QAQC = TRUE, locType = 'all') %>% 
            name_plot() %>% 
            filter(Plot_Name %in% new_evs_list) 
 
@@ -471,7 +472,7 @@ QC_table <- rbind(QC_table,
 fol_maj_table <- make_kable(fol_major, "Plots with potential foliage outbreak (2+ trees with TotFol > 50%)")
 
 # Check tree conditions 
-tree_cond <- joinTreeConditions(from = curr_year, to = curr_year, QAQC = FALSE, locType = 'all') %>% 
+tree_cond <- joinTreeConditions(from = curr_year, to = curr_year, QAQC = TRUE, locType = 'all') %>% 
              name_plot() %>% 
              filter(Plot_Name %in% new_evs_list) 
 
@@ -502,7 +503,6 @@ pest_check <- tree_cond %>% mutate(pest_det = rowSums(across(all_of(pest_list)),
                                          names_to = "Pest",
                                          values_to = "Detection") %>% 
                             filter(Detection == 1) %>% select(-Detection)
-
 
 QC_table <- rbind(QC_table,
                   QC_check(pest_check, "Tree Data", "Priority forest pest/pathogen detections."))
@@ -576,11 +576,11 @@ sap_pm_table <- make_kable(sap_data_pm2, "Saplings: Permanently Missing records"
 
 # Tree-like sapling checks
 sap_data <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all'))) %>% 
-  name_plot() %>% #add_cycle_MIDN() %>% 
+  name_plot() %>% 
   filter(Plot_Name %in% new_evs_list)
 
 sap_data_live <- do.call(joinMicroSaplings, c(arglist, list(speciesType = 'all', status = "live"))) %>% 
-  name_plot() %>% #add_cycle_MIDN() %>% 
+  name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) 
 
 sap_data_old <- sap_data %>% filter(SampleYear >= (curr_year - 6) & SampleYear < curr_year) #6 includes SAHI
@@ -605,7 +605,7 @@ sap_data_prev <- joinMicroSaplings(from = 2007, to = curr_year-1) %>%
   select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
   mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode)) 
 
-sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year) %>% 
+sap_data_curr <- joinMicroSaplings(from = curr_year, to = curr_year, QAQC = TRUE) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, SampleYear, MicroplotCode, TagCode) %>% 
   mutate(sap_key = paste0(Plot_Name, "-", MicroplotCode, "-", TagCode))
@@ -643,7 +643,8 @@ dead <- c("2","DB","DC","DL","DS")
 exc <- c("ES","EX","XO","XP")
 missed <- c("AM", "DM")
 
-sap_status_check1 <- sap_data %>% filter(IsQAQC == 0) %>% filter(!ParkUnit %in% "ASIS") %>% 
+sap_status_check1 <- sap_data %>% #filter(IsQAQC == 0) %>% 
+  filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, SampleYear, cycle, SaplingStatusCode) %>% 
   mutate(status = case_when(SaplingStatusCode %in% alive ~ "alive",
                             SaplingStatusCode %in% dead ~ "dead", 
@@ -691,7 +692,7 @@ live_saps_prev <- sap_data_live %>% filter(SampleYear >= (curr_year - 6) & Sampl
   group_by(Plot_Name, SampleYear) %>% 
   summarize(num_live = sum(Count), .groups = 'drop')
 
-live_saps_new <- sap_data_live %>% filter(SampleYear == curr_year & IsQAQC == 0) %>% 
+live_saps_new <- sap_data_live %>% filter(SampleYear == curr_year) %>%# & IsQAQC == 0) %>% 
   group_by(Plot_Name, SampleYear) %>% 
   summarize(num_live = sum(Count), .groups = 'drop')
 
@@ -788,7 +789,7 @@ sap_prev <- joinMicroSaplings(from = 2007, to = curr_year-1, status = 'live', sp
   filter(Plot_Name %in% new_evs_list) %>% # new evs are only Plot_Name, not year, so works 
   filter(!is.na(SaplingStatusCode))
 
-sap_curr <- joinMicroSaplings(from = curr_year, to = curr_year, status = 'live', speciesType = 'all') %>% 
+sap_curr <- joinMicroSaplings(from = curr_year, to = curr_year, status = 'live', speciesType = 'all', QAQC = T) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, cycle, MicroplotCode, TagCode, ScientificName, SaplingStatusCode)
 
@@ -1345,7 +1346,7 @@ cwdvw_new <- cwd_vw %>% filter(Plot_Name %in% new_evs_list) %>%
                                Distance, Diameter, Length, DecayClassCode)
                         
 cwdvw_old <- cwd_vw %>% filter(SampleYear < curr_year) %>% 
-                        name_plot() %>% 
+                        name_plot() %>% filter(IsQAQC == 0) %>%
                         select(Plot_Name, ParkUnit, SampleYear, SampleDate, IsQAQC, TransectCode, ScientificName,
                                Distance, Diameter, Length, DecayClassCode)
 
@@ -1372,10 +1373,9 @@ include_cwd_tab <- tab_include(cwd_check)
 unknowns <- c(-9999999901:-9999999944, -9999999950:-9999999960)
 
 spplist <- do.call(sumSpeciesList, arglist) %>% 
-           filter(IsQAQC == 0) %>% 
-           name_plot() %>% 
+           #filter(IsQAQC == 0) %>% 
            filter(!TSN %in% unknowns) %>% 
-           select(Plot_Name, ParkUnit, SampleYear, cycle, TSN, ScientificName, BA_cm2:addspp_present)
+           select(Plot_Name, ParkUnit, SampleYear, cycle, IsQAQC, TSN, ScientificName, BA_cm2:addspp_present)
 
 # check species new to a plot
 spplist_new <- spplist %>% filter(SampleYear %in% curr_year) %>% 
@@ -1391,12 +1391,12 @@ spp_plotcheck <- full_join(spplist_new, spplist_old,
                            suffix = c("_new", "_old"),
                            multiple = 'all', relationship = 'many-to-many') 
 
-spp_plotcheck[, 7:19][is.na(spp_plotcheck[, 7:19])] <- 0
+spp_plotcheck[, 8:20][is.na(spp_plotcheck[, 8:20])] <- 0
 
 spp_newplot <- spp_plotcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
                filter(!ParkUnit %in% "ASIS") %>% 
                select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
-                      -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, ScientificName)
+                      -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, IsQAQC, ScientificName)
 
 QC_table <- rbind(QC_table, 
                   QC_check(spp_newplot, "Plant ID", "Species new to a plot"))
@@ -1414,7 +1414,7 @@ spp_parkcheck <- full_join(spplist_new, park_spplist,
                            suffix = c("_new", "_old"),
                            multiple = 'all', relationship = 'many-to-many') 
 
-spp_parkcheck[, 7:19][is.na(spp_parkcheck[, 7:19])] <- 0
+spp_parkcheck[, 8:20][is.na(spp_parkcheck[, 8:20])] <- 0
 
 spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
   select(-SampleYear, -cycle, -TSN, -BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
