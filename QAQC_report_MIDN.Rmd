@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2023
-  plot: "VAFO-245"
+  plot: "COLO-381"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -543,7 +543,7 @@ spp_sum_tab <- kable(quad_sum_comp2 %>% select(-pct_diff_cov, -pct_diff_freq),
                column_spec(c(2, 4), border_right = TRUE, extra_css = "border-right: 1px solid #CACACA;")
 
 #+++ NEW 20220321 +++
-quad_tab_ta <- if(nrow(quad_spp) > 0){ # this is prelim df to quad_spp_wide
+quad_tab_ta <- if(nrow(quad_spp) > 0){ # this is prelim df to quad_spp_wide, only includes spp >=1% cover
                    kable(quad_spp_wide2 %>% select(ScientificName, crew, qaqc),
                          format = 'html', align = 'c', col.names = c("Species", "Crew", "QAQC")) %>% 
                    kable_styling(fixed_thead = TRUE, bootstrap_options = 'condensed',
@@ -719,26 +719,26 @@ dist_tab
 
 #### Tree Data {.tabset}
 <details open><summary><h3>Tree Measurements</h3></summary>
-```{r, tree_table, echo = FALSE}
-if(nrow(tree_wide2) > 1){
+```{r, tree_table, echo = FALSE, error = TRUE}
+#if(nrow(tree_wide2) > 1){
 tree_tab
 
 cat("\n")
 color_leg
-} else {
-cat("Trees not sampled")  
-cat("\n")
-}
+#} else {
+# cat("Trees not sampled")  
+# cat("\n")
+# }
 ```
 </details>
 
 <details open><summary><h3>Tree DBH Differences</h3></summary>
-```{r diff_plot_printed}
-if(nrow(tree_wide2) > 1){
+```{r diff_plot_printed, error = TRUE}
+#if(nrow(tree_wide2) > 1){
 diff_plot
-} else {
-  cat("Trees not sampled")
-}  
+#} else {
+#  cat("Trees not sampled")
+#}  
 ```
 </details>
 
