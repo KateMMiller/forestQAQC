@@ -25,3 +25,10 @@ rmarkdown::render('QAQC_report_MIDN.Rmd',
                   output_file = paste0(path, "QAQC_report_MIDN", "_VAFO-245-2023.html"),
                   params = list(year = 2023, plot = 'VAFO-245', locType = 'all'))
 
+rmarkdown::render('QAQC_report_MIDN.Rmd', 
+                  output_file = paste0(path, "QAQC_report_MIDN", "_COLO-381-2023.html"),
+                  params = list(year = 2023, plot = 'COLO-381', locType = 'all'))
+
+rmarkdown::render('QAQC_report_MIDN.Rmd', 
+                  output_file = paste0(path, "QAQC_report_MIDN", "_COLO-376-2023.html"),
+                  params = list(year = 2023, plot = 'COLO-376', locType = 'all'))
