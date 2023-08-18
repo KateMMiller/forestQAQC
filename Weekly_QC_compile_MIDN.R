@@ -13,7 +13,7 @@ source("Weekly_QC_functions.R")
 
 #----- Compile data -----
 # importData()
-# week_start = "2023-07-30"
+# week_start = "2023-08-13"
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # loc_type <- 'VS'
@@ -994,12 +994,15 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
          CC_c = CC_curr, CC_p = CC_prev
   )
 
-quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous") %>%
-  purrr::reduce(2:ncol(tramp_plots2), function(x, y){
-    col <- tramp_plots2[, y]
-    column_spec(x, y, background = ifelse(col == TRUE, "#F2F2A0", "#FFFFFF"))
-  }, .init = .) # fills TRUE as yellow, so easier to see
 
+if(nrow(tramp_plots2 > 0)){
+  quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous") %>%
+    purrr::reduce(2:ncol(tramp_plots2), function(x, y){
+      col <- tramp_plots2[, y]
+      column_spec(x, y, background = ifelse(col == TRUE, "#F2F2A0", "#FFFFFF"))
+      }, .init = .) # fills TRUE as yellow, so easier to see
+} else {
+  quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous")}
 
 # Check for all quads trampled
 tramp_all <- tramp_plots2 %>% 
