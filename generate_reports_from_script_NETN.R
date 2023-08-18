@@ -1,12 +1,11 @@
 
-path = c("D:/NETN/Monitoring_Projects/Forest_Health/2022_data/Maps_and_Data/Weekly_Checks/")
+path = c("C:/NETN/Monitoring_Projects/Forest_Health/2023_data/Maps&Data/")
 
 
 # Knit weekly reports
 rmarkdown::render('Weekly_QC_check_NETN.Rmd',
-                  output_file = paste0(path, "Weekly_QC_check_NETN_Week8_ACAD.html"),
-                  params = list(week_start = '2022-07-17',
-                                cycle_latest_num = 5,
+                  output_file = paste0(path, "Weekly_QC_check_NETN_allweeks.html"),
+                  params = list(week_start = '2023-05-01',
                                 locType = 'all')) 
 
 # Knit QAQC Report
