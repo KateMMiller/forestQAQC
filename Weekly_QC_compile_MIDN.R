@@ -831,7 +831,7 @@ shrub_pm_table <- make_kable(shrub_data_pm2, "Shrubs: Permanently Missing record
 # Check for plots with SS shrubsample qualifier and no species data
 shrub_ss_sq <- get("MicroplotShrubs_MIDN", envir = VIEWS_MIDN) %>% 
                name_plot() %>% 
-               filter(Plot_Name %in% new_evs_list) %>% 
+               filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year) %>%
                select(Plot_Name, SampleYear, IsQAQC, SQShrubCode, MicroplotCode, ScientificName, CoverClassCode) %>%
                filter(SQShrubCode %in% "SS" & is.na(ScientificName))
 
@@ -1089,7 +1089,7 @@ quad_sq_data_table <- make_kable(quad_sq_data_final, "Quadrat Data: SS sample qu
 
 # Check for quadrats with SS sample qualifier, but no quad species data (eg potentially lost)
 quad_sq_spp1 <- get("QuadSpecies_MIDN", envir = VIEWS_MIDN) %>% 
-  name_plot() %>% filter(Plot_Name %in% new_evs_list)# %>% 
+  name_plot() %>% filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year)  
 
 quad_sq_spp1$num_missing <- rowSums(is.na(quad_sq_spp1[, c("A2_txt", "A5_txt", "A8_txt", "AA_txt", 
                                                            "B2_txt", "B5_txt", "B8_txt", "BB_txt",
@@ -1143,7 +1143,7 @@ seed_pm_table <- make_kable(seed_data_pm2, "Seedlings: Permanently Missing recor
 seed_ss_sq <- get("QuadSeedlings_MIDN", envir = VIEWS_MIDN) %>% 
   #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
   name_plot() %>% 
-  filter(Plot_Name %in% new_evs_list) %>% 
+  filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year) %>%
   select(Plot_Name, SampleYear, IsQAQC, SQSeedlingCode, QuadratCode, ScientificName) %>%
   filter(SQSeedlingCode %in% "SS" & is.na(ScientificName))
 

@@ -602,7 +602,7 @@ shrub_pm_table <- make_kable(shrub_data_pm2, "Shrubs: Permanently Missing record
 # Check for plots with SS shrubsample qualifier and no species data
 shrub_ss_sq <- get("MicroplotShrubs_NETN", envir = VIEWS_NETN) %>% 
                name_plot() %>% 
-               filter(Plot_Name %in% new_evs_list) %>% 
+               filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year) %>%
                select(Plot_Name, SampleYear, IsQAQC, SQShrubCode, MicroplotCode, ScientificName, CoverClassCode) %>%
                filter(SQShrubCode %in% "SS" & is.na(ScientificName))
 
@@ -645,7 +645,7 @@ seed_pm_table <- make_kable(seed_data_pm2, "Seedlings: Permanently Missing recor
 # Check for plots with SS sample qualifier and no species data
 seed_ss_sq <- get("MicroplotSeedlings_NETN", envir = VIEWS_NETN) %>% 
               name_plot() %>% 
-              filter(Plot_Name %in% new_evs_list) %>% 
+              filter(Plot_Name %in% new_evs_list) %>%  filter(SampleYear %in% curr_year) %>%
               select(Plot_Name, SampleYear, IsQAQC, SQSeedlingCode, MicroplotCode, ScientificName) %>%
               filter(SQSeedlingCode %in% "SS" & is.na(ScientificName))
 
@@ -908,7 +908,7 @@ quad_0cov_table <- make_kable(quad_0cov, "Quadrat Species: species recorded with
 
 # Check for quadrats with SS sample qualifier, but no quad character data (eg potentially lost)
 quad_sq_data1 <- get("QuadCharacter_NETN", envir = VIEWS_NETN) %>% 
-                 name_plot() %>% filter(Plot_Name %in% new_evs_list)
+                 name_plot() %>% filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year)
 
 quad_sq_data1$num_missing <- rowSums(is.na(quad_sq_data1[, c("UC_txt", "UR_txt", "MR_txt", "BR_txt", 
                                                              "BC_txt", "BL_txt", "ML_txt", "UL_txt")]))
