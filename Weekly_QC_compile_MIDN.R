@@ -1428,8 +1428,10 @@ spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>%
 QC_table <- rbind(QC_table, 
                   QC_check(spp_newpark, "Plant ID", "Species new to a park"))
 
+if(nrow(spp_newpark) > 0){
 spp_newpark_table <- make_kable(spp_newpark, "Species new to a park") %>% 
                      scroll_box(height = "600px")
+}
 
 # check possible miss-IDed species
 spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spicatum', 'Acer',
