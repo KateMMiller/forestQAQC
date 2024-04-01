@@ -13,6 +13,10 @@ output:
 #                year, "/", park, "/")
 path <- paste0("C:/NETN/Monitoring_Projects/Forest_Health/Photopoints/", 
                year, "/", park, "/")
+
+photo_eval <- if(exists('path')){TRUE} else {FALSE}
+
+if(photo_eval == TRUE){
 all_photos <- list.files(path, pattern = ".JPG")
 plot2 <- sub("-", "_", plot_name)
 
@@ -20,13 +24,13 @@ photo_order <- c("UC", "UL", "UR", "BL", "BR")
 photo_list1 <- all_photos[grep(plot2, all_photos)]
 photo_list <- photo_list1[grep("UC|UR|BR|BL|UL", photo_list1)]
 photo_list <- setNames(photo_list, substr(photo_list, 10, 11))
-photo_list <- photo_list[photo_order]
+photo_list <- photo_list[photo_order]}
 ```
 
 <div class = "flexbox">
 <div>
 <h4 style='text-align:center'>UC</h4>
-```{r echo = F, out.width = "75%", warnings = F, message = FALSE, fig.align = 'center'}
+```{r echo = F, out.width = "75%", warnings = F, message = FALSE, fig.align = 'center', eval = photo_eval}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UC"])))
 ```
 </div>
@@ -35,13 +39,13 @@ suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UC"])))
 <div class = "flexbox">
 <div>
 <h4 style='text-align:center'>UL</h4>
-```{r echo = F, out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F, out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UL"])))
 ```
 </div>
 <div>
 <h4 style='text-align:center'>UR</h4>
-```{r echo = F, out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F, out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UR"])))
 ```
 </div>
@@ -49,13 +53,13 @@ suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UR"])))
 
 <div class = "flexbox">
 <div>
-```{r echo = F,  out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F,  out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BL"])))
 ```
 <h4 style='text-align:center'>BL</h4>
 </div>
 <div>
-```{r echo = F,  out.width = "98%", warnings = F, message = FALSE}
+```{r echo = F,  out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
 suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BR"])))
 ```
 <h4 style='text-align:center'>BR</h4>
