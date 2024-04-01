@@ -9,6 +9,7 @@ params:
   print: TRUE
   plot_name: "MABI-001"
   year: 2018
+  panel: 1
 ---
 ```{r include = FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE)

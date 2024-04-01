@@ -10,7 +10,7 @@ library(knitr)
 library(kableExtra)
 #importData()
 #----- Compile data -----
-arglist = list(park = park, from = year, to = year, QAQC = FALSE)
+arglist = list(park = park, from = year, to = year, QAQC = FALSE, panel = panel)
 
 plotevs <- do.call(joinLocEvent, arglist) |> 
   mutate(Unit = ifelse(nchar(ParkSubUnit) > 4,                                                                           
@@ -57,7 +57,7 @@ treeht <- get("StandTreeHeights_NETN", envir = VIEWS_NETN) |>
   select(Plot_Name, CrownClassCode, CrownClassLabel, TagCode, Height) |> 
   arrange(Plot_Name, CrownClassLabel, TagCode)
 
-head(treeht)
+head(treeht) #+++++ Filter on Panel +++++
 
 #----- Stand disturbances -----
 dist <- do.call(joinStandDisturbance, arglist) |> 
@@ -93,7 +93,7 @@ head(treecondl)
 #----- Tree foliage conditions -----
 treefol <- do.call(joinTreeFoliageCond, 
                    list(park = park, from = year, to = year, QAQC = FALSE, locType = "all",
-                        valueType = "classes")) |> 
+                        panel = panel, valueType = "classes")) |> 
   select(Plot_Name, SampleYear, ScientificName, Tag = TagCode, 
          Txt_Tot_Foliage_Cond:Txt_Leaf_Area_N)
 

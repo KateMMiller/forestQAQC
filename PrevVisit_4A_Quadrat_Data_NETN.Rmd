@@ -9,6 +9,7 @@ params:
   print: TRUE
   plot_name: "MABI-001"
   year: 2018
+  panel: 1
 ---
 ```{r include = FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -19,7 +20,8 @@ options(knitr.kable.NA = '')
 plot_name = params$plot_name
 year = as.numeric(params$year)
 park = substr(plot_name, 1, 4)
-subunit <- joinLocEvent(park = substr(plot_name, 1, 4), from = year, to = year) |> 
+panel = params$panel
+subunit <- joinLocEvent(park = substr(plot_name, 1, 4), from = year, to = year, panel = panel) |> 
   filter(Plot_Name == plot_name) |>  select(ParkSubUnit) |> as.character()
 ```
 
