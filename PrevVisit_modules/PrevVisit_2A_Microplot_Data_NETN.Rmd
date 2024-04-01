@@ -1,0 +1,69 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+params: 
+  print: TRUE
+---
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+
+cat("### Previous Visit: Microplot and CWD Data for ")
+cat(paste0(plot_name, '-', year))
+cat("<hr>")
+```
+
+
+```{r include = FALSE}
+sap_p <- saps |> filter(Plot_Name %in% plot_name) |> arrange(Micro, ScientificName, DBHcm) |> 
+  mutate(Count = ifelse(Count > 1, Count, NA_real_))
+
+sap_tab <- kable(sap_p |> select(Micro, ScientificName, DBHcm, Count),
+                  col.names = c("Micro", "Species", "DBH", "Count"),
+                  format = 'html', align = 'c') |> 
+           kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE, 
+                         font_size = 11) |>
+           collapse_rows(1, valign = 'top') 
+
+shrub_p <- shrubs |> filter(Plot_Name %in% plot_name) |> 
+  arrange(Micro, ScientificName) |> select(Micro, ScientificName, Pct_Cover)
+  
+shrub_tab <- kable(shrub_p, col.names = c("Micro", "Species", "% Cover"),
+                   format = "html", align = "c") |> 
+             kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
+             collapse_rows(1, valign = 'top')
+
+seed_p <- seeds |> filter(Plot_Name %in% plot_name) |> 
+  arrange(Micro, ScientificName) |> select(Micro, ScientificName:Seedlings_Above_150cm)
+
+seed_tab <- kable(seed_p, 
+                  col.names = c("Micro", "Species", "15-30cm", "30-100cm", "100-150cm", ">150cm"),
+                  format = 'html', align = 'c') |> 
+            kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
+            collapse_rows(1, valign = 'top')
+
+```
+
+<div class = "flexbox">
+<div>
+<h4> Saplings </h4>
+```{r echo = F}
+sap_tab
+```
+</div>
+
+<div>
+<h4> Shrubs </h4>
+```{r echo = F}
+shrub_tab
+```
+</div>
+</div>
+
+#### Seedlings
+```{r echo = F}
+seed_tab
+```
+

@@ -1,0 +1,171 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+params:
+  print: TRUE
+---
+
+```{r results = 'asis', echo = FALSE, eval = params$print}
+
+cat("### Previous Visit: Plot and Stand Data for ")
+cat(paste0(plot_name, '-', year))
+
+```
+
+```{r include = FALSE}
+stand_plot1 <- left_join(plotevs, stand, 
+                        by = c("Plot_Name", "SampleYear", "cycle")) |> 
+  filter(Plot_Name %in% plot_name) 
+
+names(stand_plot1)
+
+stand_plot2 <- stand_plot1 |> 
+  select(Plot_Name, Unit, 
+         Orientation, Aspect, 
+         PhysioCode = PhysiographyCode, #Stunted = IsStuntedWoodland, 
+         Plot_Slope = PlotSlope, Stand_Struct = Stand_Structure,
+         Txt_Crown = Txt_Crown_Closure, DBI = Deer_Browse_Index,
+         Microtopo = Microtopography, Water_on_Plot_Code:Txt_Bare_Soil,
+         Txt_Bryo = Txt_Bryophyte, Txt_Lichen:Txt_Water) |> 
+  mutate_all(as.character) |> rename(Water_on_Plot = Water_on_Plot_Code) |> 
+  pivot_longer(-Plot_Name, names_to = "Metric", values_to = "Value")
+
+stand_plot2$Metric <- gsub("Txt_", "%_", stand_plot2$Metric)
+stand_plot2$Metric <- gsub("_", " ", stand_plot2$Metric)
+stand_plot2$Metric <- gsub(" Understory ", " ", stand_plot2$Metric)
+
+plot_data <- c("Unit", "Year", "Orientation", "Aspect", 
+               "PhysioCode", "PhysioClass", "PhysioDetail")
+
+stand_plot <- stand_plot2 |> 
+  mutate(Type = ifelse(Metric %in% plot_data, "Plot Data", "Stand Data"))
+
+sdist_p <- sdist |> filter(Plot_Name %in% plot_name)
+
+sdist_bind <- data.frame(Type = "Stand Data", Metric = "Disturb.", Value = sdist_p$Code)
+stand_all <- rbind(stand_plot |> select(Type, Metric, Value), sdist_bind)
+
+stand_tab <- kable(stand_all,
+                   format = 'html', align = 'c', table.attr = "style='width:250px';") |> 
+             kable_styling(fixed_thead = TRUE, full_width = TRUE, position = 'left') |> 
+             row_spec(0, extra_css = 'border-bottom: 1px solid #000000') |> 
+             #column_spec(1, width = "10px") |> 
+             collapse_rows(1, valign = 'top') 
+
+treeht_p <- treeht |> filter(Plot_Name %in% plot_name)
+
+if(!all(is.na(treeht_p$TagCode))){
+treeht_tab <- kable(treeht_p |> select(CrownClassLabel, TagCode, Height), 
+                    align = 'c', format = 'html',
+                    col.names = c("Crown Class", "Tag", "Height")) |> 
+              kable_styling(fixed_thead = TRUE, full_width = FALSE, position = 'left') |> 
+              collapse_rows(1, valign = 'top') |> 
+              row_spec(0, extra_css = 'border-bottom: 1px solid #000000')
+}
+
+print_treeht <- ifelse(all(is.na(treeht_p$TagCode)), FALSE, TRUE)
+```
+
+```{r echo = F}
+UC = plotevs |> filter(Plot_Name %in% plot_name) |> select(Orientation) |> as.numeric()
+
+# az_df <- data.frame(UC = c(UC, 10), 
+#                     UR = c(ifelse(UC + 45 > 360, UC + 45 - 360, UC + 45), 14.14),
+#                     MR = c(ifelse(UC + 90 > 360, UC + 90 - 360, UC + 90), 10),
+#                     BR = c(ifelse(UC + 135 > 360, UC + 135 - 360, UC + 135), 14.14),
+#                     BC = c(ifelse(UC + 180 > 360, UC + 180 - 360, UC + 180), 10),
+#                     BL = c(ifelse(UC + 225 > 360, UC + 225 - 360, UC + 225), 14.14),
+#                     ML = c(ifelse(UC + 270 > 360, UC + 270 - 360, UC + 270), 10),
+#                     UL = c(ifelse(UC + 315 > 360, UC + 315 - 360, UC + 315), 14.14)) 
+
+dist1 <- 10
+dist2 <- 14.14
+
+az_df <- data.frame(Stake = c("UC", "UR", "MR", "BR", "BC", "BL", "ML", "UL"),
+                    Az = c(UC,
+                           ifelse(UC + 45 > 360, UC + 45 - 360, UC + 45),
+                           ifelse(UC + 90 > 360, UC + 90 - 360, UC + 90),
+                           ifelse(UC + 135 > 360, UC + 135 - 360, UC + 135),
+                           ifelse(UC + 180 > 360, UC + 180 - 360, UC + 180),
+                           ifelse(UC + 225 > 360, UC + 225 - 360, UC + 225),
+                           ifelse(UC + 270 > 360, UC + 270 - 360, UC + 270),
+                           ifelse(UC + 315 > 360, UC + 315 - 360, UC + 315)),
+                    Dist = c(rep(c(dist1, dist2), 4))
+                    )
+
+az_tab <- kable(az_df, format = 'html', align = 'c') |> 
+                kable_styling(fixed_thead = TRUE, position = 'right', full_width = FALSE)
+
+```
+
+```{r include = F}
+tree_sump <- tree_sum |> filter(Plot_Name %in% plot_name) 
+
+tree_sump_w <- tree_sump |> pivot_wider(names_from = "Status", 
+                                        values_from = "num_stems", 
+                                        values_fill = 0) |> 
+  select(-Plot_Name)
+
+tots <- c("Totals", colSums(tree_sump_w[,-1]))
+
+tree_sump_w2 <- rbind(tree_sump_w, tots)
+
+cols <- c("Species", names(tree_sump_w2[2:ncol(tree_sump_w2)]))
+
+tree_sum_tab <- kable(tree_sump_w2,
+                      col.names = cols,
+                      format = 'html', align = 'c') |> 
+                kable_styling(fixed_thead = TRUE, position = 'left', full_width = TRUE) |> 
+                row_spec(nrow(tree_sump_w2), bold = T)
+
+```
+
+
+<div class = "flexbox">
+<div>
+<h4>Plot and Stand Data</h4>
+
+```{r echo = F}
+stand_tab
+```
+</div>
+<div>
+
+<div class='map'>
+<h4>Tree Map</h4>
+<div style="margin-left:-50px;margin-bottom:10px;margin-top:0;padding-top:0;height:500px;width:550px;">
+```{r fig.align = 'right', warning=FALSE, message=FALSE}
+#suppressWarnings(
+  plotTreeMap(park = park, from = as.numeric(year), 
+            to = as.numeric(year), plotName = plot_name, eventType = 'all')
+#)
+```
+<div class = "one">
+<h4>Tree Heights</h4>
+
+<div style="margin-right:20px;">
+```{r echo = F, eval = print_treeht}
+treeht_tab
+```
+
+```{r echo = F, eval = !print_treeht, results = 'asis'}
+cat("None taken")
+```
+
+</div></div>
+
+<div class = "two">
+<h4 style='margin-left:25px;'>Dist/Az.</h4>
+<div style="margin-left:25px;margin-right:0px;">
+```{r echo = F}
+az_tab
+```
+</div>
+</div>
+</div>
+</div>
+</div>
+

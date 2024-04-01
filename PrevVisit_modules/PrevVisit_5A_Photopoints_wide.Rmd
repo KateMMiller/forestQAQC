@@ -1,0 +1,68 @@
+---
+output: 
+  pagedown::html_paged:
+    css: www/styles_prevvisit.css
+    toc: false
+    numbered_sections: false
+    number_sections: false
+---
+```{r include = FALSE}
+# Using params to pull photo location and names from Z drive
+# park = "MABI"; year = 2018; plot = "MABI-001"
+# path <- paste0("Z:/PROJECTS/MONITORING/Forest_Health/5_Data/Photos/Photopoints/", 
+#                year, "/", park, "/")
+# path <- paste0("C:/NETN/Monitoring_Projects/Forest_Health/Photopoints/", 
+#                year, "/", park, "/")
+photo_path <- paste0("Z:/PROJECTS/MONITORING/Forest_Health/5_Data/Photos/Photopoints/", year, "/")
+
+photo_eval <- if(exists('photo_path')){TRUE} else {FALSE}
+
+if(photo_eval == TRUE){
+all_photos <- list.files(photo_path, pattern = ".JPG")
+plot2 <- sub("-", "_", plot_name)
+
+photo_order <- c("UC", "UL", "UR", "BL", "BR")
+photo_list1 <- all_photos[grep(plot2, all_photos)]
+photo_list <- photo_list1[grep("UC|UR|BR|BL|UL", photo_list1)]
+photo_list <- setNames(photo_list, substr(photo_list, 10, 11))
+photo_list <- photo_list[photo_order]}
+```
+
+<div class = "flexbox">
+<div>
+<h4 style='text-align:center'>UC</h4>
+```{r echo = F, out.width = "75%", warnings = F, message = FALSE, fig.align = 'center', eval = photo_eval}
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["UC"])))
+```
+</div>
+<div></div>
+</div>
+<div class = "flexbox">
+<div>
+<h4 style='text-align:center'>UL</h4>
+```{r echo = F, out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["UL"])))
+```
+</div>
+<div>
+<h4 style='text-align:center'>UR</h4>
+```{r echo = F, out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["UR"])))
+```
+</div>
+</div>
+
+<div class = "flexbox">
+<div>
+```{r echo = F,  out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["BL"])))
+```
+<h4 style='text-align:center'>BL</h4>
+</div>
+<div>
+```{r echo = F,  out.width = "98%", warnings = F, message = FALSE, eval = photo_eval}
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["BR"])))
+```
+<h4 style='text-align:center'>BR</h4>
+</div>
+</div>
