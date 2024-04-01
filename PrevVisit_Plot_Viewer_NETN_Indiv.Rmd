@@ -78,6 +78,6 @@ library(cowplot)
 
 ### Photopoints 
 
-```{r child = "PrevVisit_5A_Photopoints_wide.Rmd"}
+```{r child = "PrevVisit_5A_Photopoints_wide.Rmd", error = T}
 ```
 

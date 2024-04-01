@@ -94,6 +94,6 @@ photo_eval <- ifelse(plot_name == "COLO-380", FALSE, TRUE) # Photopoints not tak
 
 ### Photopoints 
 
-```{r child = "PrevVisit_5A_Photopoints_MIDN.Rmd", eval = photo_eval}
+```{r child = "PrevVisit_5A_Photopoints_MIDN.Rmd", eval = photo_eval, error = T}
 ```
 
