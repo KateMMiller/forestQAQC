@@ -6,7 +6,7 @@ output:
 params:
   yearpv: 2019
   year_curr: 2024
-  parkcode: "WEFA"
+  parkcode: "ROVA"
   panel: 2
   print: FALSE
 ---
@@ -23,7 +23,7 @@ options(knitr.kable.NA = '')
 #           Where NETN and MIDN can use the same module, only 1 file exists. Where there are separate modules, 
 #           MIDN's module is named. 
 #---------- !!!! NOTE: The photopoints, which are rendered last, must either be updated to where the photos for a given year
-#           are located on the Z drive, your laptop, or an external drive. The file that needs to be checked is
+#           are located on the Z drive, your laptop, or an external drive. The file that needs to be updated/checked is
 #           PrevVisit_modules/PrevVisit_5A_Photopoints_wide.Rmd !!!!
 ```
 
@@ -40,11 +40,11 @@ library(ggrepel)
 library(cowplot)
 library(stringr)
 library(DT) # for sort/filter table features
-#source("PrevVisit_FieldForms_NETN_compile.R")
-#park = "SAGA"; year = as.numeric(2018)
-#params <- data.frame(yearpv = 2019, year_curr = 2024, parkcode = "WEFA", panel = 2, print = FALSE)
-
-soil_sch <- readxl::read_xlsx("../data/12-year_Soil_Sample_Schedule.xlsx", sheet = params$parkcode)
+# park = "ROVA"; year = as.numeric(2019); panel = 2
+# params <- data.frame(yearpv = 2019, year_curr = 2024, parkcode = "ROVA", panel = 2, print = FALSE)
+# importData()
+# source("./PrevVisit_Modules/PrevVisit_FieldForms_NETN_compile.R")
+soil_sch <- readxl::read_xlsx("./PrevVisit_Modules/12-year_Soil_Sample_Schedule.xlsx", sheet = params$parkcode)[,1:5]
 colnames(soil_sch) <- c("park", "plot", "grts", "year", "post_covid_year")
 ```
 
@@ -72,7 +72,6 @@ child_env$plots <- joinLocEvent(park = park,
 
 child_env$plot_list <- child_env$plots$Plot_Name#[c(1:2)]
 child_env$plot_name <- child_env$plot_list[1]
-
 
 sys.source("./PrevVisit_modules/PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
 ```

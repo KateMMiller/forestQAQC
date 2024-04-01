@@ -239,8 +239,12 @@ render_viewer <- function(park, year, panel){
 
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
-# running through a few at a time b/c bogs down laptop
-purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))
+# running through one at a time b/c bogs down laptop. Can run all by uncommenting purrr line below
+#purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))
+render_viewer("ACAD", prevyr_ACAD, panel_ACAD)
+render_viewer("MORR", prevyr_NHP, panel_NHP)
+render_viewer("ROVA", prevyr_NHP, panel_NHP)
+render_viewer("WEFA", prevyr_NHP, panel_NHP)
 
 #purrr::pmap(list(parks[2:4], years[2:4], panels[2:4]), ~render_viewer(..1, ..2, ..3))
 #render_viewer("WEFA", 2019)
