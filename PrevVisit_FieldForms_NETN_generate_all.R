@@ -240,7 +240,9 @@ render_viewer <- function(park, year, panel){
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3z))
+purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))
+
+#purrr::pmap(list(parks[2:4], years[2:4], panels[2:4]), ~render_viewer(..1, ..2, ..3))
 #render_viewer("WEFA", 2019)
 
 #---- OPTIONAL: Render report of all visit data on a plot -----
