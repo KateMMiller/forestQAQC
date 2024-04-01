@@ -220,14 +220,19 @@ combine_quad_pdfs_ACAD(ACAD_SCH, "SCH", path, prevyr_ACAD)
 
 #---- Render plot viewers for each park -----
 #source("PrevVisit_FieldForms_NETN_compile.R") 
-years = c(prevyr_ACAD, rep(prevyr_NHP, length(parks_NHP)))
 
-render_viewer <- function(park, year){
+parks <- c("ACAD", parks_NHP)
+years = c(prevyr_ACAD, rep(prevyr_NHP, length(parks_NHP)))
+panels = c(panel_ACAD, rep(panel_NHP, length(parks_NHP)))
+
+render_viewer <- function(park, year, panel){
   park_code = park
   yr = as.numeric(year)
+  pnl = panel
   render(input = "PrevVisit_Plot_Viewer_NETN_All.Rmd",
          params = list(parkcode = park_code, 
                        yearpv = yr, 
+                       panel = pnl,
                        print = FALSE),
          output_file = paste0(path, park, "_", yr, "_Plot_Viewer.html"))
 }
@@ -235,9 +240,8 @@ render_viewer <- function(park, year){
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-purrr::map2(parks, years, ~render_viewer(.x, .y))
-
-render_viewer("WEFA", 2019)
+purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3z))
+#render_viewer("WEFA", 2019)
 
 #---- OPTIONAL: Render report of all visit data on a plot -----
 # all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |> 
