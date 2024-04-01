@@ -23,7 +23,7 @@ library(forestNETN)
 library(pagedown)
 library(pdftools)
 
-source("PrevVisit_functions.R")
+source("PrevVisit_modules\\PrevVisit_functions.R")
 importData()
 
 #----- Set up Directory for output to save to -----
@@ -75,7 +75,7 @@ plotTreeMap(park = c("ACAD", parks_NHP), from = treemap_from, to = treemap_to,
 
 #----- Park-level Tree and Quadrat reports -----
 ##----- Render Functions to iterate on -----
-rmdtr <- "PrevVisit_3A_Tree_Measurements.Rmd"
+rmdtr <- "PrevVisit_modules\\PrevVisit_3A_Tree_Measurements.Rmd"
 
 render_trees <- function(plot, pv_year, panel, type = "NHPs"){
   park = substr(plot, 1, 4)
@@ -92,7 +92,7 @@ render_trees <- function(plot, pv_year, panel, type = "NHPs"){
          output_file = outfile)
 }
 
-rmdqd <- "PrevVisit_4A_Quadrat_Data_NETN.Rmd"
+rmdqd <- "PrevVisit_modules\\PrevVisit_4A_Quadrat_Data_NETN.Rmd"
 
 render_quads <- function(plot, pv_year, panel, type = "NHPs"){
   park = substr(plot, 1, 4)
@@ -121,7 +121,7 @@ render_quads <- function(plot, pv_year, panel, type = "NHPs"){
 park <- parks_NHP
 year <- prevyr_NHP
 panel <- panel_NHP
-source("PrevVisit_FieldForms_NETN_compile.R") 
+source("PrevVisit_modules\\PrevVisit_FieldForms_NETN_compile.R") 
 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
@@ -168,7 +168,7 @@ park <- "ACAD"
 panel <- panel_ACAD
 
 ##----- Source from compile script -----
-source("PrevVisit_FieldForms_NETN_compile.R") 
+source("PrevVisit_modules\\PrevVisit_FieldForms_NETN_compile.R") 
 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
