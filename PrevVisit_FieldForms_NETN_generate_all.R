@@ -128,7 +128,6 @@ plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 ##----- Render Reports- NHP -----
 # Uncomment to clear out the folder from the previous year
 # do.call(file.remove, list(list.files(paste0(path, "\\indiv\\NHPs\\"), full.names = TRUE)))
-
 map(plots, ~render_trees(., pv_year = prevyr_NHP, panel = panel_NHP)) # trees 
 map(plots, ~render_quads(., pv_year = prevyr_NHP, panel = panel_NHP)) # quads 
 
@@ -247,7 +246,6 @@ render_viewer("ROVA", prevyr_NHP, panel_NHP)
 render_viewer("WEFA", prevyr_NHP, panel_NHP)
 
 #purrr::pmap(list(parks[2:4], years[2:4], panels[2:4]), ~render_viewer(..1, ..2, ..3))
-#render_viewer("WEFA", 2019)
 
 #---- OPTIONAL: Render report of all visit data on a plot -----
 # all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |> 
