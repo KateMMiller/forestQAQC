@@ -53,11 +53,11 @@ sdist2 <- do.call(joinStandDisturbance, arglist) |>
 
 #----- Stand heights -----
 treeht <- get("StandTreeHeights_NETN", envir = VIEWS_NETN) |> 
-  filter(EventID %in% ev_list$EventID) |> 
+  filter(EventID %in% ev_list$EventID) |> filter(PanelCode == panel) |> 
   select(Plot_Name, CrownClassCode, CrownClassLabel, TagCode, Height) |> 
   arrange(Plot_Name, CrownClassLabel, TagCode)
 
-head(treeht) #+++++ Filter on Panel +++++
+head(treeht) 
 
 #----- Stand disturbances -----
 dist <- do.call(joinStandDisturbance, arglist) |> 
@@ -132,7 +132,7 @@ shrubs <- do.call(joinMicroShrubData, arglist) |>
 head(shrubs)
 
 #----- Quadrats -----
-quaddata <- do.call(joinQuadData, arglist) |> 
+quaddata <- do.call(joinQuadData, arglist) |> filter(PanelCode == panel) |> 
   select(Plot_Name, SampleYear, Species = CharacterLabel, Txt_Cov_UC:Txt_Cov_UL) |> 
   rename_with(stringr::str_replace, pattern = "Txt_Cov_", replacement = "") |> 
   mutate(Note = NA_character_)
@@ -140,12 +140,12 @@ quaddata <- do.call(joinQuadData, arglist) |>
 quad_tramp <- get("QuadNotes_NETN", envir = VIEWS_NETN) 
 
 quad_tramp_note <- quad_tramp |> group_by(Plot_Name, SampleYear) |> 
-  filter(!is.na(SQQuadCharNotes)) |> 
+  filter(!is.na(SQQuadCharNotes)) |> filter(PanelCode == panel) |> 
   summarize(Note = toString(unique(SQQuadCharNotes)))
 
-quad_tramp2 <- quad_tramp %>% 
-  filter(EventID %in% ev_list$EventID) %>% 
-  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% # Note = SQQuadCharNotes) %>% 
+quad_tramp2 <- quad_tramp |>  
+  filter(EventID %in% ev_list$EventID) |> 
+  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) |>  # Note = SQQuadCharNotes) %>% 
   unique() |> 
   mutate(Trampled = ifelse(IsTrampled == TRUE, "X", NA_character_)) |> 
   select(-IsTrampled, -SQQuadCharCode)
@@ -174,8 +174,8 @@ addspp <- do.call(joinAdditionalSpecies, arglist) |>
 head(addspp)
 
 #----- CWD -----
-cwd <- get("CWD_NETN", env = VIEWS_NETN) %>% 
-  filter(EventID %in% ev_list$EventID) |> 
+cwd <- get("CWD_NETN", env = VIEWS_NETN) |> 
+  filter(EventID %in% ev_list$EventID) |> filter(PanelCode == panel) |> 
   select(Plot_Name, SampleYear, TransectCode,  Distance, ScientificName, Diameter, 
          MultiCrossCode, Length, IsHollow, Decay = DecayClassCode, CWDNote) |> 
   arrange(Plot_Name, TransectCode, ScientificName)
