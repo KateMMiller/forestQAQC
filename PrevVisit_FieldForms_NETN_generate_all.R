@@ -23,21 +23,21 @@ library(forestNETN)
 library(pagedown)
 library(pdftools)
 
-source("PrevVisit_functions.R")
+source("PrevVisit_modules\\PrevVisit_functions.R")
 importData()
 
 #----- Set up Directory for output to save to -----
 # If The Field_Forms or NETN_Tree_Maps folders don't exist on your desktop, they 
 # will be added. Note that the commented out code is for local desktop address, 
-# wherease the uncommented code is for your OneDrive desktop location. Use the 
+# whereas the uncommented code is for your OneDrive desktop location. Use the 
 # one that works for you.
 
 # Field form directory for OneDrive - potentially slower if slow internet connection
-path <- paste0(file.path(Sys.getenv("USERPROFILE"),"OneDrive - DOI\\Desktop",fsep="\\"),
+path <- paste0(file.path(Sys.getenv("USERPROFILE"),"OneDrive - DOI\\Desktop", fsep = "\\"),
                "\\Field_Forms\\")
 
 ## Field form directory for local desktop
-# path <- paste0(file.path(Sys.getenv("USERPROFILE"), "Desktop", fsep = "\\"))
+# path <- paste0(file.path(Sys.getenv("USERPROFILE"), "Desktop", fsep = "\\"), "\\Field_Forms\\")
 
 # Tree map directory for OneDrive - potentially slower because requires internet connection
 path_trmaps <- paste0(file.path(Sys.getenv("USERPROFILE"),"OneDrive - DOI\\Desktop",fsep="\\"),
@@ -75,7 +75,7 @@ plotTreeMap(park = c("ACAD", parks_NHP), from = treemap_from, to = treemap_to,
 
 #----- Park-level Tree and Quadrat reports -----
 ##----- Render Functions to iterate on -----
-rmdtr <- "PrevVisit_3A_Tree_Measurements.Rmd"
+rmdtr <- "PrevVisit_modules\\PrevVisit_3A_Tree_Measurements.Rmd"
 
 render_trees <- function(plot, pv_year, panel, type = "NHPs"){
   park = substr(plot, 1, 4)
@@ -92,7 +92,7 @@ render_trees <- function(plot, pv_year, panel, type = "NHPs"){
          output_file = outfile)
 }
 
-rmdqd <- "PrevVisit_4A_Quadrat_Data_NETN.Rmd"
+rmdqd <- "PrevVisit_modules\\PrevVisit_4A_Quadrat_Data_NETN.Rmd"
 
 render_quads <- function(plot, pv_year, panel, type = "NHPs"){
   park = substr(plot, 1, 4)
@@ -121,14 +121,13 @@ render_quads <- function(plot, pv_year, panel, type = "NHPs"){
 park <- parks_NHP
 year <- prevyr_NHP
 panel <- panel_NHP
-source("PrevVisit_FieldForms_NETN_compile.R") 
+source("PrevVisit_modules\\PrevVisit_FieldForms_NETN_compile.R") 
 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
 ##----- Render Reports- NHP -----
 # Uncomment to clear out the folder from the previous year
 # do.call(file.remove, list(list.files(paste0(path, "\\indiv\\NHPs\\"), full.names = TRUE)))
-
 map(plots, ~render_trees(., pv_year = prevyr_NHP, panel = panel_NHP)) # trees 
 map(plots, ~render_quads(., pv_year = prevyr_NHP, panel = panel_NHP)) # quads 
 
@@ -168,7 +167,7 @@ park <- "ACAD"
 panel <- panel_ACAD
 
 ##----- Source from compile script -----
-source("PrevVisit_FieldForms_NETN_compile.R") 
+source("PrevVisit_modules\\PrevVisit_FieldForms_NETN_compile.R") 
 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
@@ -220,24 +219,33 @@ combine_quad_pdfs_ACAD(ACAD_SCH, "SCH", path, prevyr_ACAD)
 
 #---- Render plot viewers for each park -----
 #source("PrevVisit_FieldForms_NETN_compile.R") 
-years = c(prevyr_ACAD, rep(prevyr_NHP, length(parks_NHP)))
 
-render_viewer <- function(park, year){
+parks <- c("ACAD", parks_NHP)
+years = c(prevyr_ACAD, rep(prevyr_NHP, length(parks_NHP)))
+panels = c(panel_ACAD, rep(panel_NHP, length(parks_NHP)))
+
+render_viewer <- function(park, year, panel){
   park_code = park
   yr = as.numeric(year)
+  pnl = panel
   render(input = "PrevVisit_Plot_Viewer_NETN_All.Rmd",
          params = list(parkcode = park_code, 
                        yearpv = yr, 
+                       panel = pnl,
                        print = FALSE),
          output_file = paste0(path, park, "_", yr, "_Plot_Viewer.html"))
 }
 
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
-# running through a few at a time b/c bogs down laptop
-purrr::map2(parks, years, ~render_viewer(.x, .y))
+# running through one at a time b/c bogs down laptop. Can run all by uncommenting purrr line below
+#purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))
+render_viewer("ACAD", prevyr_ACAD, panel_ACAD)
+render_viewer("MORR", prevyr_NHP, panel_NHP)
+render_viewer("ROVA", prevyr_NHP, panel_NHP)
+render_viewer("WEFA", prevyr_NHP, panel_NHP)
 
-render_viewer("MABI", 2018)
+#purrr::pmap(list(parks[2:4], years[2:4], panels[2:4]), ~render_viewer(..1, ..2, ..3))
 
 #---- OPTIONAL: Render report of all visit data on a plot -----
 # all_plots <- joinLocEvent(park = 'all', from = 2018, to = 2019) |> 

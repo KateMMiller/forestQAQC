@@ -5,8 +5,9 @@ output:
     anchor_sections: FALSE
 params:
   print: FALSE
-  parkcode: "MABI"
-  yearpv: 2018
+  parkcode: "WEFA"
+  yearpv: 2019
+  panel: 2
   
 ---
 ```{r include = FALSE}
@@ -22,13 +23,14 @@ library(knitr)
 library(kableExtra)
 library(ggrepel)
 library(cowplot)
-# plot_name <- params$plot_name
+#plot_name <- 'WEFA-001'
 # park <- params$parkcode
 # year <- as.numeric(params$yearpv)
+# panel <- params$panel
 # importData()
-# source("PrevVisit_FieldForms_NETN_compile.R") 
-#sdist_pres <- ifelse(nrow(child_env$sdist2_p) > 0, TRUE, FALSE)
-#sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
+# source("PrevVisit_FieldForms_NETN_compile.R")
+# sdist_pres <- ifelse(nrow(child_env$sdist2_p) > 0, TRUE, FALSE)
+# sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
 ```
 
 ## `r paste0(plot_name)` {.tabset} 

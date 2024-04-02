@@ -1,7 +1,7 @@
 ---
 output: 
   pagedown::html_paged:
-    css: www/styles_weeklyQC.css
+    css: www/styles_prevvisit.css
     toc: false
     numbered_sections: false
 params: 

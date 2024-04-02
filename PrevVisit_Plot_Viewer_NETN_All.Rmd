@@ -1,12 +1,13 @@
 ---
 output: 
   html_document:
-    css: www/styles_prevvisit.css
+    css: PrevVisit_modules/www/styles_prevvisit.css
     anchor_sections: FALSE
 params:
-  yearpv: 2018
-  year_curr: 2023
-  parkcode: "MABI"
+  yearpv: 2019
+  year_curr: 2024
+  parkcode: "ROVA"
+  panel: 2
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -15,14 +16,15 @@ options(knitr.kable.NA = '')
 
 # Hierarchy of plot viewer report: 
 #--- PrevVisit_Plot_Viewer_NETN_All.Rmd generates the Summary tab and iterates through the park's list of plots.
-#------ PrevVisit_Plot_Viewer_NETN_Indiv.Rmd renders each plot's report within the plot-named tabs. 
+#------ PrevVisit_modules/PrevVisit_Plot_Viewer_NETN_Indiv.Rmd renders each plot's report within the plot-named tabs. 
 #       This report shows the order of the modules that are rendered and allows you to turn them off, if they're failing.
-#---------- PrevVisit_1A_Stand_Data_wide.Rmd (and others with numbers) are individual data modules. If you try to
-#           knit the plot viewer and it fails, the error should tell you which module failed. Where NETN and MIDN can use 
-#           the same module, only 1 file exists. Where there are separate modules, MIDN's module is named. 
-#---------- NOTE: The photopoints, which are rendered last, must either be updated to where the photos for a given year
-#           are located on the Z drive, your laptop, or an external drive. The file that needs to be checked is
-#           PrevVisit_5A_Photopoints_wide.Rmd
+#---------- PrevVisit_modules/PrevVisit_1A_Stand_Data_wide.Rmd (and others with numbers) are individual data modules. 
+#           If you try to knit the plot viewer and it fails, the error should tell you which module failed. 
+#           Where NETN and MIDN can use the same module, only 1 file exists. Where there are separate modules, 
+#           MIDN's module is named. 
+#---------- !!!! NOTE: The photopoints, which are rendered last, must either be updated to where the photos for a given year
+#           are located on the Z drive, your laptop, or an external drive. The file that needs to be updated/checked is
+#           PrevVisit_modules/PrevVisit_5A_Photopoints_wide.Rmd !!!!
 ```
 
 # Previous visit data for `r paste0(params$parkcode, " ", params$yearpv)` {.tabset .tabset-pills}
@@ -38,9 +40,11 @@ library(ggrepel)
 library(cowplot)
 library(stringr)
 library(DT) # for sort/filter table features
-#source("PrevVisit_FieldForms_NETN_compile.R")
-#park = "SAGA"; year = as.numeric(2018)
-soil_sch <- readxl::read_xlsx("../data/12-year_Soil_Sample_Schedule.xlsx", sheet = params$parkcode)
+# park = "ROVA"; year = as.numeric(2019); panel = 2
+# params <- data.frame(yearpv = 2019, year_curr = 2024, parkcode = "ROVA", panel = 2, print = FALSE)
+# importData()
+# source("./PrevVisit_Modules/PrevVisit_FieldForms_NETN_compile.R")
+soil_sch <- readxl::read_xlsx("./PrevVisit_Modules/12-year_Soil_Sample_Schedule.xlsx", sheet = params$parkcode)[,1:5]
 colnames(soil_sch) <- c("park", "plot", "grts", "year", "post_covid_year")
 ```
 
@@ -52,28 +56,30 @@ for(n in ls(VIEWS_NETN, all.names = TRUE)) assign(n, get(n, VIEWS_NETN), child_e
 
 year = as.numeric(params$yearpv)
 park = params$parkcode
+panel = params$panel
 
 child_env$year <- year
 child_env$park <- park
+child_env$panel <- panel
 child_env$print <- FALSE
 
 child_env$plots <- joinLocEvent(park = park, 
                                 from = year, 
-                                  to = year) |> 
+                                  to = year, 
+                                panel = panel) |> 
                         select(Plot_Name, SampleYear) |> 
                         arrange(Plot_Name)
 
 child_env$plot_list <- child_env$plots$Plot_Name#[c(1:2)]
 child_env$plot_name <- child_env$plot_list[1]
 
-
-sys.source("PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
+sys.source("./PrevVisit_modules/PrevVisit_FieldForms_NETN_compile.R", envir = child_env)
 ```
 
 
 ```{r echo = F, include = F}
 # Summary Table for first tab
-plot_info <- joinLocEvent(park = park, from = year, to = year, output = 'verbose') |> 
+plot_info <- joinLocEvent(park = park, from = year, to = year, output = 'verbose', panel = panel) |> 
              mutate(Unit = case_when(ParkSubUnit %in% "ACAD_MDI_East" ~ "East",
                                      ParkSubUnit %in% "ACAD_MDI_West" ~ "West",
                                      ParkSubUnit %in% "ACAD_Schoodic" ~ "Schoodic",
@@ -82,7 +88,7 @@ plot_info <- joinLocEvent(park = park, from = year, to = year, output = 'verbose
                select(Plot_Name, PlotCode, Unit, #Notes = PlotNotes, 
                       Directions)#, Stunted = IsStuntedWoodland)  
 
-stand_info <- joinStandData(park = park, from = year, to = year) |> 
+stand_info <- joinStandData(park = park, from = year, to = year, panel = panel) |> 
   mutate(tree_cores = ifelse(ParkUnit == "MIMA", "Tree Cores", NA_character_)) |> 
   mutate(slope = case_when(PlotSlope >= 35 ~ "EXTREMELY STEEP",
                            between(PlotSlope, 35, 25) ~ "VERY STEEP",
@@ -111,7 +117,7 @@ stand_info <- joinStandData(park = park, from = year, to = year) |>
 
 stand_conc <- stand_info |> group_by(Plot_Name) |> summarize(Concerns = toString(unique(Value)))
 
-visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all") |> 
+visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all", panel = panel) |> 
   filter(Note_Type %in% c("Plot_Notes", "Stand_Notes", "Stand_Disturbances")) |> 
   mutate(Notes = ifelse(Note_Type == "Stand_Disturbances", paste0("Disturbance: ", Notes), Notes),
          order = case_when(Note_Type == "Plot_Notes" ~ 1,
@@ -119,15 +125,15 @@ visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "a
                            TRUE ~ 3)) |> arrange(Plot_Name, order) |> 
   select(Plot_Name, Notes) |> group_by(Plot_Name) |> summarize(Notes = toString(unique(Notes)))
 
-trees <- joinTreeData(park = park, from = year, to = year, status = 'active') |> 
+trees <- joinTreeData(park = park, from = year, to = year, status = 'active', panel = panel) |> 
   filter(!TreeStatusCode %in% "DF") |> 
   group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
 
-regen <- joinRegenData(park = park, from = year, to = year) |> 
+regen <- joinRegenData(park = park, from = year, to = year, panel = panel) |> 
   group_by(Plot_Name) |> summarize(num_saps = round(sum(sap_den) * 3, 1),
                                    num_seeds = round(sum(seed_den) * 3, 1))
 
-shrubs <- joinMicroShrubData(park = park, from = year, to = year) |> 
+shrubs <- joinMicroShrubData(park = park, from = year, to = year, panel = panel) |> 
   select(Plot_Name, shrub_avg_cov) |> 
   group_by(Plot_Name) |> summarize(shrub_avg_cov = sum(shrub_avg_cov, na.rm = T)) |> 
   mutate(Concerns = case_when(shrub_avg_cov >= 70 ~ "VERY DENSE SHRUBS",
@@ -137,12 +143,12 @@ shrubs <- joinMicroShrubData(park = park, from = year, to = year) |>
   select(Plot_Name, Concerns) |> filter(!is.na(Concerns))
 
 
-quadspp <- joinQuadSpecies(park = park, from = year, to = year) |> 
+quadspp <- joinQuadSpecies(park = park, from = year, to = year, panel = panel) |> 
   filter(IsGerminant == FALSE) |> 
   group_by(Plot_Name) |> 
   summarize(num_quadspp = sum(!ScientificName %in% "None present"))
 
-addspp <- joinAdditionalSpecies(park = park, from = year, to = year) |> 
+addspp <- joinAdditionalSpecies(park = park, from = year, to = year, panel = panel) |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
 soil_sch1 <- soil_sch |> 
@@ -152,6 +158,7 @@ soil_sch1 <- soil_sch |>
   select(Plot_Name, Concerns)
 
 cwd_conc <- VIEWS_NETN$CWD_NETN |> filter(ParkUnit == park) |> filter(SampleYear == year) |> 
+  filter(PanelCode == panel) |> 
   group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance))) |>
   mutate(Concerns = case_when(num_cwd > 25 ~ "TONS OF CWD",
                              between(num_cwd, 15, 25) ~ "Lots of CWD",
@@ -218,7 +225,7 @@ res <- lapply(seq_along(child_env$plot_list), function(x) {
   child_env$plot_name = child_env$plot_list[[x]]
 
   knitr::knit_child(
-    'PrevVisit_Plot_Viewer_NETN_Indiv.Rmd', 
+    './PrevVisit_modules/PrevVisit_Plot_Viewer_NETN_Indiv.Rmd', 
      envir = child_env,
      quiet = TRUE )
   

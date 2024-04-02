@@ -1,11 +1,12 @@
 ---
 output: 
   html_document:
-    css: www/styles_prevvisit.css
+    css: PrevVisit_modules/www/styles_prevvisit.css
     anchor_sections: FALSE
 params:
-  yearpv: 2018 # MUST BE LINKED TO DRIVE WITH PHOTOPOINTS TO WORK
-  parkcode: "APCO"
+  yearpv: 2021 # MUST BE LINKED TO DRIVE WITH PHOTOPOINTS TO WORK
+  parkcode: "FRSP"
+  panel: 2
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -47,14 +48,17 @@ for(n in ls(VIEWS_MIDN, all.names = TRUE)) assign(n, get(n, VIEWS_MIDN), child_e
 
 year = as.numeric(params$yearpv)
 park = params$parkcode
+panel = params$panel
 
 child_env$year <- year
 child_env$park <- park
+child_env$panel <- panel
 child_env$print <- FALSE
 
 child_env$plots <- joinLocEvent(park = park, 
                                 from = year, 
                                 to = year,
+                                panel = panel,
                                 eventType = 'all') |> 
                         select(Plot_Name, SampleYear) |> 
                         arrange(Plot_Name)
@@ -63,7 +67,7 @@ child_env$plot_list <- child_env$plots$Plot_Name#[c(1:2)]
 child_env$plot_name <- child_env$plot_list[1]
 
 
-sys.source("PrevVisit_FieldForms_MIDN_compile.R", envir = child_env)
+sys.source("./PrevVisit_modules/PrevVisit_FieldForms_MIDN_compile.R", envir = child_env)
 ```
 
 
@@ -75,7 +79,7 @@ plot_info <- joinLocEvent(park = park, from = year, to = year,
              select(Plot_Name, PlotCode, Unit, #Notes = PlotNotes, 
                     Directions)#, Stunted = IsStuntedWoodland)  
 
-stand_info <- joinStandData(park = park, from = year, to = year,
+stand_info <- joinStandData(park = park, from = year, to = year, panel = panel,
                                 eventType = 'all') |> 
   mutate(slope = case_when(PlotSlope >= 35 ~ "EXTREMELY STEEP",
                            between(PlotSlope, 35, 25) ~ "VERY STEEP",
@@ -103,7 +107,7 @@ stand_info <- joinStandData(park = park, from = year, to = year,
 
 stand_conc <- stand_info |> group_by(Plot_Name) |> summarize(Concerns = toString(unique(Value)))
 
-visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all",
+visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all", panel = panel,
                                 eventType = 'all') |> 
   filter(Note_Type %in% c("Plot_Notes", "Observer_Tab_Notes", "Stand_Notes", "Stand_Disturbances")) |> 
   mutate(Notes = ifelse(Note_Type == "Stand_Disturbances", paste0("Disturbance: ", Notes), Notes),
@@ -114,18 +118,18 @@ visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "a
   select(Plot_Name, Notes) |> group_by(Plot_Name) |> unique() |> 
   summarize(Notes = toString(unique(Notes)))
 
-trees <- joinTreeData(park = park, from = year, to = year, status = 'active') |> 
+trees <- joinTreeData(park = park, from = year, to = year, status = 'active', panel = panel) |> 
   filter(!TreeStatusCode %in% "DF") |> 
   group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
 
 
 regen <- joinRegenData(park = park, from = year, to = year, units = "sq.m",
-                                eventType = 'all') |> 
+                                eventType = 'all', panel = panel) |> 
   group_by(Plot_Name) |> summarize(num_saps = round(sum(sap_den) * 84.823, 1),
                                    num_seeds = round(sum(seed_den) * 12, 1))
 
 shrubs <- joinMicroShrubData(park = park, from = year, to = year,
-                                eventType = 'all') |> 
+                                eventType = 'all', panel = panel) |> 
   select(Plot_Name, shrub_avg_cov) |> 
   group_by(Plot_Name) |> summarize(shrub_avg_cov = sum(shrub_avg_cov, na.rm = T)) |> 
   mutate(Concerns = case_when(shrub_avg_cov >= 70 ~ "VERY DENSE SHRUBS",
@@ -135,15 +139,16 @@ shrubs <- joinMicroShrubData(park = park, from = year, to = year,
   select(Plot_Name, Concerns) |> filter(!is.na(Concerns))
 
 quadspp <- joinQuadSpecies(park = park, from = year, to = year,
-                                eventType = 'all') |> 
+                                eventType = 'all', panel = panel) |> 
   group_by(Plot_Name) |> 
   summarize(num_quadspp = sum(!ScientificName %in% "None present"))
 
 addspp <- joinAdditionalSpecies(park = park, from = year, to = year,
-                                eventType = 'all') |> 
+                                eventType = 'all', panel = panel) |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
 cwd_conc <- VIEWS_MIDN$CWD_MIDN |> filter(ParkUnit == park) |> filter(SampleYear == year) |> 
+  filter(PanelCode == panel) |> 
   group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance))) |>
   mutate(Concerns = case_when(num_cwd > 25 ~ "TONS OF CWD",
                              between(num_cwd, 15, 25) ~ "Lots of CWD",
@@ -208,7 +213,7 @@ res <- lapply(seq_along(child_env$plot_list), function(x) {
   child_env$plot_name = child_env$plot_list[[x]]
 
   knitr::knit_child(
-    'PrevVisit_Plot_Viewer_MIDN_Indiv.Rmd', 
+    './PrevVisit_modules/PrevVisit_Plot_Viewer_MIDN_Indiv.Rmd', 
      envir = child_env,
      quiet = TRUE )
   
