@@ -11,18 +11,11 @@ output:
 # park = "APCO"; year = 2018; plot = "APCO-262"
 # path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park,
 #                "/")
-path <- dplyr::case_when(year == 2017 ~ paste0("E:/MIDN/ForestVegetation/", year,
-                                               "/03_Data/Photos/", park, "/"),
-                         year == 2018 ~ paste0("E:/MIDN/ForestVegetation/", year,
-                                               "/03_Data/Photos/PhotoPoints/", park, "/"),
-                         year == 2019 ~ paste0("E:/MIDN/ForestVegetation/", year,                
-                                               "/03_Data/Photos/PhotoPoints/"),
-                         TRUE ~ paste0("E:/MIDN/ForestVegetation/", year,                
-                                               "/03_Data/Photos/PhotoPoints/"))#Assumes 2019 is the way forward
-photo_eval <- if(exists('path')){TRUE} else {FALSE}
+photo_path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park, "/")
+photo_eval <- if(exists('photo_path')){TRUE} else {FALSE}
 
 if(photo_eval == TRUE){
-all_photos <- list.files(path, pattern = ".JPG")
+all_photos <- list.files(photo_path, pattern = ".JPG")
 plot2 <- sub("-", "_", plot_name)
 
 photo_order <- c("UC", "UL", "UR", "BL", "BR")
@@ -37,7 +30,7 @@ photo_list <- photo_list[photo_order]
 <div>
 <h4 style='text-align:center'>UC</h4>
 ```{r echo = F, out.width = "75%", dpi = 72, warnings = F, message = FALSE, fig.align = 'center', eval = photo_eval}
-suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UC"])))
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["UC"])))
 ```
 </div>
 <div></div>
@@ -46,13 +39,13 @@ suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UC"])))
 <div>
 <h4 style='text-align:center'>UL</h4>
 ```{r echo = F, out.width = "98%", dpi = 72, warnings = F, message = FALSE, eval = photo_eval}
-suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UL"])))
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["UL"])))
 ```
 </div>
 <div>
 <h4 style='text-align:center'>UR</h4>
 ```{r echo = F, out.width = "98%", dpi = 72, warnings = F, message = FALSE, eval = photo_eval}
-suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UR"])))
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["UR"])))
 ```
 </div>
 </div>
@@ -60,13 +53,13 @@ suppressWarnings(knitr::include_graphics(paste0(path, photo_list["UR"])))
 <div class = "flexbox">
 <div>
 ```{r echo = F,  out.width = "98%", dpi = 72, warnings = F, message = FALSE, eval = photo_eval}
-suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BL"])))
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["BL"])))
 ```
 <h4 style='text-align:center'>BL</h4>
 </div>
 <div>
 ```{r echo = F,  out.width = "98%", dpi = 72, warnings = F, message = FALSE, eval = photo_eval}
-suppressWarnings(knitr::include_graphics(paste0(path, photo_list["BR"])))
+suppressWarnings(knitr::include_graphics(paste0(photo_path, photo_list["BR"])))
 ```
 <h4 style='text-align:center'>BR</h4>
 </div>

@@ -16,7 +16,7 @@ library(kableExtra)
 # year <- as.numeric(params$yearpv)
 # plot_name <- "COLO-380"
 
-arglist = list(park = park, from = year, to = year, QAQC = FALSE, eventType = 'all')
+arglist = list(park = park, from = year, to = year, QAQC = FALSE, panel = panel, eventType = 'all')
 
 plotevs <- do.call(joinLocEvent, c(arglist)) |> 
   mutate(Unit = ifelse(nchar(ParkSubUnit) > 4,                                                                           
@@ -58,7 +58,7 @@ sdist2 <- do.call(joinStandDisturbance, arglist) |>
 
 #----- Stand heights -----
 treeht <- get("StandTreeHeights_MIDN", envir = VIEWS_MIDN) |> 
-  filter(EventID %in% ev_list$EventID) |> 
+  filter(EventID %in% ev_list$EventID) |> filter(PanelCode == panel) |> 
   select(Plot_Name, CrownClassCode, CrownClassLabel, TagCode, Height) |> 
   arrange(Plot_Name, CrownClassLabel, TagCode)
 
@@ -98,7 +98,7 @@ head(treecondl)
 #----- Tree foliage conditions -----
 treefol <- do.call(joinTreeFoliageCond, 
                    list(park = park, from = year, to = year, QAQC = FALSE, locType = "all",
-                        valueType = "classes")) |> 
+                        panel = panel, valueType = "classes")) |> 
   select(Plot_Name, SampleYear, ScientificName, Tag = TagCode, 
          Txt_Tot_Foliage_Cond:Txt_Leaf_Area_N)
 
@@ -137,7 +137,7 @@ shrubs <- do.call(joinMicroShrubData, arglist) |>
 head(shrubs)
 
 #----- Quadrats -----
-quaddata <- do.call(joinQuadData, arglist) |> 
+quaddata <- do.call(joinQuadData, arglist) |> filter(PanelCode == panel) |> 
   select(Plot_Name, SampleYear, Species = CharacterLabel, Txt_Cov_A2:Txt_Cov_CC) |> 
   rename_with(stringr::str_replace, pattern = "Txt_Cov_", replacement = "") |> 
   mutate(Note = NA_character_)
@@ -150,9 +150,9 @@ quad_tramp_note <- quad_tramp |> group_by(Plot_Name, SampleYear) |>
   filter(!is.na(SQQuadCharNotes)) |> 
   summarize(Note = toString(unique(SQQuadCharNotes)), .groups = 'drop')
 
-quad_tramp2 <- quad_tramp %>% 
-  filter(EventID %in% ev_list$EventID) %>% 
-  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) %>% # Note = SQQuadCharNotes) %>% 
+quad_tramp2 <- quad_tramp |> 
+  filter(EventID %in% ev_list$EventID) |> filter(PanelCode == panel) |> 
+  select(Plot_Name, SampleYear, QuadratCode, SQQuadCharCode, IsTrampled) |>  # Note = SQQuadCharNotes) %>% 
   unique() |> 
   mutate(Trampled = ifelse(IsTrampled == TRUE, "X", NA_character_)) |> 
   select(-IsTrampled, -SQQuadCharCode)
@@ -182,8 +182,8 @@ addspp <- do.call(joinAdditionalSpecies, arglist) |>
 head(addspp)
 
 #----- CWD -----
-cwd <- get("CWD_MIDN", env = VIEWS_MIDN) %>% 
-  filter(EventID %in% ev_list$EventID) |> 
+cwd <- get("CWD_MIDN", env = VIEWS_MIDN) |>  
+  filter(EventID %in% ev_list$EventID) |> filter(PanelCode == panel) |> 
   select(Plot_Name, SampleYear, TransectCode, Distance, ScientificName, Diameter, 
          MultiCrossCode, Length, IsHollow, Decay = DecayClassCode, CWDNote) |> 
   arrange(Plot_Name, TransectCode, ScientificName)
