@@ -29,15 +29,15 @@ importData()
 #----- Set up Directory for output to save to -----
 # If The Field_Forms or NETN_Tree_Maps folders don't exist on your desktop, they 
 # will be added. Note that the commented out code is for local desktop address, 
-# wherease the uncommented code is for your OneDrive desktop location. Use the 
+# whereas the uncommented code is for your OneDrive desktop location. Use the 
 # one that works for you.
 
 # Field form directory for OneDrive - potentially slower if slow internet connection
-path <- paste0(file.path(Sys.getenv("USERPROFILE"),"OneDrive - DOI\\Desktop",fsep="\\"),
+path <- paste0(file.path(Sys.getenv("USERPROFILE"),"OneDrive - DOI\\Desktop", fsep = "\\"),
                "\\Field_Forms\\")
 
 ## Field form directory for local desktop
-# path <- paste0(file.path(Sys.getenv("USERPROFILE"), "Desktop", fsep = "\\"))
+# path <- paste0(file.path(Sys.getenv("USERPROFILE"), "Desktop", fsep = "\\"), "\\Field_Forms\\")
 
 # Tree map directory for OneDrive - potentially slower because requires internet connection
 path_trmaps <- paste0(file.path(Sys.getenv("USERPROFILE"),"OneDrive - DOI\\Desktop",fsep="\\"),

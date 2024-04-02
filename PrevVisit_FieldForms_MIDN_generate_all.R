@@ -246,7 +246,6 @@ render_viewer <- function(parkcode, yearpv, panel){
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-#render_viewer("APCO", 2019, 1)
 purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))
-
-render_viewer("FRSP", 2021, 2)
+#render_viewer("APCO", 2019, 1)
+#render_viewer("FRSP", 2021, 2)
