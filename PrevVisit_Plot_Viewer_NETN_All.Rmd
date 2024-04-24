@@ -6,7 +6,7 @@ output:
 params:
   yearpv: 2019
   year_curr: 2024
-  parkcode: "ROVA"
+  parkcode: "WEFA"
   panel: 2
   print: FALSE
 ---
@@ -52,6 +52,7 @@ colnames(soil_sch) <- c("park", "plot", "grts", "year", "post_covid_year")
 # Create environment for rmds to pull params from
 child_env <- new.env()
 importData()
+
 for(n in ls(VIEWS_NETN, all.names = TRUE)) assign(n, get(n, VIEWS_NETN), child_env)
 
 year = as.numeric(params$yearpv)
@@ -66,7 +67,8 @@ child_env$print <- FALSE
 child_env$plots <- joinLocEvent(park = park, 
                                 from = year, 
                                   to = year, 
-                                panel = panel) |> 
+                                panel = panel,
+                                locType = 'all') |> 
                         select(Plot_Name, SampleYear) |> 
                         arrange(Plot_Name)
 
@@ -79,7 +81,7 @@ sys.source("./PrevVisit_modules/PrevVisit_FieldForms_NETN_compile.R", envir = ch
 
 ```{r echo = F, include = F}
 # Summary Table for first tab
-plot_info <- joinLocEvent(park = park, from = year, to = year, output = 'verbose', panel = panel) |> 
+plot_info <- joinLocEvent(park = park, from = year, to = year, output = 'verbose', panel = panel, locType = 'all') |> 
              mutate(Unit = case_when(ParkSubUnit %in% "ACAD_MDI_East" ~ "East",
                                      ParkSubUnit %in% "ACAD_MDI_West" ~ "West",
                                      ParkSubUnit %in% "ACAD_Schoodic" ~ "Schoodic",
@@ -88,7 +90,7 @@ plot_info <- joinLocEvent(park = park, from = year, to = year, output = 'verbose
                select(Plot_Name, PlotCode, Unit, #Notes = PlotNotes, 
                       Directions)#, Stunted = IsStuntedWoodland)  
 
-stand_info <- joinStandData(park = park, from = year, to = year, panel = panel) |> 
+stand_info <- joinStandData(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   mutate(tree_cores = ifelse(ParkUnit == "MIMA", "Tree Cores", NA_character_)) |> 
   mutate(slope = case_when(PlotSlope >= 35 ~ "EXTREMELY STEEP",
                            between(PlotSlope, 35, 25) ~ "VERY STEEP",
@@ -117,7 +119,7 @@ stand_info <- joinStandData(park = park, from = year, to = year, panel = panel) 
 
 stand_conc <- stand_info |> group_by(Plot_Name) |> summarize(Concerns = toString(unique(Value)))
 
-visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all", panel = panel) |> 
+visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "all", panel = panel, locType = 'all') |> 
   filter(Note_Type %in% c("Plot_Notes", "Stand_Notes", "Stand_Disturbances")) |> 
   mutate(Notes = ifelse(Note_Type == "Stand_Disturbances", paste0("Disturbance: ", Notes), Notes),
          order = case_when(Note_Type == "Plot_Notes" ~ 1,
@@ -125,15 +127,15 @@ visit_notes <- joinVisitNotes(park = park, from = year, to = year, noteType = "a
                            TRUE ~ 3)) |> arrange(Plot_Name, order) |> 
   select(Plot_Name, Notes) |> group_by(Plot_Name) |> summarize(Notes = toString(unique(Notes)))
 
-trees <- joinTreeData(park = park, from = year, to = year, status = 'active', panel = panel) |> 
+trees <- joinTreeData(park = park, from = year, to = year, status = 'active', panel = panel, locType = 'all') |> 
   filter(!TreeStatusCode %in% "DF") |> 
   group_by(Plot_Name) |> summarize(num_trees = sum(num_stems))
 
-regen <- joinRegenData(park = park, from = year, to = year, panel = panel) |> 
+regen <- joinRegenData(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   group_by(Plot_Name) |> summarize(num_saps = round(sum(sap_den) * 3, 1),
                                    num_seeds = round(sum(seed_den) * 3, 1))
 
-shrubs <- joinMicroShrubData(park = park, from = year, to = year, panel = panel) |> 
+shrubs <- joinMicroShrubData(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   select(Plot_Name, shrub_avg_cov) |> 
   group_by(Plot_Name) |> summarize(shrub_avg_cov = sum(shrub_avg_cov, na.rm = T)) |> 
   mutate(Concerns = case_when(shrub_avg_cov >= 70 ~ "VERY DENSE SHRUBS",
@@ -143,12 +145,12 @@ shrubs <- joinMicroShrubData(park = park, from = year, to = year, panel = panel)
   select(Plot_Name, Concerns) |> filter(!is.na(Concerns))
 
 
-quadspp <- joinQuadSpecies(park = park, from = year, to = year, panel = panel) |> 
+quadspp <- joinQuadSpecies(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   filter(IsGerminant == FALSE) |> 
   group_by(Plot_Name) |> 
   summarize(num_quadspp = sum(!ScientificName %in% "None present"))
 
-addspp <- joinAdditionalSpecies(park = park, from = year, to = year, panel = panel) |> 
+addspp <- joinAdditionalSpecies(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
 soil_sch1 <- soil_sch |> 
@@ -159,7 +161,7 @@ soil_sch1 <- soil_sch |>
 
 cwd_conc <- VIEWS_NETN$CWD_NETN |> filter(ParkUnit == park) |> filter(SampleYear == year) |> 
   filter(PanelCode == panel) |> 
-  group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance))) |>
+  group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance)), .groups = 'drop') |>
   mutate(Concerns = case_when(num_cwd > 25 ~ "TONS OF CWD",
                              between(num_cwd, 15, 25) ~ "Lots of CWD",
                              between(num_cwd, 8, 15) ~ "CWD",

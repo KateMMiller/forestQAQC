@@ -1,7 +1,7 @@
 #--------------------------------
 # Compiling data for Previous Visit Field Forms
 #--------------------------------
-
+#plot_name = "MORR-014"
 #----- Load libraries
 library(tidyverse)
 library(forestNETN)
@@ -10,7 +10,7 @@ library(knitr)
 library(kableExtra)
 #importData()
 #----- Compile data -----
-arglist = list(park = park, from = year, to = year, QAQC = FALSE, panel = panel)
+arglist = list(park = park, from = year, to = year, QAQC = FALSE, panel = panel, locType = 'all')
 
 plotevs <- do.call(joinLocEvent, arglist) |> 
   mutate(Unit = ifelse(nchar(ParkSubUnit) > 4,                                                                           
