@@ -73,7 +73,7 @@ sys.source("./PrevVisit_modules/PrevVisit_FieldForms_MIDN_compile.R", envir = ch
 
 ```{r echo = F, include = F}
 # Summary Table for first tab
-plot_info <- joinLocEvent(park = park, from = year, to = year,
+plot_info <- joinLocEvent(park = park, from = year, to = year, panel = panel,
                                 eventType = 'all') |> 
              mutate(Unit = substr(ParkSubUnit, 6, nchar(ParkSubUnit))) |> 
              select(Plot_Name, PlotCode, Unit, #Notes = PlotNotes, 

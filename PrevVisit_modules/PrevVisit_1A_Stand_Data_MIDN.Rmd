@@ -50,7 +50,7 @@ stand_all <- rbind(stand_plot |> select(Type, Metric, Value), sdist_bind)
 
 stand_tab <- kable(stand_all,
                    format = 'html', align = 'c', table.attr = "style='width:250px';") |> 
-             kable_styling(fixed_thead = TRUE, full_width = TRUE, position = 'left') |> 
+             kable_styling(fixed_thead = TRUE, full_width = FALSE, position = 'left') |> 
              row_spec(0, extra_css = 'border-bottom: 1px solid #000000') |> 
              #column_spec(1, width = "10px") |> 
              collapse_rows(1, valign = 'top') 
