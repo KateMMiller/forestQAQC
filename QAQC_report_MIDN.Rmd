@@ -4,7 +4,7 @@ output:
     css: www/styles.css
     anchor_sections: FALSE
     includes:
-        in_header: "header_manual.html"
+        in_header: "header_manualMIDN.html"
 params:
   year: 2023
   plot: "COLO-381"
