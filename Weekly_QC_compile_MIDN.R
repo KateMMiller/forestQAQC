@@ -13,7 +13,7 @@ source("Weekly_QC_functions.R")
 
 #----- Compile data -----
 # importData()
-# week_start = "2023-08-13"
+# week_start = "2024-08-04"
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # loc_type <- 'VS'
@@ -1428,10 +1428,7 @@ spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>%
 QC_table <- rbind(QC_table, 
                   QC_check(spp_newpark, "Plant ID", "Species new to a park"))
 
-if(nrow(spp_newpark) > 0){
-spp_newpark_table <- make_kable(spp_newpark, "Species new to a park") %>% 
-                     scroll_box(height = "600px")
-}
+spp_newpark_table <- make_kable(spp_newpark, "Species new to a park")
 
 # check possible miss-IDed species
 spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spicatum', 'Acer',
