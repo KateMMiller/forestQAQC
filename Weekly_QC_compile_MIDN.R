@@ -726,7 +726,7 @@ QC_table <- rbind(QC_table,
 
 sap_em_spp_table <- make_kable(sap_em_spp, "Saplings: Elevated mortality by tree species")
 
-# Check that saplings with > 2cm growth or <-0.1 cm growth have DBH verified selected
+# Check that saplings with > 3cm growth or <-0.1 cm growth have DBH verified selected
 sap_live_prev <- sap_data_old %>% filter(SaplingStatusCode %in% alive) %>% 
   filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, DBHcm)
@@ -744,15 +744,15 @@ sap_dbh <- left_join(sap_live_latest, sap_live_prev,
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
 
 # Identify Zoinks saps 
-zoinks_sap <- sap_dbh %>% filter(DBH_diff >= 2 | DBH_diff < -0.1)
+zoinks_sap <- sap_dbh %>% filter(DBH_diff >= 3 | DBH_diff < -0.1)
 
 QC_table <- rbind(QC_table, 
-                  QC_check(zoinks_sap, "Microplot", "Saplings: Zoinks saplings with > 2cm growth or < -0.1cm growth"))
+                  QC_check(zoinks_sap, "Microplot", "Saplings: Zoinks saplings with > 3cm growth or < -0.1cm growth"))
 
-zoinks_sap_table <- make_kable(zoinks_sap, "Saplings: Zoinks saplings with > 2cm growth or < -0.1cm growth")
+zoinks_sap_table <- make_kable(zoinks_sap, "Saplings: Zoinks saplings with > 3cm growth or < -0.1cm growth")
 
 # Identify zoinks saps missing DBH Verified check box
-sap_dbh$Missing_DBHVer = ifelse((sap_dbh$DBH_diff >= 2 | sap_dbh$DBH_diff < -0.1) & 
+sap_dbh$Missing_DBHVer = ifelse((sap_dbh$DBH_diff >= 3 | sap_dbh$DBH_diff < -0.1) & 
                                    sap_dbh$IsDBHVerified == 0, 1, 0)
 
 sap_dbh_check <- sap_dbh %>% filter(Missing_DBHVer == 1) %>% 
