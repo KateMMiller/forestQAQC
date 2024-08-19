@@ -11,7 +11,7 @@ library(kableExtra)
 library(vegan) # for Jaccard similarity
 source("QAQC_report_functions.R")
 
-importData() #local instance
+#importData() #local instance
 #importData(name = "NETN_Forest_MABI_training")
 
 # Params for troubleshooting inside script
