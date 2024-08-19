@@ -936,6 +936,14 @@ QC_table <- rbind(QC_table,
 
 quad_sq_spp_table <- make_kable(quad_sq_spp, "Quadrat Species: SS sample qualifier without % cover data")
 
+# Check for species marked as Germinant - should only be tree species
+quad_germ <- quad_spp %>% filter(IsGerminant == TRUE & Tree != 1) %>% 
+                          select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsGerminant)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(quad_germ, "Quadrat", "Non-tree species marked as germinants"))
+
+quad_germ_table <- make_kable(quad_germ, "Non-tree species marked as germinants")
 
 #----- + Summarize quadrat checks + -----
 quad_check <- QC_table %>% filter(Data %in% "Quadrat" & Num_Records > 0) 
