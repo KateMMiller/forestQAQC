@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manualMIDN.html"
 params:
-  year: 2023
-  plot: "COLO-381"
+  year: 2024
+  plot: "COLO-342"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -165,9 +165,9 @@ dist_tab <- kable(dist %>% select(Team, DisturbanceSummary, ThresholdLabel, Dist
                           position = 'left', font_size = 14) %>% 
             row_spec(0, extra_css = 'border-bottom: 1px solid #000000;') %>% 
             row_spec(1:2, extra_css = 'border-bottom: 1px solid #CACACA;') %>%
-            column_spec(2, background = check_dif_strict(dist, "DisturbanceLabel")) %>% 
+            column_spec(2, background = check_dif_strict(dist, "DisturbanceSummary")) %>% 
             column_spec(3, background = check_dif_strict(dist, "ThresholdLabel")) %>% 
-            column_spec(4, background = check_dif(dist, "DisturbanceCoverClassCode")) %>% 
+            column_spec(4, background = check_dif(dist, "DisturbanceCoverClassLabel")) %>% 
             row_spec(nrow(dist), extra_css = "border-bottom: 1px solid #000000;") %>% 
             column_spec(c(1, 2), border_left = TRUE) %>% column_spec(4, border_right = TRUE) %>% 
             column_spec(2:3, border_right = TRUE, extra_css = "border-right: 1px solid #CACACA")
