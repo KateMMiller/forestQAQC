@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2023-05-12"
+  week_start: "2024-06-12"
   locType: 'all'
 
 ---
@@ -249,6 +249,8 @@ check_null(spp_newplot_table)
 check_null(spp_newpark_table)
 
 check_null(sppID_table)
+
+check_null(spp_coll_table) 
 
 ```
 

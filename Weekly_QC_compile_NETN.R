@@ -17,7 +17,7 @@ library(purrr)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2023-05-01"
+# week_start = "2024-06-14"
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # loc_type <- 'all'
@@ -1262,10 +1262,28 @@ QC_table <- rbind(QC_table,
 
 sppID_table <- make_kable(sppID_check, "Potentially incorrect species entries")
 
+# check for plant species collected i.e. Collected check box = True (only available in Quads and Add sp)
+addsppColl <- addspp %>% filter(IsCollected == TRUE) %>% 
+  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
+
+#no collected checkbox included in joinQuadSpecies
+quad_spp2 <- quad_spp %>% filter(IsGerminant == FALSE) %>%  select(Plot_Name, ParkUnit, IsQAQC, ScientificName)
+quad_raw <- VIEWS_NETN[["QuadSpecies_NETN"]]
+quad_raw2 <- quad_raw %>% filter(SampleYear == curr_year) %>% filter(IsGerminant == FALSE) %>% 
+                          select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
+quad_sppColl <- left_join(quad_spp2, quad_raw2, by = c("Plot_Name", "ParkUnit", "IsQAQC", "ScientificName"))
+quad_sppColl2 <- quad_sppColl %>% filter(IsCollected == TRUE)
+
+spp_coll <- rbind(addsppColl, quad_sppColl2)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(spp_coll, "Plant ID", "Species collected"))
+
+spp_coll_table <- make_kable(spp_coll, "Species collected")
+
 #----- + Summarize Plant ID checks + -----
 plantID_check <- QC_table %>% filter(Data %in% "Plant ID" & Num_Records > 0) 
 include_plantID_tab <- tab_include(plantID_check)
-
 
 #----- ISED checks-----
 taxa <- prepTaxa()

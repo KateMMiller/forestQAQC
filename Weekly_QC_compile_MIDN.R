@@ -1455,8 +1455,29 @@ QC_table <- rbind(QC_table,
                   QC_check(sppID_check, "Plant ID", "Potentially incorrect species entries"))
 
 sppID_table <- if(nrow(sppID_check) > 0){
-  make_kable(sppID_check, "Potentially incorrect species entries") %>% 
-  scroll_box(height = "600px")}
+  make_kable(sppID_check, "Potentially incorrect species entries")} #%>% 
+  #scroll_box(height = "600px")}
+
+# check for plant species collected i.e. Collected check box = True (only available in Quads, Quad Seeds, and Add sp)
+seedsColl <- seeds %>% filter(IsCollected == TRUE) %>% 
+                       select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) 
+addsppColl <- addspp %>% filter(IsCollected == TRUE) %>% 
+                        select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
+
+#no collected checkbox included in joinQuadSpecies
+quad_spp2 <- quad_spp %>% select(Plot_Name, ParkUnit, IsQAQC, ScientificName)
+quad_raw <- VIEWS_MIDN[["QuadSpecies_MIDN"]]
+quad_raw2 <- quad_raw %>% filter(SampleYear == curr_year) %>% select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
+quad_sppColl <- left_join(quad_spp2, quad_raw2, by = c("Plot_Name", "ParkUnit", "IsQAQC", "ScientificName"))
+quad_sppColl2 <- quad_sppColl %>% filter(IsCollected == TRUE)
+                             
+spp_coll <- rbind(seedsColl, addsppColl, quad_sppColl2)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(spp_coll, "Plant ID", "Species collected"))
+
+spp_coll_table <- make_kable(spp_coll, "Species collected")
+
 
 #----- + Summarize Plant ID checks + -----
 plantID_check <- QC_table %>% filter(Data %in% "Plant ID" & Num_Records > 0) 
