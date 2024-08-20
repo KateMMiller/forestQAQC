@@ -850,7 +850,7 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
          ML_c = ML_curr, ML_p = ML_prev, 
          UL_c = UL_curr, UL_p = UL_prev)
 
-if(nrow(tramp_plots2 > 0)){
+if(nrow(tramp_plots2) > 0){
   quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous") %>%
       purrr::reduce(2:ncol(tramp_plots2), function(x, y){
         col <- tramp_plots2[, y]
@@ -1272,17 +1272,14 @@ sppID_table <- make_kable(sppID_check, "Potentially incorrect species entries")
 
 # check for plant species collected i.e. Collected check box = True (only available in Quads and Add sp)
 addsppColl <- addspp %>% filter(IsCollected == TRUE) %>% 
-  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
+  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Add spp.")
 
-#no collected checkbox included in joinQuadSpecies
-quad_spp2 <- quad_spp %>% filter(IsGerminant == FALSE) %>%  select(Plot_Name, ParkUnit, IsQAQC, ScientificName)
-quad_raw <- VIEWS_NETN[["QuadSpecies_NETN"]]
-quad_raw2 <- quad_raw %>% filter(SampleYear == curr_year) %>% filter(IsGerminant == FALSE) %>% 
-                          select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
-quad_sppColl <- left_join(quad_spp2, quad_raw2, by = c("Plot_Name", "ParkUnit", "IsQAQC", "ScientificName"))
-quad_sppColl2 <- quad_sppColl %>% filter(IsCollected == TRUE)
+quadsppColl <- quad_spp |> filter(IsCollected == TRUE) |> 
+  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Quad species")
 
-spp_coll <- rbind(addsppColl, quad_sppColl2)
+spp_coll <- rbind(addsppColl, quadsppColl)
 
 QC_table <- rbind(QC_table, 
                   QC_check(spp_coll, "Plant ID", "Species collected"))
