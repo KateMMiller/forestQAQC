@@ -80,7 +80,7 @@ add_folcode <- function(df, col, jointbl){
   var_name <- paste0(substr(col, 5, nchar(col)), "_code")
   df2 <- merge(df, jointbl, by.x = col, by.y = 'txt', all.x = T, all.y = F) 
   names(df2)[names(df2) == "pct_class"] <- var_name
-  return(df2 %>% arrange(Team, TagCode) %>% select(var_name))
+  return(df2 %>% arrange(Team, TagCode) %>% select(all_of(var_name)))
 }
 
 check_covclass <- function(df, col1, col2){
