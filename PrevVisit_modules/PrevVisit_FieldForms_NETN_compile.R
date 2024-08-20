@@ -61,7 +61,7 @@ head(treeht)
 
 #----- Stand disturbances -----
 dist <- do.call(joinStandDisturbance, arglist) |> 
-  select(Plot_Name, SampleYear, cycle, Disturbance = DisturbanceLabel, ThresholdCode, 
+  select(Plot_Name, SampleYear, cycle, Disturbance = DisturbanceSummary, ThresholdCode, 
          ThresholdLabel, CoverClass = DisturbanceCoverClassLabel, Note = DisturbanceNote) 
 head(dist)
 
