@@ -102,7 +102,7 @@ h5 {
 
 #col-left-header{
   float:left;
-  width: 68%;
+  width: 65%;
   padding: 5px 0;
 }
 
@@ -110,12 +110,14 @@ h5 {
   float:right;
   width: 7%;
   padding: 5px 0;
+  margin-right:10px;
+  margin-left:0;
 }
 
 #col-middle-header{
   float:right;
   text-align:left;
-  width: 25%;
+  width: 24%;
   padding: 5px 0;
 }
 
