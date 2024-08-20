@@ -995,7 +995,7 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
   )
 
 
-if(nrow(tramp_plots2 > 0)){
+if(nrow(tramp_plots2) > 0){
   quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous") %>%
     purrr::reduce(2:ncol(tramp_plots2), function(x, y){
       col <- tramp_plots2[, y]
@@ -1394,7 +1394,7 @@ spp_plotcheck <- full_join(spplist_new, spplist_old,
                            suffix = c("_new", "_old"),
                            multiple = 'all', relationship = 'many-to-many') 
 
-spp_plotcheck[, 8:20][is.na(spp_plotcheck[, 8:20])] <- 0
+spp_plotcheck[, 8:ncol(spp_plotcheck)][is.na(spp_plotcheck[, 8:ncol(spp_plotcheck)])] <- 0
 
 spp_newplot <- spp_plotcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
                filter(!ParkUnit %in% "ASIS") %>% 
@@ -1417,7 +1417,7 @@ spp_parkcheck <- full_join(spplist_new, park_spplist,
                            suffix = c("_new", "_old"),
                            multiple = 'all', relationship = 'many-to-many') 
 
-spp_parkcheck[, 8:20][is.na(spp_parkcheck[, 8:20])] <- 0
+spp_parkcheck[, 8:ncol(spp_parkcheck)][is.na(spp_parkcheck[, 8:ncol(spp_parkcheck)])] <- 0
 
 spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
   select(-SampleYear, -cycle, -TSN, -BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
@@ -1454,24 +1454,24 @@ sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks) %>%
 QC_table <- rbind(QC_table, 
                   QC_check(sppID_check, "Plant ID", "Potentially incorrect species entries"))
 
-sppID_table <- if(nrow(sppID_check) > 0){
-  make_kable(sppID_check, "Potentially incorrect species entries")} #%>% 
+sppID_table <- 
+  make_kable(sppID_check, "Potentially incorrect species entries") #%>% 
   #scroll_box(height = "600px")}
 
 # check for plant species collected i.e. Collected check box = True (only available in Quads, Quad Seeds, and Add sp)
 seedsColl <- seeds %>% filter(IsCollected == TRUE) %>% 
-                       select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) 
-addsppColl <- addspp %>% filter(IsCollected == TRUE) %>% 
-                        select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
+                       select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Quad seedlings")
 
-#no collected checkbox included in joinQuadSpecies
-quad_spp2 <- quad_spp %>% select(Plot_Name, ParkUnit, IsQAQC, ScientificName)
-quad_raw <- VIEWS_MIDN[["QuadSpecies_MIDN"]]
-quad_raw2 <- quad_raw %>% filter(SampleYear == curr_year) %>% select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected)
-quad_sppColl <- left_join(quad_spp2, quad_raw2, by = c("Plot_Name", "ParkUnit", "IsQAQC", "ScientificName"))
-quad_sppColl2 <- quad_sppColl %>% filter(IsCollected == TRUE)
-                             
-spp_coll <- rbind(seedsColl, addsppColl, quad_sppColl2)
+addsppColl <- addspp %>% filter(IsCollected == TRUE) %>% 
+                        select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Add spp.")
+
+quadsppColl <- quad_spp |> filter(IsCollected == TRUE) |> 
+  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Quad species")
+
+spp_coll <- rbind(seedsColl, addsppColl, quadsppColl)
 
 QC_table <- rbind(QC_table, 
                   QC_check(spp_coll, "Plant ID", "Species collected"))
