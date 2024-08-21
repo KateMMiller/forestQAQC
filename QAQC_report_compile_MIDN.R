@@ -15,8 +15,8 @@ source("QAQC_report_functions.R")
 # forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
 
 #----- Compile data
-# year = 2023
-# plot = "COLO-381" #VAFO-245
+# year = 2024 #2023
+# plot = "COLO-338" #VAFO-245
 # loc_type = 'all'
 
 arglist = list(park = substr(plot, 1, 4), 
@@ -224,7 +224,7 @@ sap_max_dbh <- max(abs(sap_dbh_diff$DBH_diff), na.rm = T)
 sap_diff_plot <- ggplot(data = sap_dbh_diff, aes(x = DBH_diff)) + 
   geom_density(alpha = 0.5, fill = "#8CAF88", color = "#738C70") + 
   theme_FVM() + 
-  geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", size = 1) + 
+  geom_vline(xintercept = 0, linetype = 'dashed', col = "#717171", linewidth = 1) + 
   labs(y = "Density", x = "DBH difference (cm)") + 
   theme(legend.position = 'none', panel.border = element_blank(), panel.background = element_blank()) +
   annotate(geom = "text", x = -sap_max_dbh, y = Inf, label = "Crew tighter", 

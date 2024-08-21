@@ -13,7 +13,7 @@ source("Weekly_QC_functions.R")
 
 #----- Compile data -----
 # importData()
-# week_start = "2023-08-13"
+# week_start = "2024-08-04"
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # loc_type <- 'VS'
@@ -726,7 +726,7 @@ QC_table <- rbind(QC_table,
 
 sap_em_spp_table <- make_kable(sap_em_spp, "Saplings: Elevated mortality by tree species")
 
-# Check that saplings with > 2cm growth or <-0.1 cm growth have DBH verified selected
+# Check that saplings with > 3cm growth or <-0.1 cm growth have DBH verified selected
 sap_live_prev <- sap_data_old %>% filter(SaplingStatusCode %in% alive) %>% 
   filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, DBHcm)
@@ -744,15 +744,15 @@ sap_dbh <- left_join(sap_live_latest, sap_live_prev,
   mutate(DBH_diff = DBHcm_latest - DBHcm_prev)
 
 # Identify Zoinks saps 
-zoinks_sap <- sap_dbh %>% filter(DBH_diff >= 2 | DBH_diff < -0.1)
+zoinks_sap <- sap_dbh %>% filter(DBH_diff >= 3 | DBH_diff < -0.1)
 
 QC_table <- rbind(QC_table, 
-                  QC_check(zoinks_sap, "Microplot", "Saplings: Zoinks saplings with > 2cm growth or < -0.1cm growth"))
+                  QC_check(zoinks_sap, "Microplot", "Saplings: Zoinks saplings with > 3cm growth or < -0.1cm growth"))
 
-zoinks_sap_table <- make_kable(zoinks_sap, "Saplings: Zoinks saplings with > 2cm growth or < -0.1cm growth")
+zoinks_sap_table <- make_kable(zoinks_sap, "Saplings: Zoinks saplings with > 3cm growth or < -0.1cm growth")
 
 # Identify zoinks saps missing DBH Verified check box
-sap_dbh$Missing_DBHVer = ifelse((sap_dbh$DBH_diff >= 2 | sap_dbh$DBH_diff < -0.1) & 
+sap_dbh$Missing_DBHVer = ifelse((sap_dbh$DBH_diff >= 3 | sap_dbh$DBH_diff < -0.1) & 
                                    sap_dbh$IsDBHVerified == 0, 1, 0)
 
 sap_dbh_check <- sap_dbh %>% filter(Missing_DBHVer == 1) %>% 
@@ -995,7 +995,7 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
   )
 
 
-if(nrow(tramp_plots2 > 0)){
+if(nrow(tramp_plots2) > 0){
   quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous") %>%
     purrr::reduce(2:ncol(tramp_plots2), function(x, y){
       col <- tramp_plots2[, y]
@@ -1394,7 +1394,7 @@ spp_plotcheck <- full_join(spplist_new, spplist_old,
                            suffix = c("_new", "_old"),
                            multiple = 'all', relationship = 'many-to-many') 
 
-spp_plotcheck[, 8:20][is.na(spp_plotcheck[, 8:20])] <- 0
+spp_plotcheck[, 8:ncol(spp_plotcheck)][is.na(spp_plotcheck[, 8:ncol(spp_plotcheck)])] <- 0
 
 spp_newplot <- spp_plotcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
                filter(!ParkUnit %in% "ASIS") %>% 
@@ -1417,7 +1417,7 @@ spp_parkcheck <- full_join(spplist_new, park_spplist,
                            suffix = c("_new", "_old"),
                            multiple = 'all', relationship = 'many-to-many') 
 
-spp_parkcheck[, 8:20][is.na(spp_parkcheck[, 8:20])] <- 0
+spp_parkcheck[, 8:ncol(spp_parkcheck)][is.na(spp_parkcheck[, 8:ncol(spp_parkcheck)])] <- 0
 
 spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
   select(-SampleYear, -cycle, -TSN, -BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
@@ -1428,10 +1428,7 @@ spp_newpark <- spp_parkcheck %>% filter(pres_new == 1 & pres_old == 0) %>%
 QC_table <- rbind(QC_table, 
                   QC_check(spp_newpark, "Plant ID", "Species new to a park"))
 
-if(nrow(spp_newpark) > 0){
-spp_newpark_table <- make_kable(spp_newpark, "Species new to a park") %>% 
-                     scroll_box(height = "600px")
-}
+spp_newpark_table <- make_kable(spp_newpark, "Species new to a park")
 
 # check possible miss-IDed species
 spp_checks <- c('Abies balsamea', 'Acer saccharinum', 'Acer nigrum', 'Acer spicatum', 'Acer',
@@ -1457,9 +1454,30 @@ sppID_check <- spplist_new %>% filter(ScientificName %in% spp_checks) %>%
 QC_table <- rbind(QC_table, 
                   QC_check(sppID_check, "Plant ID", "Potentially incorrect species entries"))
 
-sppID_table <- if(nrow(sppID_check) > 0){
-  make_kable(sppID_check, "Potentially incorrect species entries") %>% 
-  scroll_box(height = "600px")}
+sppID_table <- 
+  make_kable(sppID_check, "Potentially incorrect species entries") #%>% 
+  #scroll_box(height = "600px")}
+
+# check for plant species collected i.e. Collected check box = True (only available in Quads, Quad Seeds, and Add sp)
+seedsColl <- seeds %>% filter(IsCollected == TRUE) %>% 
+                       select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Quad seedlings")
+
+addsppColl <- addspp %>% filter(IsCollected == TRUE) %>% 
+                        select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Add spp.")
+
+quadsppColl <- quad_spp |> filter(IsCollected == TRUE) |> 
+  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Quad species")
+
+spp_coll <- rbind(seedsColl, addsppColl, quadsppColl)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(spp_coll, "Plant ID", "Species collected"))
+
+spp_coll_table <- make_kable(spp_coll, "Species collected")
+
 
 #----- + Summarize Plant ID checks + -----
 plantID_check <- QC_table %>% filter(Data %in% "Plant ID" & Num_Records > 0) 

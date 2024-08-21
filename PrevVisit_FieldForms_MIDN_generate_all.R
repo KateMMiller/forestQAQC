@@ -34,7 +34,7 @@ panels <- c(rep(panel_MIDN1, length(MIDN1)), rep(panel_MIDN2, length(MIDN2)),
 library(tidyverse)
 library(knitr)
 library(rmarkdown)
-library(forestNETN)
+library(forestMIDN)
 library(pagedown)
 library(pdftools)
 

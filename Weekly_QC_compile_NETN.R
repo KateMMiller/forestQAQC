@@ -17,7 +17,7 @@ library(purrr)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# week_start = "2023-05-01"
+# week_start = "2024-06-14"
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # loc_type <- 'all'
@@ -850,7 +850,7 @@ tramp_plots2 <- quad_tramp_wide %>% filter(Plot_Name %in% quad_tramp_diff$Plot_N
          ML_c = ML_curr, ML_p = ML_prev, 
          UL_c = UL_curr, UL_p = UL_prev)
 
-if(nrow(tramp_plots2 > 0)){
+if(nrow(tramp_plots2) > 0){
   quad_tramp_table <- make_kable(tramp_plots2, "Trampled in current cycle differs from previous") %>%
       purrr::reduce(2:ncol(tramp_plots2), function(x, y){
         col <- tramp_plots2[, y]
@@ -936,6 +936,14 @@ QC_table <- rbind(QC_table,
 
 quad_sq_spp_table <- make_kable(quad_sq_spp, "Quadrat Species: SS sample qualifier without % cover data")
 
+# Check for species marked as Germinant - should only be tree species
+quad_germ <- quad_spp %>% filter(IsGerminant == TRUE & Tree != 1) %>% 
+                          select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsGerminant)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(quad_germ, "Quadrat", "Non-tree species marked as germinants"))
+
+quad_germ_table <- make_kable(quad_germ, "Non-tree species marked as germinants")
 
 #----- + Summarize quadrat checks + -----
 quad_check <- QC_table %>% filter(Data %in% "Quadrat" & Num_Records > 0) 
@@ -1262,10 +1270,25 @@ QC_table <- rbind(QC_table,
 
 sppID_table <- make_kable(sppID_check, "Potentially incorrect species entries")
 
+# check for plant species collected i.e. Collected check box = True (only available in Quads and Add sp)
+addsppColl <- addspp %>% filter(IsCollected == TRUE) %>% 
+  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Add spp.")
+
+quadsppColl <- quad_spp |> filter(IsCollected == TRUE) |> 
+  select(Plot_Name, ParkUnit, IsQAQC, ScientificName, IsCollected) |> 
+  mutate(Tab = "Quad species")
+
+spp_coll <- rbind(addsppColl, quadsppColl)
+
+QC_table <- rbind(QC_table, 
+                  QC_check(spp_coll, "Plant ID", "Species collected"))
+
+spp_coll_table <- make_kable(spp_coll, "Species collected")
+
 #----- + Summarize Plant ID checks + -----
 plantID_check <- QC_table %>% filter(Data %in% "Plant ID" & Num_Records > 0) 
 include_plantID_tab <- tab_include(plantID_check)
-
 
 #----- ISED checks-----
 taxa <- prepTaxa()

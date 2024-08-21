@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manualMIDN.html"
 params:
-  week_start: "2023-08-13"
+  week_start: "2024-08-04"
   locType: 'all'
 
 ---
@@ -267,7 +267,12 @@ check_null(spp_newpark_table)
 check_null(sppID_table) # Updated for MIDN species
 ```
 </details>
-<br>
+
+<details open><summary class='drop'><h3>Species collected</h3></summary>
+```{r}
+check_null(spp_coll_table) 
+```
+</details>
 <br>
 
 ```{r ISED_tab, echo = FALSE, eval = include_ISED_tab, results = 'asis'}
