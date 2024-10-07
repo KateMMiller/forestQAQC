@@ -40,7 +40,7 @@ panel = params$panel
 # Create environment for rmds to pull params from
 child_env <- new.env()
 importData()
-for(n in ls(VIEWS_MIDN, all.names = TRUE)) assign(n, get(n, VIEWS_MIDN), child_env)
+for(n in ls(VIEWS_MIDN_NCBN, all.names = TRUE)) assign(n, get(n, VIEWS_MIDN_NCBN), child_env)
 
 year = as.numeric(params$year)
 park = params$park
