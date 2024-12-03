@@ -40,6 +40,7 @@ library(ggrepel)
 library(cowplot)
 library(stringr)
 library(DT) # for sort/filter table features
+library(htmlwidgets)
 # park = "ROVA"; year = as.numeric(2019); panel = 2
 # params <- data.frame(yearpv = 2019, year_curr = 2024, parkcode = "ROVA", panel = 2, print = FALSE)
 # importData()
