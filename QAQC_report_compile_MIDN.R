@@ -51,7 +51,7 @@ stand2 <- do.call(cbind, c(stand,
                            lapply(seq_along(code_cols), function(x){
                              add_covcode(stand, code_cols[x], stand_cov)}))) 
 
-tree_hts <- get("StandTreeHeights_MIDN", envir = VIEWS_MIDN) %>%
+tree_hts <- get("StandTreeHeights_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) %>%
   select(Plot_Name, ParkUnit, PlotCode, SampleYear, IsQAQC, CrownClassLabel, TagCode, Height) %>%
   filter_plot() %>% name_team() %>% select(-IsQAQC) %>% arrange(CrownClassLabel, TagCode, Team)
 
@@ -339,7 +339,7 @@ regen_comp <- regen_comp1 %>% mutate_if(is.numeric, round, 2) %>%
          stock_C, stock_Q, everything())
 
 #----- Quadrat Character for trampled
-quad_tramp <- get("QuadNotes_MIDN", envir = VIEWS_MIDN)
+quad_tramp <- get("QuadNotes_MIDN_NCBN", envir = VIEWS_MIDN_NCBN)
 
 quad_tramp <- quad_tramp %>% 
   #mutate(Plot_Name  = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
@@ -724,7 +724,7 @@ plot_spp <- spp_list_comp3 %>% select(ScientificName, crew, qaqc) %>%
 #}
 
 #----- CWD
-cwd_raw <- VIEWS_MIDN$CWD_MIDN %>% select(Plot_Name, ParkUnit, PlotCode, SampleYear, IsQAQC, SQTransectCode, TransectCode, 
+cwd_raw <- VIEWS_MIDN_NCBN$CWD_MIDN_NCBN %>% select(Plot_Name, ParkUnit, PlotCode, SampleYear, IsQAQC, SQTransectCode, TransectCode, 
                                           ScientificName, Distance, Diameter, Length, DecayClassCode,
                                           MultiCrossCode, IsHollow, CWDNote)
 

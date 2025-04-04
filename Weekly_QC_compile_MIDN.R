@@ -208,7 +208,7 @@ QC_table <- rbind(QC_table, QC_check(stand_dist, "Stand Data", "Reported stand d
 stand_dist_table <- make_kable(stand_dist, "Recorded disturbances")
 
 # Check for potential stand height outliers
-stand_ht <- get("StandTreeHeights_MIDN", env = VIEWS_MIDN) %>% 
+stand_ht <- get("StandTreeHeights_MIDN_NCBN", env = VIEWS_MIDN_NCBN) %>% 
             select(Plot_Name, ParkUnit, SampleYear, SampleDate, IsQAQC, CrownClassLabel, Height) %>% 
             filter(!is.na(CrownClassLabel)) %>% name_plot()
 
@@ -515,7 +515,7 @@ include_tree_tab <- tab_include(tree_check)
 
 #----- Microplot Saplings -----
 # Check sample qualifiers
-shrubs_sq <- get("MicroplotShrubs_MIDN", env = VIEWS_MIDN) %>% 
+shrubs_sq <- get("MicroplotShrubs_MIDN_NCBN", env = VIEWS_MIDN_NCBN) %>% 
              #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
              name_plot() %>% 
              filter(Plot_Name %in% new_evs_list) %>% 
@@ -524,7 +524,7 @@ shrubs_sq <- get("MicroplotShrubs_MIDN", env = VIEWS_MIDN) %>%
              rename(SQ = SQShrubCode, SQNotes = SQShrubNotes) %>% 
              mutate(type = "shrub")
 
-saps_sq <- get("MicroplotSaplings_MIDN", env = VIEWS_MIDN) %>% 
+saps_sq <- get("MicroplotSaplings_MIDN_NCBN", env = VIEWS_MIDN_NCBN) %>% 
            #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
            name_plot() %>% 
            filter(Plot_Name %in% new_evs_list) %>% 
@@ -829,7 +829,7 @@ QC_table <- rbind(QC_table,
 shrub_pm_table <- make_kable(shrub_data_pm2, "Shrubs: Permanently Missing records")
 
 # Check for plots with SS shrubsample qualifier and no species data
-shrub_ss_sq <- get("MicroplotShrubs_MIDN", envir = VIEWS_MIDN) %>% 
+shrub_ss_sq <- get("MicroplotShrubs_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) %>% 
                name_plot() %>% 
                filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year) %>%
                select(Plot_Name, SampleYear, IsQAQC, SQShrubCode, MicroplotCode, ScientificName, CoverClassCode) %>%
@@ -920,7 +920,7 @@ quad_seed <- do.call(joinQuadSeedlings, arglist) %>%
              filter(SampleYear %in% curr_year)
 
 #check for trampled quadrats
-quad_tramp <- get("QuadNotes_MIDN", envir = VIEWS_MIDN) 
+quad_tramp <- get("QuadNotes_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) 
 
 quad_tramp2 <- quad_tramp %>% #mutate(Plot_Name = 
                                        #paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', "0"), sep = "-")) %>% 
@@ -1065,7 +1065,7 @@ QC_table <- rbind(QC_table,
 quad_0cov_table <- make_kable(quad_0cov, "Quadrat Species: species recorded with 0 or missing cover")
 
 # Check for quadrats with SS sample qualifier, but no quad character data (eg potentially lost)
-quad_sq_data1 <- get("QuadCharacter_MIDN", envir = VIEWS_MIDN) %>% 
+quad_sq_data1 <- get("QuadCharacter_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) %>% 
   name_plot() %>% filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear == curr_year)
 
 quad_sq_data1$num_missing <- rowSums(is.na(quad_sq_data1[, c("A2_txt", "A5_txt", "A8_txt", "AA_txt", 
@@ -1088,7 +1088,7 @@ QC_table <- rbind(QC_table,
 quad_sq_data_table <- make_kable(quad_sq_data_final, "Quadrat Data: SS sample qualifier without % cover data")
 
 # Check for quadrats with SS sample qualifier, but no quad species data (eg potentially lost)
-quad_sq_spp1 <- get("QuadSpecies_MIDN", envir = VIEWS_MIDN) %>% 
+quad_sq_spp1 <- get("QuadSpecies_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) %>% 
   name_plot() %>% filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year)  
 
 quad_sq_spp1$num_missing <- rowSums(is.na(quad_sq_spp1[, c("A2_txt", "A5_txt", "A8_txt", "AA_txt", 
@@ -1112,7 +1112,7 @@ quad_sq_spp_table <- make_kable(quad_sq_spp_final, "Quadrat Species: SS sample q
 
 # Quadrat Seedling Checks
 # Check for PMs in seedling data
-seeds_sq <- get("QuadSeedlings_MIDN", env = VIEWS_MIDN) %>%
+seeds_sq <- get("QuadSeedlings_MIDN_NCBN", env = VIEWS_MIDN_NCBN) %>%
             #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
             name_plot() %>%
             filter(Plot_Name %in% new_evs_list) %>%
@@ -1140,7 +1140,7 @@ QC_table <- rbind(QC_table,
 seed_pm_table <- make_kable(seed_data_pm2, "Seedlings: Permanently Missing records")
 
 # Check for plots with SS sample qualifier and no species data
-seed_ss_sq <- get("QuadSeedlings_MIDN", envir = VIEWS_MIDN) %>% 
+seed_ss_sq <- get("QuadSeedlings_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) %>% 
   #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>%
   name_plot() %>% 
   filter(Plot_Name %in% new_evs_list) %>% filter(SampleYear %in% curr_year) %>%
@@ -1267,7 +1267,7 @@ include_addspp_tab <- tab_include(addspp_check)
 
 #----- CWD -----
 # Check for NS SQ
-cwd_vw <- get("CWD_MIDN", env = VIEWS_MIDN) %>% 
+cwd_vw <- get("CWD_MIDN_NCBN", env = VIEWS_MIDN_NCBN) %>% 
           #mutate(Plot_Name = paste(ParkUnit, stringr::str_pad(PlotCode, 3, side = 'left', '0'), sep = "-")) %>% 
           name_plot() %>% 
           filter(Plot_Name %in% new_evs_list) %>% 

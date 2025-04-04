@@ -37,6 +37,7 @@ library(kableExtra)
 library(ggrepel)
 library(cowplot)
 library(DT) # for sort/filter table features
+library(htmlwidgets)
 #source("PrevVisit_FieldForms_MIDN_compile.R") 
 ```
 
