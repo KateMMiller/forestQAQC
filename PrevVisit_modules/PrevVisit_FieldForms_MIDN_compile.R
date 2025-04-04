@@ -57,7 +57,7 @@ sdist2 <- do.call(joinStandDisturbance, arglist) |>
   filter(!Dist %in% "None")
 
 #----- Stand heights -----
-treeht <- get("StandTreeHeights_MIDN", envir = VIEWS_MIDN) |> 
+treeht <- get("StandTreeHeights_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) |> 
   filter(EventID %in% ev_list$EventID) |> filter(PanelCode == panel) |> 
   select(Plot_Name, CrownClassCode, CrownClassLabel, TagCode, Height) |> 
   arrange(Plot_Name, CrownClassLabel, TagCode)
@@ -144,7 +144,7 @@ quaddata <- do.call(joinQuadData, arglist) |> filter(PanelCode == panel) |>
 
 head(quaddata)
 
-quad_tramp <- get("QuadNotes_MIDN", envir = VIEWS_MIDN) 
+quad_tramp <- get("QuadNotes_MIDN_NCBN", envir = VIEWS_MIDN_NCBN) 
 
 quad_tramp_note <- quad_tramp |> group_by(Plot_Name, SampleYear) |> 
   filter(!is.na(SQQuadCharNotes)) |> 
@@ -182,7 +182,7 @@ addspp <- do.call(joinAdditionalSpecies, arglist) |>
 head(addspp)
 
 #----- CWD -----
-cwd <- get("CWD_MIDN", env = VIEWS_MIDN) |>  
+cwd <- get("CWD_MIDN_NCBN", env = VIEWS_MIDN_NCBN) |>  
   filter(EventID %in% ev_list$EventID) |> filter(PanelCode == panel) |> 
   select(Plot_Name, SampleYear, TransectCode, Distance, ScientificName, Diameter, 
          MultiCrossCode, Length, IsHollow, Decay = DecayClassCode, CWDNote) |> 

@@ -4,9 +4,9 @@ output:
     css: PrevVisit_modules/www/styles_prevvisit.css
     anchor_sections: FALSE
 params:
-  yearpv: 2021 # MUST BE LINKED TO DRIVE WITH PHOTOPOINTS TO WORK
-  parkcode: "FRSP"
-  panel: 2
+  yearpv: 2019 # MUST BE LINKED TO DRIVE WITH PHOTOPOINTS TO WORK
+  parkcode: "ASIS"
+  panel: 1
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -44,7 +44,7 @@ library(DT) # for sort/filter table features
 # Create environment for rmds to pull params from
 child_env <- new.env()
 importData()
-for(n in ls(VIEWS_MIDN, all.names = TRUE)) assign(n, get(n, VIEWS_MIDN), child_env)
+for(n in ls(VIEWS_MIDN_NCBN, all.names = TRUE)) assign(n, get(n, VIEWS_MIDN_NCBN), child_env)
 
 year = as.numeric(params$yearpv)
 park = params$parkcode
@@ -147,7 +147,7 @@ addspp <- joinAdditionalSpecies(park = park, from = year, to = year,
                                 eventType = 'all', panel = panel) |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
-cwd_conc <- VIEWS_MIDN$CWD_MIDN |> filter(ParkUnit == park) |> filter(SampleYear == year) |> 
+cwd_conc <- VIEWS_MIDN_NCBN$CWD_MIDN_NCBN |> filter(ParkUnit == park) |> filter(SampleYear == year) |> 
   filter(PanelCode == panel) |> 
   group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance))) |>
   mutate(Concerns = case_when(num_cwd > 25 ~ "TONS OF CWD",
