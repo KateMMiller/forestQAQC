@@ -4,10 +4,10 @@ output:
     css: PrevVisit_modules/www/styles_prevvisit.css
     anchor_sections: FALSE
 params:
-  yearpv: 2019
-  year_curr: 2024
-  parkcode: "WEFA"
-  panel: 2
+  yearpv: 2022
+  year_curr: 2025
+  parkcode: "MABI"
+  panel: 3
   print: FALSE
 ---
 ```{r include = FALSE}
