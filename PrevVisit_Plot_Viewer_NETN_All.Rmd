@@ -6,7 +6,7 @@ output:
 params:
   yearpv: 2022
   year_curr: 2025
-  parkcode: "MABI"
+  parkcode: "SAGA"
   panel: 3
   print: FALSE
 ---
@@ -94,8 +94,8 @@ plot_info <- joinLocEvent(park = park, from = year, to = year, output = 'verbose
 stand_info <- joinStandData(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   mutate(tree_cores = ifelse(ParkUnit == "MIMA", "Tree Cores", NA_character_)) |> 
   mutate(slope = case_when(PlotSlope >= 35 ~ "EXTREMELY STEEP",
-                           between(PlotSlope, 35, 25) ~ "VERY STEEP",
-                           between(PlotSlope, 25, 15) ~ "STEEP",
+                           between(PlotSlope, 25, 35) ~ "VERY STEEP",
+                           between(PlotSlope, 15, 25) ~ "STEEP",
                            PlotSlope < 15 ~ NA_character_,
                            TRUE ~ NA_character_),
          crown = case_when(Pct_Crown_Closure == 5 ~ "VERY OPEN",
@@ -141,7 +141,7 @@ shrubs <- joinMicroShrubData(park = park, from = year, to = year, panel = panel,
   group_by(Plot_Name) |> summarize(shrub_avg_cov = sum(shrub_avg_cov, na.rm = T)) |> 
   mutate(Concerns = case_when(shrub_avg_cov >= 70 ~ "VERY DENSE SHRUBS",
                              between(shrub_avg_cov, 45, 70) ~ "DENSE SHRUBS",
-                             between(shrub_avg_cov, 25, 25) ~ "SHRUBS",
+                             between(shrub_avg_cov, 25, 45) ~ "SHRUBS",
                              TRUE ~ NA_character_)) |> 
   select(Plot_Name, Concerns) |> filter(!is.na(Concerns))
 
