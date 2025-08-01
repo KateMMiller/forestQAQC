@@ -495,7 +495,7 @@ QC_table <- rbind(QC_table,
 trcond_spp_table <- make_kable(trcond_spp_check, "Trees with conditions applied to wrong species.")
 
 # Check for priority pest detections
-pest_list <- c("ALB", "BC", "BBD", "BWA", "DOG", "EAB", "EHS", "GM", "HWA", "RPS", "SB", "SOD", "SPB", "SW")
+pest_list <- c("ALB", "BC", "BBD", "BLD", "BWA", "DOG", "EAB", "EHS", "GM", "HWA", "RPS", "SB", "SOD", "SPB", "SW")
 
 pest_check <- tree_cond %>% mutate(pest_det = rowSums(across(all_of(pest_list)), na.rm = T)) %>% 
                             filter(pest_det > 0) %>% select(Plot_Name, TagCode, all_of(pest_list)) %>% 
