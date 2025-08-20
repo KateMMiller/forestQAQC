@@ -6,7 +6,7 @@ output:
 params:
   yearpv: 2022
   year_curr: 2025
-  parkcode: "SAGA"
+  parkcode: "MIMA"
   panel: 3
   print: FALSE
 ---
@@ -151,6 +151,33 @@ quadspp <- joinQuadSpecies(park = park, from = year, to = year, panel = panel, l
   group_by(Plot_Name) |> 
   summarize(num_quadspp = sum(!ScientificName %in% "None present"))
 
+PI <- joinQuadSpecies(park = park, from = year, to = year,
+                                eventType = 'all', panel = panel) |> 
+                      select(Plot_Name, ScientificName, starts_with("Pct_Cov"))
+
+PI_long <- PI |> pivot_longer(starts_with("Pct_Cov"), names_to = "Quad", values_to = "Pct_Cover")
+
+PI_count <- PI_long %>%  group_by(Plot_Name) %>%  
+                       filter(ScientificName == "Toxicodendron radicans") %>% 
+                       filter(Pct_Cover > 0) %>%  
+                       summarize(PI_quads = n()) %>%  
+                       mutate(Concerns = paste0("PI in ", PI_quads, " quads")) |> 
+                       select(Plot_Name, Concerns) |> filter(!is.na(Concerns))
+
+PI_max <- PI_long %>%  group_by(Plot_Name) %>%  
+                      filter(ScientificName == "Toxicodendron radicans") %>% 
+                      filter(Pct_Cover > 0) %>%  
+                      summarize(PI_max = max(Pct_Cover)) %>%  
+                      mutate(Concerns = paste0("Max PI =  ", PI_max, "%")) |> 
+                      select(Plot_Name, Concerns) |> filter(!is.na(Concerns))  
+
+PI_mean <- PI_long %>%  group_by(Plot_Name) %>%  
+                      filter(ScientificName == "Toxicodendron radicans") %>% 
+                      filter(Pct_Cover > 0) %>%  
+                      summarize(PI_avg = round((sum(Pct_Cover)/8), 1)) %>%  
+                      mutate(Concerns = paste0("Avg. PI =  ", PI_avg, "%")) |> 
+                      select(Plot_Name, Concerns) |> filter(!is.na(Concerns)) 
+
 addspp <- joinAdditionalSpecies(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
 
@@ -170,7 +197,7 @@ cwd_conc <- VIEWS_NETN$CWD_NETN |> filter(ParkUnit == park) |> filter(SampleYear
   filter(!is.na(Concerns)) |> select(Plot_Name, Concerns)
 
 
-concerns <- rbind(stand_conc, shrubs, soil_sch1, cwd_conc) |> 
+concerns <- rbind(stand_conc, shrubs, soil_sch1, cwd_conc, PI_count, PI_max, PI_mean) |> 
   group_by(Plot_Name) |> summarize(Concerns = toString(unique(Concerns)))
 
 comb <- purrr::reduce(list(plot_info, visit_notes, trees, regen, 
