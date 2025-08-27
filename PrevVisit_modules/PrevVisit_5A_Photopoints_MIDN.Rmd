@@ -11,8 +11,11 @@ output:
 # park = "APCO"; year = 2018; plot = "APCO-262"
 # path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park,
 #                "/")
+# MIDN drive is mapped to X on some folks' laptops and Y on others, so making more flexible.
 photo_path <- paste0("X:/Files/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park, "/")
-photo_eval <- if(exists('photo_path')){TRUE} else {FALSE}
+if(!dir.exists(photo_path)){photo_path <- paste0("Y:/Files/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park, "/")}
+photo_eval <- if(dir.exists(photo_path)){TRUE} else {FALSE} # better way to prevent MIDN_All.RMD from crashing
+# if not connected to the MIDN server.
 
 if(photo_eval == TRUE){
 all_photos <- list.files(photo_path, pattern = ".JPG")
