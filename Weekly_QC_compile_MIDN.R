@@ -12,8 +12,8 @@ library(kableExtra)
 source("Weekly_QC_functions.R")
 
 #----- Compile data -----
-# importData()
-# week_start = "2024-08-04"
+# importData(server = "INP2300IRMADB01\\NTWK", instance = "server", new_env = TRUE)
+# week_start = "2025-09-14"
 # curr_year <- year(week_start)
 # week_start <- as_date(week_start)
 # loc_type <- 'VS'
@@ -31,8 +31,8 @@ if(nrow(new_evs) == 0){stop("Specified week returned 0 visits to check.")}
 new_evs_list <- unique(new_evs$Plot_Name)
 
 park_ev_list <- sort(unique(new_evs$ParkUnit)) #use for checks on current year
-park_orig_list <- unique(substr(new_evs_list[!grepl("ASIS", new_evs_list)], 1, 4)) # use for comparisons
- # Drop the !grepl("ASIS") after 2024
+park_orig_list <- unique(substr(new_evs_list[], 1, 4)) # use for comparisons
+# Drop the !grepl("ASIS") after 2024
 
 arglist = list(park = park_ev_list, to = curr_year, QAQC = TRUE, eventType = 'all', locType = loc_type)
 
@@ -120,13 +120,13 @@ stand_pm_table <- make_kable(stand_pm2, "Permanently Missing records in stand da
 
 # Check plots with fluctuating stand structure
 stand_str_latest <- stand %>% #filter(IsQAQC == 0) %>% 
-  filter(!ParkUnit %in% "ASIS" ) %>% 
+  # filter(!ParkUnit %in% "ASIS" ) %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, ParkUnit, cycle, Stand_Structure) %>% 
   group_by(Plot_Name) %>% slice(which.max(cycle)) %>% ungroup()
 
 stand_str_prev <- stand %>% filter(IsQAQC == 0) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   filter(Plot_Name %in% new_evs_list) %>% 
   select(Plot_Name, ParkUnit, cycle, Stand_Structure)%>% 
   group_by(Plot_Name) %>% slice(which.max(cycle)-1) %>% ungroup()
@@ -295,7 +295,7 @@ exc <- c("0","ES","EX","XO","XP")
 missed <- c("AM", "DM")
 
 status_check1 <- tree_data %>% #filter(IsQAQC == 0) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, SampleYear, cycle, TreeStatusCode) %>% 
   mutate(status = case_when(TreeStatusCode %in% alive ~ "alive",
                             TreeStatusCode %in% dead ~ "dead", 
@@ -378,11 +378,11 @@ em_spp_table <- make_kable(em_spp, "Elevated mortality by tree species")
 
 # Trees with major crown class changes
 crown_check_prev <- tree_data_old %>% filter(TreeStatusCode %in% alive) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, CrownClassCode)
 
 crown_check_latest <- tree_data_new %>% filter(TreeStatusCode %in% alive) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, CrownClassCode)
 
 crown_check1 <- left_join(crown_check_latest, crown_check_prev, 
@@ -402,11 +402,11 @@ crown_table <- make_kable(crown_check, "Major crown class changes")
 
 # Check that trees with > 3cm growth or <-0.1 cm growth have DBH verified selected
 tree_live_prev <- tree_data_old %>% filter(TreeStatusCode %in% alive) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, DBHcm)
 
 tree_live_latest <- tree_data_new %>% filter(TreeStatusCode %in% alive) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, DBHcm, IsDBHVerified)
 
 tree_dbh <- left_join(tree_live_latest, tree_live_prev, 
@@ -644,7 +644,7 @@ exc <- c("ES","EX","XO","XP")
 missed <- c("AM", "DM")
 
 sap_status_check1 <- sap_data %>% #filter(IsQAQC == 0) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, SampleYear, cycle, SaplingStatusCode) %>% 
   mutate(status = case_when(SaplingStatusCode %in% alive ~ "alive",
                             SaplingStatusCode %in% dead ~ "dead", 
@@ -728,11 +728,11 @@ sap_em_spp_table <- make_kable(sap_em_spp, "Saplings: Elevated mortality by tree
 
 # Check that saplings with > 3cm growth or <-0.1 cm growth have DBH verified selected
 sap_live_prev <- sap_data_old %>% filter(SaplingStatusCode %in% alive) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, DBHcm)
 
 sap_live_latest <- sap_data_new %>% filter(SaplingStatusCode %in% alive) %>% 
-  filter(!ParkUnit %in% "ASIS") %>% 
+  # filter(!ParkUnit %in% "ASIS") %>% 
   select(Plot_Name, ParkUnit, TagCode, cycle, DBHcm, IsDBHVerified)
 
 sap_dbh <- left_join(sap_live_latest, sap_live_prev, 
@@ -1397,7 +1397,7 @@ spp_plotcheck <- full_join(spplist_new, spplist_old,
 spp_plotcheck[, 8:ncol(spp_plotcheck)][is.na(spp_plotcheck[, 8:ncol(spp_plotcheck)])] <- 0
 
 spp_newplot <- spp_plotcheck %>% filter(pres_new == 1 & pres_old == 0) %>% 
-               filter(!ParkUnit %in% "ASIS") %>% 
+               # filter(!ParkUnit %in% "ASIS") %>% 
                select(-SampleYear, -cycle, -TSN, BA_cm2, -DBH_mean, -stock, -shrub_pct_freq,
                       -quad_pct_freq, -pres_new, -pres_old) %>% arrange(Plot_Name, IsQAQC, ScientificName)
 
