@@ -5,9 +5,9 @@ output:
     anchor_sections: FALSE
 params:
   yearpv: 2022
-  year_curr: 2025
-  parkcode: "MIMA"
-  panel: 3
+  year_curr: 2026
+  parkcode: "WEFA"
+  panel: 4
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -41,8 +41,8 @@ library(cowplot)
 library(stringr)
 library(DT) # for sort/filter table features
 library(htmlwidgets)
-# park = "ROVA"; year = as.numeric(2019); panel = 2
-# params <- data.frame(yearpv = 2019, year_curr = 2024, parkcode = "ROVA", panel = 2, print = FALSE)
+#park = "WEFA"; year = as.numeric(2022); panel = 4
+# params <- data.frame(yearpv = 2022, year_curr = 2026, parkcode = "WEFA", panel = 4, print = FALSE)
 # importData()
 # source("./PrevVisit_Modules/PrevVisit_FieldForms_NETN_compile.R")
 soil_sch <- readxl::read_xlsx("./PrevVisit_Modules/12-year_Soil_Sample_Schedule.xlsx", sheet = params$parkcode)[,1:5]
@@ -151,32 +151,22 @@ quadspp <- joinQuadSpecies(park = park, from = year, to = year, panel = panel, l
   group_by(Plot_Name) |> 
   summarize(num_quadspp = sum(!ScientificName %in% "None present"))
 
-PI <- joinQuadSpecies(park = park, from = year, to = year,
-                                eventType = 'all', panel = panel) |> 
-                      select(Plot_Name, ScientificName, starts_with("Pct_Cov"))
+PI <- joinQuadSpecies(park = park, from = year, to = year, eventType = 'all', panel = panel) |> 
+  filter(ScientificName %in% "Toxicodendron radicans")
 
-PI_long <- PI |> pivot_longer(starts_with("Pct_Cov"), names_to = "Quad", values_to = "Pct_Cover")
+PI_count <- PI |> 
+            mutate(PI_quads = num_quads*(quad_pct_freq/100)) |> 
+            filter(PI_quads > 0) |>  # Not needed b/c there has to be 1 quad present for toxrad
+            mutate(Concerns = paste0("PI in ", PI_quads, " quads")) |> 
+            select(Plot_Name, Concerns) 
 
-PI_count <- PI_long %>%  group_by(Plot_Name) %>%  
-                       filter(ScientificName == "Toxicodendron radicans") %>% 
-                       filter(Pct_Cover > 0) %>%  
-                       summarize(PI_quads = n()) %>%  
-                       mutate(Concerns = paste0("PI in ", PI_quads, " quads")) |> 
-                       select(Plot_Name, Concerns) |> filter(!is.na(Concerns))
+PI_max <- PI |> rowwise() |> mutate(PI_max = max(c_across(starts_with("Pct_Cov")))) |> data.frame() |> 
+  mutate(Concerns = paste0("Max PI = ", PI_max, "%")) |> 
+  select(Plot_Name, Concerns)
 
-PI_max <- PI_long %>%  group_by(Plot_Name) %>%  
-                      filter(ScientificName == "Toxicodendron radicans") %>% 
-                      filter(Pct_Cover > 0) %>%  
-                      summarize(PI_max = max(Pct_Cover)) %>%  
-                      mutate(Concerns = paste0("Max PI =  ", PI_max, "%")) |> 
-                      select(Plot_Name, Concerns) |> filter(!is.na(Concerns))  
-
-PI_mean <- PI_long %>%  group_by(Plot_Name) %>%  
-                      filter(ScientificName == "Toxicodendron radicans") %>% 
-                      filter(Pct_Cover > 0) %>%  
-                      summarize(PI_avg = round((sum(Pct_Cover)/8), 1)) %>%  
-                      mutate(Concerns = paste0("Avg. PI =  ", PI_avg, "%")) |> 
-                      select(Plot_Name, Concerns) |> filter(!is.na(Concerns)) 
+PI_mean <- PI |> mutate(PI_avg = round(quad_avg_cov, 1)) |> 
+                 mutate(Concerns = paste0("Avg. PI =  ", PI_avg, "%")) |> 
+                 select(Plot_Name, Concerns) 
 
 addspp <- joinAdditionalSpecies(park = park, from = year, to = year, panel = panel, locType = 'all') |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
