@@ -7,28 +7,24 @@
 # referred to in the field for plot info, trees, saplings, and quadrat species
 
 #----- Set up params ----- #++++ UPDATE ANNUALLY ++++
-MIDN1 <- c("FRSP", "PETE", "RICH")
-MIDN2 <- c("APCO", "BOWA", "GETT", "HOFU", "VAFO")
-NCBN <- c("GEWA", "THST")
+MIDN1 <- c("FRSP", "PETE", "RICH", "GEWA", "THST")
+MIDN2 <- c("APCO", "BOWA", "GETT", "HOFU", "VAFO", "COLO")
 
-prevyr_MIDN1 = 2021
-prevyr_MIDN2 = 2019
-prevyr_NCBN = 2021
-prevyr_COLO = 2019
-  
-panel_MIDN1 = 2
-panel_MIDN2 = 1
-panel_NCBN = 2
-panel_COLO = 1
+prevyr_MIDN1 = 2022
+prevyr_MIDN2 = 2022
+prevyr_ASIS = 2022
 
-treemap_from = 2019 
-treemap_to = 2021
+panel_MIDN1 = 4
+panel_MIDN2 = 3
+panel_ASIS = 2
+# treemap_from = 2023
+# treemap_to = 2026
 
-parks <- c(MIDN1, MIDN2, NCBN, "COLO")
+parks <- c(MIDN1, MIDN2, "ASIS")
 years = c(rep(prevyr_MIDN1, length(MIDN1)), rep(prevyr_MIDN2, length(MIDN2)), 
-          rep(prevyr_NCBN, length(NCBN)), prevyr_COLO)
+          prevyr_ASIS)
 panels <- c(rep(panel_MIDN1, length(MIDN1)), rep(panel_MIDN2, length(MIDN2)), 
-            rep(panel_NCBN, length(NCBN)), panel_COLO)
+            panel_ASIS)
 
 #----- Imports/libraries -----
 library(tidyverse)
@@ -87,17 +83,12 @@ plotTreeMap(park = MIDN1, from = prevyr_MIDN1, to = treemap_to,
 plotTreeMap(park = MIDN2, from = prevyr_MIDN2, to = treemap_to, 
             panel = panel_MIDN2, path = path_trmaps, output_to = 'file')
 
-plotTreeMap(park = NCBN, from = prevyr_NCBN, to = treemap_to, 
-            panel = panel_MIDN1, path = path_trmaps, output_to = 'file')
-
-plotTreeMap(park = "COLO", from = prevyr_COLO, to = treemap_to, 
-            panel = panel_COLO, path = path_trmaps, output_to = 'file')
+plotTreeMap(park = "ASIS", from = prevyr_ASIS, to = treemap_to, 
+            panel = panel_ASIS, path = path_trmaps, output_to = 'file')
 
 # plotTreeMap(park = "SAHI", from = 2023, to = 2023,
 #             path = path_trmaps, output_to = 'file')
 
-# plotTreeMap(park = "ASIS", from = 2019, to = 2019,
-#             path = path_trmaps, output_to = 'file')
 
 #----- Park-level Tree and Quadrat reports -----
 ##----- Render Functions to iterate on -----
@@ -151,40 +142,27 @@ plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 map(plots, ~render_reports(., pv_year = prevyr_MIDN2, panel = panel_MIDN2, rmdtr, "Trees")) # trees
 map(plots, ~ render_reports(., pv_year = prevyr_MIDN2, panel = panel_MIDN2, rmdqd, "Quads")) # quads
 
-##----- params for NCBN parks -----
-park <- NCBN
-year <- prevyr_NCBN
-panel = panel_NCBN
+##----- params for ASIS parks -----
+park <- "ASIS"
+year <- prevyr_ASIS
+panel = panel_ASIS
 
 ##----- Source from compile script -----
 source("PrevVisit_modules\\PrevVisit_FieldForms_MIDN_compile.R") 
 plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
 
 ##----- Render Reports -----
-map(plots, ~render_reports(., pv_year = prevyr_NCBN, panel = panel_NCBN, rmdtr, "Trees")) # trees
-map(plots, ~ render_reports(., pv_year = prevyr_NCBN, panel = panel_NCBN, rmdqd, "Quads")) # quads
-
-##----- params for COLO parks -----
-park <- "COLO"
-year <- prevyr_COLO
-panel = panel_COLO
-
-##----- Source from compile script -----
-source("PrevVisit_modules\\PrevVisit_FieldForms_MIDN_compile.R") 
-plots <- sort(unique(plotevs$Plot_Name)) # plot list to iterate on below
-
-##----- Render Reports -----
-map(plots, ~render_reports(., pv_year = prevyr_COLO, panel = panel_COLO, rmdtr, "Trees")) # trees
-map(plots, ~ render_reports(., pv_year = prevyr_COLO, panel = panel_COLO, rmdqd, "Quads")) # quads
+map(plots, ~render_reports(., pv_year = prevyr_ASIS, panel = panel_ASIS, rmdtr, "Trees")) # trees
+map(plots, ~ render_reports(., pv_year = prevyr_ASIS, panel = panel_ASIS, rmdqd, "Quads")) # quads
 
 #----- Sapling reports by parks -----
 ##----- Generates park-level reports, so don't have a bunch of blank space b/t page breaks. 
 
-parks <- c(MIDN1, MIDN2, NCBN, "COLO")
+parks <- c(MIDN1, MIDN2, "ASIS")
 years = c(rep(prevyr_MIDN1, length(MIDN1)), rep(prevyr_MIDN2, length(MIDN2)), 
-          rep(prevyr_NCBN, length(NCBN)), prevyr_COLO)
+          prevyr_ASIS)
 panels <- c(rep(panel_MIDN1, length(MIDN1)), rep(panel_MIDN2, length(MIDN2)), 
-            rep(panel_NCBN, length(NCBN)), panel_COLO)
+            panel_ASIS)
 
 render_saps <- function(parkcode, pv_year, panel){
   pnl = panel
@@ -204,7 +182,7 @@ html_list <- list.files(paste0(path, "indiv\\"), pattern = '.html', full.names =
 pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
 walk2(html_list, pdf_list, ~pagedown::chrome_print(.x, .y))
 
-sap_list <- list.files(path, pattern = 'Saplings.html', full.names = T)
+sap_list <- list.files(paste0(path, "indiv\\"), pattern = 'Saplings.html', full.names = T)
 sap_pdf <- paste0(substr(sap_list, 1, nchar(sap_list) - 4), "pdf")
 walk2(sap_list, sap_pdf, ~pagedown::chrome_print(.x, .y))
 
@@ -222,14 +200,24 @@ combine_tree_pdfs <- function(park, year, path){
 
 combine_quad_pdfs <- function(park, year, path){
   pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
-  trees <- pdf_list[grep(("Quads"), pdf_list)]
-  park_trees <- trees[grep((park), trees)]
-  pdftools::pdf_combine(input = park_trees,
+  quads <- pdf_list[grep(("Quads"), pdf_list)]
+  park_quads <- quads[grep((park), quads)]
+  pdftools::pdf_combine(input = park_quads,
                         output = paste0(path, park, "_", year, "_Quads.pdf"))
 }
 
+combine_saps_pdfs <- function(park, year, path){
+  pdf_list <- list.files(paste0(path, "\\indiv\\"), pattern = ".pdf", full.names = TRUE)
+  saps <- pdf_list[grep(("Saplings"), pdf_list)]
+  park_saps <- saps[grep((park), saps)]
+  pdftools::pdf_combine(input = park_saps,
+                        output = paste0(path, park, "_", year, "_Quads.pdf"))
+}
+
+
 purrr::map2(parks, years, ~combine_tree_pdfs(.x, .y, path))
 purrr::map2(parks, years, ~combine_quad_pdfs(.x, .y, path))
+purrr::map2(parks, years, ~combine_saps_pdfs(.x, .y, path))
 
 #---- Render plot viewers for each park -----
 render_viewer <- function(parkcode, yearpv, panel){
@@ -243,9 +231,43 @@ render_viewer <- function(parkcode, yearpv, panel){
          output_file = paste0(path, parkcode, "_", year, "_Plot_Viewer.html"))
 }
 
+# Check that photopoints are properly labeled, so render doesn't fail after a long run.
+path1 <- "Y:/Files/Monitoring/ForestVegetation/"
+path2 <- "/03_Data/Photos/PhotoPoints/"
+plist <- data.frame(parks = parks, years = years, panels = panels)
+
+photopoint_files <- purrr::map(1:nrow(plist), function(x){
+                               list.files(
+                                 paste0(path1, plist$years[[x]], path2, plist$parks[[x]], "/"))}) |> 
+                    unlist() |> data.frame() |> 
+                    select(photo_name = 1) |>
+                    mutate(view = substr(photo_name, 9, 10))
+
+views <- c("UC", "UR", "BR", "BL", "UL", "RN", "ID")
+view_check <- paste(views, collapse = "|")
+
+check <- photopoint_files[grepl("\\d+", photopoint_files$view),]
+photopoint_files[!grep(view_check, photopoint_files$view),]
+
+
+if(nrow(check) > 0){warning(paste0("The following photopoints were not properly named: ", "\n",
+                                   paste0("\t", check$photo_name, collapse = "\n"), "\n",
+                                   "These will cause the render_viewer to fail until fixed."))}
+
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
 
 # running through a few at a time b/c bogs down laptop
-purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))
-#render_viewer("APCO", 2019, 1)
-#render_viewer("FRSP", 2021, 2)
+# purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))
+
+render_viewer("APCO", 2022, 3) # done
+render_viewer("ASIS", 2022, 2) # done
+render_viewer("BOWA", 2022, 3) # done
+render_viewer("COLO", 2022, 3) # done
+render_viewer("FRSP", 2022, 4) # done
+render_viewer("GETT", 2022, 3) # done
+render_viewer("GEWA", 2022, 4) # done
+render_viewer("HOFU", 2022, 3) # done 
+render_viewer("PETE", 2022, 4) # done
+render_viewer("RICH", 2022, 4) # done
+render_viewer("THST", 2022, 4) # done
+render_viewer("VAFO", 2022, 3) # done
