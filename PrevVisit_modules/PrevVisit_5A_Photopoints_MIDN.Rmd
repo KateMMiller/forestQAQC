@@ -8,10 +8,9 @@ output:
 ---
 ```{r include = FALSE}
 # Using params to pull photo location and names from Z drive
-# park = "APCO"; year = 2018; plot = "APCO-262"
-# path <- paste0("Y:/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park,
-#                "/")
-photo_path <- paste0("X:/Files/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park, "/")
+# park = "FRSP"; year = 2022; plot = "FRSP-319"
+
+photo_path <- paste0("Y:/Files/Monitoring/ForestVegetation/", year, "/03_Data/Photos/PhotoPoints/", park, "/")
 photo_eval <- if(exists('photo_path')){TRUE} else {FALSE}
 
 if(photo_eval == TRUE){
