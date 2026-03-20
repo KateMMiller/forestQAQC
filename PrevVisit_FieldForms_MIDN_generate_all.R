@@ -238,17 +238,14 @@ plist <- data.frame(parks = parks, years = years, panels = panels)
 
 photopoint_files <- purrr::map(1:nrow(plist), function(x){
                                list.files(
-                                 paste0(path1, plist$years[[x]], path2, plist$parks[[x]], "/"))}) |> 
+                                 paste0(path1, plist$years[[x]], path2, plist$parks[[x]], "/"),
+                                 pattern = ".JPG")}) |> 
                     unlist() |> data.frame() |> 
                     select(photo_name = 1) |>
-                    mutate(view = substr(photo_name, 9, 10))
+                    mutate(view = substr(photo_name, 10, 11))
 
 views <- c("UC", "UR", "BR", "BL", "UL", "RN", "ID")
-view_check <- paste(views, collapse = "|")
-
-check <- photopoint_files[grepl("\\d+", photopoint_files$view),]
-photopoint_files[!grep(view_check, photopoint_files$view),]
-
+check <- photopoint_files |> filter(!view %in% views)
 
 if(nrow(check) > 0){warning(paste0("The following photopoints were not properly named: ", "\n",
                                    paste0("\t", check$photo_name, collapse = "\n"), "\n",
