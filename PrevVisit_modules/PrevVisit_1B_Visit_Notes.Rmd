@@ -11,6 +11,7 @@ visit_notes_p <- visit_notes |> filter(Plot_Name %in% plot_name) |> select(-Plot
 
 if(nrow(visit_notes_p) == 0)(warning("PrevVisit_1B_Visit_Notes.rmd returned dataframe with 0 rows."))
 
+if(nrow(visit_notes_p) > 0){
 visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
                      col.names = c("Note Type", "Sample_Info", "Note"),
                      table.attr = "style='width:624px';") %>% 
@@ -18,9 +19,10 @@ visit_table <- kable(visit_notes_p, format = "html", align = c('c','c', 'l'),
                  position = 'left', font_size = 11) %>% 
                collapse_rows(1, valign = 'top') %>% 
                row_spec(c(0, nrow(visit_notes_p)), extra_css = 'border-bottom: 1px solid #000000')
-
+}
 ```
 
 ```{r echo = F}
-visit_table
+if(nrow(visit_notes_p) > 0){
+visit_table } 
 ```
