@@ -4,9 +4,9 @@ output:
     css: PrevVisit_modules/www/styles_prevvisit.css
     anchor_sections: FALSE
 params:
-  yearpv: 2019 # MUST BE LINKED TO DRIVE WITH PHOTOPOINTS TO WORK
-  parkcode: "ASIS"
-  panel: 1
+  yearpv: 2022 # MUST BE LINKED TO DRIVE WITH PHOTOPOINTS TO WORK
+  parkcode: "FRSP"
+  panel: 4
   print: FALSE
 ---
 ```{r include = FALSE}
@@ -38,7 +38,9 @@ library(ggrepel)
 library(cowplot)
 library(DT) # for sort/filter table features
 library(htmlwidgets)
-#source("PrevVisit_FieldForms_MIDN_compile.R") 
+#comment out next 2 lines - for troubleshooting only
+# params <- data.frame(yearpv = 2022, parkcode = "FRSP", panel = 4, print = F)
+# source("./prevvisit_modules/PrevVisit_FieldForms_MIDN_compile.R") 
 ```
 
 ```{r echo = F, include = F, cache = F}
@@ -62,9 +64,10 @@ child_env$plots <- joinLocEvent(park = park,
                                 panel = panel,
                                 eventType = 'all') |> 
                         select(Plot_Name, SampleYear) |> 
-                        arrange(Plot_Name)
+                        arrange(Plot_Name) 
+  
 
-child_env$plot_list <- child_env$plots$Plot_Name#[c(1:2)]
+child_env$plot_list <- child_env$plots$Plot_Name
 child_env$plot_name <- child_env$plot_list[1]
 
 
@@ -150,7 +153,7 @@ addspp <- joinAdditionalSpecies(park = park, from = year, to = year,
 
 cwd_conc <- VIEWS_MIDN_NCBN$CWD_MIDN_NCBN |> filter(ParkUnit == park) |> filter(SampleYear == year) |> 
   filter(PanelCode == panel) |> 
-  group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance))) |>
+  group_by(Plot_Name, SampleYear) |> summarize(num_cwd = sum(!is.na(Distance)), .groups = "drop") |>
   mutate(Concerns = case_when(num_cwd > 25 ~ "TONS OF CWD",
                              between(num_cwd, 15, 25) ~ "Lots of CWD",
                              between(num_cwd, 8, 15) ~ "CWD",
@@ -158,7 +161,7 @@ cwd_conc <- VIEWS_MIDN_NCBN$CWD_MIDN_NCBN |> filter(ParkUnit == park) |> filter(
   filter(!is.na(Concerns)) |> select(Plot_Name, Concerns)
 
 concerns <- rbind(stand_conc, shrubs, cwd_conc) |> 
-  group_by(Plot_Name) |> summarize(Concerns = toString(unique(Concerns)))
+  group_by(Plot_Name) |> summarize(Concerns = toString(unique(Concerns)), .groups = "drop")
 
 comb <- purrr::reduce(list(plot_info, visit_notes, trees, regen, quadspp, addspp, concerns), 
                       left_join, by = "Plot_Name") |> 
@@ -210,13 +213,12 @@ suppressWarnings(comb_tbl)
 
 ```{r results = 'asis', echo = F, eval = T}
 res <- lapply(seq_along(child_env$plot_list), function(x) {
-  
   child_env$plot_name = child_env$plot_list[[x]]
 
   knitr::knit_child(
     './PrevVisit_modules/PrevVisit_Plot_Viewer_MIDN_Indiv.Rmd', 
      envir = child_env,
-     quiet = TRUE )
+     quiet = TRUE)
   
 })
 cat(unlist(res), sep = '\n')
