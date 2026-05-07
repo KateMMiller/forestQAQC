@@ -7,13 +7,13 @@
 # referred to in the field for plot info, trees, and quadrat species
 
 #----- Set up params ----- #++++ UPDATE ANNUALLY ++++
-prevyr_ACAD = 2021  
-prevyr_NHP = 2019  
+prevyr_ACAD = 2022  
+prevyr_NHP = 2022  
 parks_NHP = c("MORR", "ROVA", "WEFA") 
-panel_ACAD = 3
-panel_NHP = 2
-treemap_from = 2019 
-treemap_to = 2021
+panel_ACAD = 1
+panel_NHP = 4
+treemap_from = 2022 
+treemap_to = 2022
 
 #----- Imports/libraries -----
 library(tidyverse)
@@ -72,7 +72,7 @@ if(!dir.exists(path_trmaps)){dir.create(path_trmaps)}
 
 plotTreeMap(park = c("ACAD", parks_NHP), from = treemap_from, to = treemap_to, 
             path = path_trmaps, output_to = 'file')
-
+plotTreeMap(park = "MORR", from = 2022, to = 2022, locType = "all")
 #----- Park-level Tree and Quadrat reports -----
 ##----- Render Functions to iterate on -----
 rmdtr <- "PrevVisit_modules\\PrevVisit_3A_Tree_Measurements.Rmd"
@@ -136,6 +136,7 @@ map(plots, ~render_quads(., pv_year = prevyr_NHP, panel = panel_NHP)) # quads
 html_list <- list.files(paste0(path, "indiv\\NHPs\\"), pattern = '.html', full.names = T)
 pdf_list <- paste0(substr(html_list, 1, nchar(html_list) - 4), "pdf")
 
+# ignore errors
 walk2(html_list, pdf_list, ~suppressWarnings(pagedown::chrome_print(.x, .y, format = 'pdf')))
 
 ##----- Combine park-level pdfs into 1 pdf per module -----
@@ -237,6 +238,31 @@ render_viewer <- function(park, year, panel){
 }
 
 #render_poss <- possibly(.f = render_viewer, otherwise = NULL)
+
+# Check that photopoints are properly labeled, so render doesn't fail after a long run.
+# Note this code assumes photopoints are not in park specific folder. That pattern
+# sometimes changes with new crews/years. So need to check on this every year.
+path1 <- "Z:/PROJECTS/MONITORING/Forest_Health/5_Data/Photos/Photopoints/"
+
+parks <- c("ACAD", parks_NHP)
+years <- c(prevyr_ACAD, rep(prevyr_NHP, length(parks_NHP)))
+panels <- c(panel_ACAD, rep(panel_NHP, length(panel_NHP)))
+plist <- data.frame(parks = parks, years = years, panels = panels)
+
+photopoint_files <- purrr::map(1:nrow(plist), function(x){
+  list.files(
+    paste0(path1, plist$years[[x]], "/"),
+    pattern = ".JPG")}) |> 
+  unlist() |> data.frame() |> 
+  select(photo_name = 1) |>
+  mutate(view = substr(photo_name, 10, 11))
+
+views <- c("UC", "UR", "BR", "BL", "UL", "RN", "ID")
+check <- photopoint_files |> filter(!view %in% views)
+
+if(nrow(check) > 0){warning(paste0("The following photopoints were not properly named: ", "\n",
+                                   paste0("\t", check$photo_name, collapse = "\n"), "\n",
+                                   "These will cause the render_viewer to fail until fixed."))}
 
 # running through one at a time b/c bogs down laptop. Can run all by uncommenting purrr line below
 #purrr::pmap(list(parks, years, panels), ~render_viewer(..1, ..2, ..3))

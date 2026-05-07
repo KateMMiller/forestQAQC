@@ -11,10 +11,11 @@ library(kableExtra)
 
 # importData()
 #----- Compile data -----
-# params <- data.frame(parkcode = "COLO", plot_name = "COLO-380", yearpv = 2018)
+# params <- data.frame(parkcode = "FRSP", plot_name = "FRSP-272", yearpv = 2022)
 # park <- params$parkcode
 # year <- as.numeric(params$yearpv)
-# plot_name <- "COLO-380"
+# plot_name <- params$plot_name
+# panel = 4
 
 arglist = list(park = park, from = year, to = year, QAQC = FALSE, panel = panel, eventType = 'all')
 

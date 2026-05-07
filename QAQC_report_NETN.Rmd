@@ -6,8 +6,8 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  year: 2024
-  plot: "ACAD-120"
+  year: 2025
+  plot: "ACAD-156"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -624,11 +624,11 @@ plotspp_tab_ta <- if(nrow(plot_spp) > 0){ # this is prelim df to plot_spp_wide
                    row_spec(c(0, nrow(plot_spp_wide2)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
                    row_spec(nrow(plot_spp_wide2), bold = T, extra_css = "border-bottom: 1px solid #000000;",
                              background =
-                              case_when(!is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
-                                          plot_spp_wide2[nrow(plot_spp_wide2), 3] < 0.8 ~ diff_bad, 
-                                        !is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
+                              case_when(as.vector(!is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
+                                          plot_spp_wide2[nrow(plot_spp_wide2), 3] < 0.8) ~ diff_bad, 
+                                        as.vector(!is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
                                              plot_spp_wide2[nrow(plot_spp_wide2), 3] >= 0.8 &
-                                             plot_spp_wide2[nrow(plot_spp_wide2), 3] < 1 ~ diff_ok,
+                                             plot_spp_wide2[nrow(plot_spp_wide2), 3] < 1) ~ diff_ok,
                                         TRUE ~ "#ffffff"))
                    } 
 

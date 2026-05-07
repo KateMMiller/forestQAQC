@@ -36,9 +36,9 @@ check_dif_strict <- function(df, col){
 
 check_dif_col <- function(df, col){
   df[,col][is.na(df[,col])] <- 0
-  color <- case_when(df[,col] == 0 ~ "#ffffff",
-                     df[,col] == 1 ~ diff_ok,
-                     df[,col] > 1 ~ diff_bad)
+  color <- case_when(as.vector(df[,col] == 0) ~ "#ffffff",
+                     as.vector(df[,col] == 1) ~ diff_ok,
+                     as.vector(df[,col] > 1) ~ diff_bad)
   return(color)
 }
 
@@ -84,17 +84,17 @@ add_folcode <- function(df, col, jointbl){
 }
 
 check_covclass <- function(df, col1, col2){
-  color = case_when(df[,col1] == df[,col2] ~ "#ffffff",
-                    abs(df[,col1] - df[,col2]) > 1 ~ diff_bad,
-                    abs(df[,col1] - df[,col2]) == 1 ~ diff_ok,
+  color = case_when(as.vector(unlist(df[,col1] == df[,col2])) ~ "#ffffff",
+                    as.vector(unlist(abs(df[,col1] - df[,col2]))) > 1 ~ paste0(diff_bad),
+                    as.vector(unlist(abs(df[,col1] - df[,col2]))) == 1 ~ paste0(diff_ok),
                     TRUE ~ "#ffffff")
   return(color)
 }
 
 
 check_stems <- function(df, col1, col2){
-  color = case_when(df[,col1] == df[,col2] ~ "#ffffff",
-                    abs(df[,col1] - df[,col2]) > 0 ~ diff_bad,
+  color = case_when(as.vector(df[,col1] == df[,col2]) ~ "#ffffff",
+                    as.vector(abs(df[,col1] - df[,col2])) > 0 ~ diff_bad,
                     TRUE ~ "#ffffff")
   return(color)
 }
@@ -118,13 +118,12 @@ check_pct_diff <- function(df, col1, col2, pct_diff){
 
 check_20pct_diff <- function(df, col){
   vec = df[,col]
-  color = case_when(vec > 0 & vec < 1 ~ '#ffffff', 
-                    vec >= 1 & vec < 20 ~ diff_ok, 
-                    vec > 20 ~ diff_bad,
-                    TRUE ~ "#ffffff")
+  color = case_when(as.vector(vec > 0 & vec < 1) ~ paste0('#ffffff'), 
+                    as.vector(vec >= 1 & vec < 20) ~ paste0(diff_ok), 
+                    as.vector(vec > 20) ~ paste0(diff_bad),
+                    TRUE ~ paste0("#ffffff"))
   return(color)
 }
-
 
 pct_diff <- function(col1, col2){
   pct_diff =  (abs(col1 - col2)/((col1 + col2)/2))*100
