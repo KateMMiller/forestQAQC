@@ -73,7 +73,7 @@ tree <- do.call(joinTreeData, arglist) |>
          Decay = DecayClassCode, HWACode, BBDCode, Note = TreeEventNote)
 
 tree_sum <- tree |> group_by(Plot_Name, Status, ScientificName) |> 
-  summarize(num_stems = n()) |> ungroup()
+  summarize(num_stems = n(), .groups = 'drop') |> ungroup()
 
 head(tree)
 
@@ -141,7 +141,7 @@ quad_tramp <- get("QuadNotes_NETN", envir = VIEWS_NETN)
 
 quad_tramp_note <- quad_tramp |> group_by(Plot_Name, SampleYear) |> 
   filter(!is.na(SQQuadCharNotes)) |> filter(PanelCode == panel) |> 
-  summarize(Note = toString(unique(SQQuadCharNotes)))
+  summarize(Note = toString(unique(SQQuadCharNotes)), .groups = 'drop')
 
 quad_tramp2 <- quad_tramp |>  
   filter(EventID %in% ev_list$EventID) |> 

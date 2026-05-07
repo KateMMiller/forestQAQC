@@ -22,7 +22,8 @@ options(knitr.kable.NA = '')
 #           the same module, only 1 file exists. Where there are separate modules, MIDN's module is named. 
 #---------- NOTE: The photopoints, which are rendered last, must either be updated to where the photos for a given year
 #           are located on the MIDN server, your laptop, or an external drive. The file that needs to be checked is
-#           PrevVisit_5A_Photopoints_MIDN.Rmd
+#           PrevVisit_5A_Photopoints_MIDN.Rmd. If the path given can't be accessed upon knit, photopoints won't be included
+#           in the output.
 ```
 
 # Previous visit data for `r paste0(params$parkcode, " ", params$yearpv)` {.tabset .tabset-pills}
@@ -147,6 +148,23 @@ quadspp <- joinQuadSpecies(park = park, from = year, to = year,
   group_by(Plot_Name) |> 
   summarize(num_quadspp = sum(!ScientificName %in% "None present"))
 
+PI <- joinQuadSpecies(park = park, from = year, to = year, eventType = 'all', panel = panel) |> 
+  filter(ScientificName %in% "Toxicodendron radicans")
+
+PI_count <- PI |> 
+            mutate(PI_quads = num_quads*(quad_pct_freq/100)) |> 
+            filter(PI_quads > 0) |>  # Not really needed b/c there has to be 1 quad present for toxrad
+            mutate(Concerns = paste0("PI in ", PI_quads, " quads")) |> 
+            select(Plot_Name, Concerns) 
+
+PI_max <- PI |> rowwise() |> mutate(PI_max = max(c_across(starts_with("Pct_Cov")))) |> data.frame() |> 
+  mutate(Concerns = paste0("Max PI = ", PI_max, "%")) |> 
+  select(Plot_Name, Concerns)
+
+PI_mean <- PI |> mutate(PI_avg = round(quad_avg_cov, 1)) |> 
+                 mutate(Concerns = paste0("Avg. PI =  ", PI_avg, "%")) |> 
+                 select(Plot_Name, Concerns) 
+  
 addspp <- joinAdditionalSpecies(park = park, from = year, to = year,
                                 eventType = 'all', panel = panel) |> 
   group_by(Plot_Name) |> summarize(num_addspp = sum(addspp_present))
