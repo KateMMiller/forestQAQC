@@ -15,8 +15,8 @@ source("QAQC_report_functions.R")
 # forestMIDN::importCSV(path = "D:/NETN/R_Dev/data/", zip_name = "MIDN_Forest_20220321.zip") # zip after new views validated
 
 #----- Compile data
-# year = 2024 #2023
-# plot = "COLO-338" #VAFO-245
+# year = 2025 #2023
+# plot = "FRSP-223" #VAFO-245
 # loc_type = 'all'
 
 arglist = list(park = substr(plot, 1, 4), 

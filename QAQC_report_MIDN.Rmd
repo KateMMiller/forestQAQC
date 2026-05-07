@@ -196,15 +196,17 @@ tree_tab <- kable(tree_wide2 %>% select(-fol_diff, -dec_diff, -HWA_diff, -BBD_di
             column_spec(6:7, background = 
                           ifelse(!tree_wide2$IsDBHVerified_C %in% tree_wide2$IsDBHVerified_Q, diff_ok, "#ffffff")) %>% 
             column_spec(8:9, background = 
-                          case_when(substr(tree_wide2$TreeStatusCode_C, 1, 1) != "R" &
+                          case_when(as.vector(substr(tree_wide2$TreeStatusCode_C, 1, 1) != "R" &
                                     substr(tree_wide2$TreeStatusCode_C, 1, 1) != 
-                                      substr(tree_wide2$TreeStatusCode_Q, 1, 1) ~ diff_bad,
-                                    substr(tree_wide2$TreeStatusCode_C, 1, 1) != "R" &
-                                    tree_wide2$TreeStatusCode_C != tree_wide2$TreeStatusCode_Q ~ diff_ok,
+                                      substr(tree_wide2$TreeStatusCode_Q, 1, 1)) ~ diff_bad,
+                                    as.vector(substr(tree_wide2$TreeStatusCode_C, 1, 1) != "R" &
+                                    tree_wide2$TreeStatusCode_C != tree_wide2$TreeStatusCode_Q) ~ diff_ok,
                                     TRUE ~ "#ffffff")) %>% 
             column_spec(10:11, background = 
-                          case_when(abs(tree_wide2$CrownClassCode_C - tree_wide2$CrownClassCode_Q) > 1 ~ diff_bad,
-                                    abs(tree_wide2$CrownClassCode_C - tree_wide2$CrownClassCode_Q) == 1 ~ diff_ok,
+                          case_when(as.vector(abs(tree_wide2$CrownClassCode_C - 
+                                                    tree_wide2$CrownClassCode_Q) > 1) ~ diff_bad,
+                                    as.vector(abs(tree_wide2$CrownClassCode_C - 
+                                                    tree_wide2$CrownClassCode_Q) == 1) ~ diff_ok,
                                     TRUE ~ "#ffffff")) %>% 
             column_spec(12:13, background = 
                           case_when(tree_wide$fol_diff > 1 ~ diff_bad,
@@ -440,11 +442,11 @@ seeds_tab_ta <- if(nrow(sd_spp_to_include_15) + nrow(sd_spp_to_include_30) > 0){
                    row_spec(c(0, nrow(seeds_spp_wide2)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
                    row_spec(nrow(seeds_spp_wide2), bold = T, extra_css = "border-bottom: 1px solid #000000;") %>% 
                    column_spec(2:3, background = 
-                              case_when(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 3]) &
-                                          seeds_spp_wide2[nrow(seeds_spp_wide2), 3] < 0.9 ~ diff_bad, 
-                                        !is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 3]) &
+                              case_when(as.vector(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 3]) &
+                                          seeds_spp_wide2[nrow(seeds_spp_wide2), 3] < 0.9) ~ diff_bad, 
+                                        as.vector(!is.na(seeds_spp_wide2[nrow(seeds_spp_wide2), 3]) &
                                              seeds_spp_wide2[nrow(seeds_spp_wide2), 3] >= 0.9 &
-                                             seeds_spp_wide2[nrow(seeds_spp_wide2), 3] < 1 ~ diff_ok,
+                                             seeds_spp_wide2[nrow(seeds_spp_wide2), 3] < 1) ~ diff_ok,
                                            TRUE ~ "#ffffff"),
                                extra_css = "border-bottom: 1px solid #000000;") %>%
                    column_spec(4:5, background = 
@@ -555,11 +557,11 @@ quad_tab_ta <- if(nrow(quad_spp) > 0){ # this is prelim df to quad_spp_wide, onl
                    row_spec(c(0, nrow(quad_spp_wide2)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
                    row_spec(nrow(quad_spp_wide2), bold = T, extra_css = "border-bottom: 1px solid #000000;",
                              background = 
-                               case_when(!is.na(quad_spp_wide2[nrow(quad_spp_wide2), 3]) &
-                                           quad_spp_wide2[nrow(quad_spp_wide2), 3] < 0.9 ~ diff_bad, 
-                                         !is.na(quad_spp_wide2[nrow(quad_spp_wide2), 3]) &
+                               case_when(as.vector(!is.na(quad_spp_wide2[nrow(quad_spp_wide2), 3]) &
+                                           quad_spp_wide2[nrow(quad_spp_wide2), 3] < 0.9) ~ diff_bad, 
+                                         as.vector(!is.na(quad_spp_wide2[nrow(quad_spp_wide2), 3]) &
                                            quad_spp_wide2[nrow(quad_spp_wide2), 3] >= 0.9 &
-                                           quad_spp_wide2[nrow(quad_spp_wide2), 3] < 1 ~ diff_ok,
+                                           quad_spp_wide2[nrow(quad_spp_wide2), 3] < 1) ~ diff_ok,
                                            TRUE ~ "#ffffff"))
                    } 
 
@@ -629,11 +631,11 @@ plotspp_tab_ta <- if(nrow(plot_spp) > 0){ # this is prelim df to plot_spp_wide
                    row_spec(c(0, nrow(plot_spp_wide2)-1), extra_css = "border-bottom: 1px solid #000000;") %>% 
                    row_spec(nrow(plot_spp_wide2), bold = T, extra_css = "border-bottom: 1px solid #000000;",
                              background =
-                              case_when(!is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
-                                          plot_spp_wide2[nrow(plot_spp_wide2), 3] < 0.8 ~ diff_bad, 
-                                        !is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
+                              case_when(as.vector(!is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
+                                          plot_spp_wide2[nrow(plot_spp_wide2), 3] < 0.8) ~ diff_bad, 
+                                        as.vector(!is.na(plot_spp_wide2[nrow(plot_spp_wide2), 3]) &
                                              plot_spp_wide2[nrow(plot_spp_wide2), 3] >= 0.8 &
-                                             plot_spp_wide2[nrow(plot_spp_wide2), 3] < 1 ~ diff_ok,
+                                             plot_spp_wide2[nrow(plot_spp_wide2), 3] < 1) ~ diff_ok,
                                         TRUE ~ "#ffffff"))
                    } 
 

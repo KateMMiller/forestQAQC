@@ -15,8 +15,8 @@ source("QAQC_report_functions.R")
 #importData(name = "NETN_Forest_MABI_training")
 
 # Params for troubleshooting inside script
-# year = as.numeric(2023)
-# plot = "ACAD-078"
+# year = as.numeric(2025)
+# plot = "ACAD-156"
 # loc_type = "all"
 # plot_year <- paste0(plot, "-", year)
 
@@ -65,7 +65,7 @@ tree_hts_wide[missing_teams] <- NA_real_
 tree_hts_wide$ht_diff <- abs(tree_hts_wide$Crew - tree_hts_wide$QAQC)
 tree_hts_wide$ht_pct_diff <- pct_diff(tree_hts_wide$Crew, tree_hts_wide$QAQC)
 
-#check_20pct_diff(tree_hts_wide, "ht_pct_diff")
+check_20pct_diff(tree_hts_wide, "ht_pct_diff")
 
 #----- Tree Data
 live <- c("AB", "AF", "AL", "AS", "AM", "RB", "RF", "RL", "RS")
