@@ -15,8 +15,8 @@ source("QAQC_report_functions.R")
 #importData(name = "NETN_Forest_MABI_training")
 
 # Params for troubleshooting inside script
-# year = as.numeric(2025)
-# plot = "ACAD-156"
+# year = as.numeric(2026)
+# plot = "MABI-997"
 # loc_type = "all"
 # plot_year <- paste0(plot, "-", year)
 
