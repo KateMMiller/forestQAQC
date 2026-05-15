@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2025-06-30"
+  week_start: "2026-05-01"
   locType: 'all'
 
 ---
