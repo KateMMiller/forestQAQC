@@ -6,7 +6,7 @@ output:
     includes:
         in_header: "header_manual.html"
 params:
-  week_start: "2026-05-01"
+  week_start: "2026-05-17"
   locType: 'all'
 
 ---
@@ -18,7 +18,9 @@ options(knitr.kable.NA = '')
 ```
 
 ```{r import, include = FALSE, cache = FALSE}
-forestNETN::importData()
+#forestNETN::importData()
+forestNETN::importCSV(path = "C:/Users/KMMiller/OneDrive - DOI/NETN/R_Dev/data/NETN_forest_baks/", 
+                      zip_name = "NETN_Forest_20260526.zip")
 ```
 
 ```{r deps, include = FALSE}
