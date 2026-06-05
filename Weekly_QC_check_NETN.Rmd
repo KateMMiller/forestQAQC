@@ -20,7 +20,7 @@ options(knitr.kable.NA = '')
 ```{r import, include = FALSE, cache = FALSE}
 #forestNETN::importData()
 forestNETN::importCSV(path = "C:/Users/KMMiller/OneDrive - DOI/NETN/R_Dev/data/NETN_forest_baks/", 
-                      zip_name = "NETN_Forest_20260529.zip")
+                      zip_name = "NETN_Forest_20260605.zip")
 ```
 
 ```{r deps, include = FALSE}

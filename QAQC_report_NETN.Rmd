@@ -7,7 +7,7 @@ output:
         in_header: "header_manual.html"
 params:
   year: 2026
-  plot: "MABI-997"
+  plot: "ROVA-038"
   locType: "all"
 ---
 <div style="margin-left:-120px;width:100%">
@@ -25,9 +25,10 @@ library(htmltools)
 library(knitr)
 library(kableExtra)
 
-forestNETN::importData()
-#forestNETN::importData(name = "NETN_Forest_MABI_training")
-
+#forestNETN::importData()
+# forestNETN::importData(name = "NETN_Forest_022")
+forestNETN::importCSV(path = "C:/Users/KMMiller/OneDrive - DOI/NETN/R_Dev/data/NETN_forest_baks/", 
+                      zip_name = "NETN_Forest_20260605.zip")
 ```
 
 ```{r deps, include = FALSE}
