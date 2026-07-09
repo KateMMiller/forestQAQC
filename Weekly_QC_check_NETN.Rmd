@@ -44,7 +44,7 @@ source("Weekly_QC_compile_NETN.R")
 ### QC Checks {.tabset}
 #### Summary {.tabset}
 ```{r visits_checked, echo = F, results = 'hide'}
-visits_checked <- noquote(paste(new_evs_list, collapse = ", "))
+visits_checked <- noquote(paste(sort(new_evs_list), collapse = ", "))
 ```
 The following plot visits were checked for this report: <br>
 <br>
